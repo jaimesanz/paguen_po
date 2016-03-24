@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 from django.contrib import admin
 
-from .models import Vivienda
+from .models import *
 
 # Register your models here.
 admin.site.register(Vivienda)
+admin.site.register(Usuario)
