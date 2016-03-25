@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from forms import UserForm, UsuarioForm
 from django.contrib.auth.decorators import login_required
 
 
-def index(request):
+def home(request):
 	a = 5
 	b = 10
 	# locals() creates a dict() object with all the variables from the local scope. We are passing it to the template
-	return render(request, 'index.html', locals())
+	return render(request, 'home.html', locals())
 
 @login_required
 def login_test(request):
@@ -72,40 +72,51 @@ def register(request):
 def user_login(request):
     # this method was created using the following tutorial: http://www.tangowithdjango.com/book/chapters/login.html
 
-    # If the request is a HTTP POST, try to pull out the relevant information.
+    # if the request is a HTTP POST, try to pull out the relevant information.
     if request.method == 'POST':
-        # Gather the username and password provided by the user.
-        # This information is obtained from the login form.
+        # gather the username and password provided by the user.
+        # this information is obtained from the login form.
         username = request.POST['username']
         password = request.POST['password']
 
-        # Use Django's machinery to attempt to see if the username/password
+        # use Django's machinery to attempt to see if the username/password
         # combination is valid - a User object is returned if it is.
         user = authenticate(username=username, password=password)
 
-        # If we have a User object, the details are correct.
-        # If None (Python's way of representing the absence of a value), no user
+        # if we have a User object, the details are correct.
+        # if None (Python's way of representing the absence of a value), no user
         # with matching credentials was found.
         if user:
-            # Is the account active? It could have been disabled.
+            # is the account active? It could have been disabled.
             if user.is_active:
-                # If the account is valid and active, we can log the user in.
-                # We'll send the user back to the homepage.
+                # if the account is valid and active, we can log the user in.
+                # we'll send the user back to the homepage.
                 login(request, user)
-                return HttpResponseRedirect('/login_test')
+                return HttpResponseRedirect('/home')
             else:
-                # An inactive account was used - no logging in!
+                # an inactive account was used - no logging in!
                 return HttpResponse("Your account is disabled.")
         else:
-            # Bad login details were provided. So we can't log the user in.
+            # bad login details were provided. So we can't log the user in.
             print "Invalid login details: {0}, {1}".format(username, password)
             return HttpResponse("Invalid login details supplied.")
 
-    # The request is not a HTTP POST, so display the login form.
-    # This scenario would most likely be a HTTP GET.
+    # the request is not a HTTP POST, so display the login form.
+    # this scenario would most likely be a HTTP GET.
     else:
-        # No context variables to pass to the template system, hence the
+        # no context variables to pass to the template system, hence the
         # blank dictionary object...
         return render(request ,'login.html', {})
+
+
+@login_required
+def user_logout(request):
+    # this method was created using the following tutorial: http://www.tangowithdjango.com/book/chapters/login.html
+
+    # since we know the user is logged in, we can now just log them out.
+    logout(request)
+
+    # take the user back to the homepage.
+    return HttpResponseRedirect('/home/')
 
 
