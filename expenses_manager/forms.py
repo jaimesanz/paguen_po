@@ -9,8 +9,3 @@ class UserForm(forms.ModelForm):
 	class Meta:
 		model = User
 		fields = ('username', 'email', 'password')
-
-class UsuarioForm(forms.ModelForm):
-	class Meta:
-		model = Usuario
-		fields = ('alias',)

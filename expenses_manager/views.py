@@ -2,7 +2,7 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth import authenticate, login, logout
-from forms import UserForm, UsuarioForm
+from forms import UserForm
 from django.contrib.auth.decorators import login_required
 
 
