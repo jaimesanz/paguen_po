@@ -17,7 +17,10 @@ def login_test(request):
     return render(request, "login_test.html", locals())
 
 
+# TODO: read this document and see if it's worth using: https://django-registration.readthedocs.org/en/2.0.4/hmac.html#hmac-workflow
+# this would mean changing the current login system for the one described in the link
 def register(request):
+
     # this method was created using the following tutorial: http://www.tangowithdjango.com/book/chapters/login.html
 
     # A boolean value for telling the template whether the registration was successful.
