@@ -57,3 +57,21 @@ class YearMonth(models.Model):
 	def __unicode__(self):
 		return self.year + "__" + self.month
 
+class Presupuesto(models.Model):
+	class Meta:
+		unique_together = (('categoria', 'vivienda', 'year_month'),)
+	categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+	vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE)
+	year_month = models.ForeignKey(YearMonth, on_delete=models.CASCADE)
+
+	def __unicode__(self):
+		return "".join(self.vivienda, "__", self.categoria, "__", self.year_month)
+
+
+
+
+
+
+
+
+
