@@ -35,5 +35,8 @@ class SolicitudAbandonarVivienda(models.Model):
 	def __unicode__(self):
 		return creada_por + "__" + self.fecha
 
+class Categoria(models.Model):
+	nombre = models.CharField(max_length=100, primary_key=True)
 
-
+	def __unicode__(self):
+		return self.nombre
