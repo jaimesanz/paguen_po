@@ -67,6 +67,15 @@ class Presupuesto(models.Model):
 	def __unicode__(self):
 		return "".join((self.vivienda, "__", self.categoria, "__", self.year_month))
 
+class ListaCompras(models.Model):
+	usuario_creacion = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
+	fecha = models.DateField()
+	estado = models.CharField(max_length=255)
+
+	def __unicode__(self):
+		return "".join((self.usuario_creacion, "__", self.fecha, "__", self.estado))
+
+
 
 
 
