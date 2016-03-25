@@ -40,3 +40,10 @@ class Categoria(models.Model):
 
 	def __unicode__(self):
 		return self.nombre
+
+class Item(models.Model):
+	nombre = models.CharField(max_length=255)
+	descripcion = models.CharField(max_length=255)
+
+	def __unicode__(self):
+		return self.nombre
