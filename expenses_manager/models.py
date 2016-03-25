@@ -65,10 +65,7 @@ class Presupuesto(models.Model):
 	year_month = models.ForeignKey(YearMonth, on_delete=models.CASCADE)
 
 	def __unicode__(self):
-		return "".join(self.vivienda, "__", self.categoria, "__", self.year_month)
-
-
-
+		return "".join((self.vivienda, "__", self.categoria, "__", self.year_month))
 
 
 
