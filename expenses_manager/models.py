@@ -84,5 +84,16 @@ class ItemLista(models.Model):
 		return self.item + "__" + self.lista
 
 
+class Gasto(models.Model):
+	monto = models.IntegerField()
+	usuario = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE, null=True)
+	categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+	fecha_creacion = models.DateField()
+	fecha_pago = models.DateField(null=True)
+	year_month = models.ForeignKey(YearMonth, on_delete=models.CASCADE, null=True)
+	lista_compras = models.ForeignKey(ListaCompras, on_delete=models.CASCADE, blank=True, null=True)
+	estado = models.CharField(max_length=255)
+	def __unicode__(self):
+		return "".join((self.usuario, "__", self.categoria, "__", self.year_month))
 
 
