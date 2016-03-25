@@ -47,3 +47,13 @@ class Item(models.Model):
 
 	def __unicode__(self):
 		return self.nombre
+
+class YearMonth(models.Model):
+	class Meta:
+		unique_together = (('year', 'month'),)
+	year = models.IntegerField()
+	month = models.IntegerField()
+
+	def __unicode__(self):
+		return self.year + "__" + self.month
+
