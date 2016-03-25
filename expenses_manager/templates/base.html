@@ -4,7 +4,22 @@
 		<title>Expenses Manager</title>
 	</head>
 	<body>
-		{% block content %}
-		{% endblock %}
+		<div>
+			{% block content %}
+			{% endblock %}
+		</div>
+		<hr>
+		<div>
+			<ul>
+				<li><a href="/home">home</a></li>
+			{% if user.is_authenticated %}
+				<li><a href="/accounts/logout">logout</a></li>
+				<li><a href="/accounts/password/change">change password</a></li>
+			{% else %}
+				<li><a href="/accounts/login">go to login</a></li>
+				<li><a href="/accounts/register">register here</a></li>
+			{% endif %}
+			</ul>
+		</div>
 	</body>
 </html>
