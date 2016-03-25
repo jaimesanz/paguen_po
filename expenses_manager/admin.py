@@ -6,3 +6,4 @@ from .models import *
 # Register your models here.
 admin.site.register(Vivienda)
 admin.site.register(ViviendaUsuario)
+admin.site.register(Invitacion)
