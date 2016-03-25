@@ -1,5 +1,5 @@
-<html>
-    <body>
-        <h1>Mr {{user.username}}, you are indeed logged in</h1>
-    </body>
-</html>
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Mr {{user.username}}, you are indeed logged in</h1>
+{% endblock %}
