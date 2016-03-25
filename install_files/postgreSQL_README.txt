@@ -27,7 +27,7 @@ source admin_gastos/bin/activate
 pip install psycopg2
 
 6.- edit project settings:
-nano ~/admin_gastos/mysite/settings.py
+nano ~/admin_gastos/project_root/settings.py
 
 7.- change database settings to this:
 DATABASES = {
