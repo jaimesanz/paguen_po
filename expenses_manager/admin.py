@@ -7,3 +7,4 @@ from .models import *
 admin.site.register(Vivienda)
 admin.site.register(ViviendaUsuario)
 admin.site.register(Invitacion)
+admin.site.register(SolicitudAbandonarVivienda)

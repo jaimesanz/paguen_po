@@ -26,3 +26,14 @@ class Invitacion(models.Model):
 
 	def __unicode__(self):
 		return self.invitado + "__invited__" + self.invitado_por
+
+class SolicitudAbandonarVivienda(models.Model):
+	creada_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
+	fecha = models.DateField()
+	estado = models.CharField(max_length=100)
+
+	def __unicode__(self):
+		return creada_por + "__" + self.fecha
+
+
+
