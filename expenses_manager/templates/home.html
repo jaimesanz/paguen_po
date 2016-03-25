@@ -3,7 +3,8 @@
 		<h1>
 			{% if user.is_authenticated %}
 			Hello {{user.username}}
-			<a href="/accounts/logout">logout</a>
+			<a href="/accounts/logout">logout</a><br>
+			<a href="/accounts/password/change">change password</a>
 			{% else %}
 			Hello unregistered user<br>
 			<a href="/accounts/login">go to login</a><br>

@@ -15,6 +15,3 @@ def home(request):
 @login_required
 def login_test(request):
     return render(request, "login_test.html", locals())
-
-
-# TODO: read this document and see if it's worth using: https://django-registration.readthedocs.org/en/2.0.4/hmac.html#hmac-workflow
