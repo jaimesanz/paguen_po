@@ -1,0 +1,19 @@
+CREATE
+
+- To create the branch on your local machine and switch in this branch :
+
+git checkout -b [name_of_your_new_branch]
+
+- To push the branch on github :
+
+git push origin [name_of_your_new_branch]
+
+DELETE
+
+- To delete a local branch:
+
+git branch -d the_local_branch
+
+- To remove a remote branch (if you know what you are doing!)
+
+git push origin :the_remote_branch
