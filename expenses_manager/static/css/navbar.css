@@ -29,7 +29,7 @@
 #navbar.align-center ul {
   text-align: center;
 }
-#navbar ul li a {
+#navbar ul li a , .navbar-brand{
   color: #ffffff;
   text-decoration: none;
   display: block;
@@ -81,7 +81,7 @@
 #navbar ul li:last-child > a:after {
   display: none;
 }
-#navbar ul li.active a {
+#navbar .navbar ul li.active a {
   color: #333333;
 }
 #navbar ul li.active a:before {
@@ -94,11 +94,12 @@
 #navbar.align-right li:first-child a:after {
   display: none;
 }
+
+.navbar-default .navbar-brand {
+  color: white;
+}
+
 @media screen and (max-width: 768px) {
-  #navbar ul li {
-    float: none;
-    display: block;
-  }
   #navbar ul li a {
     width: 100%;
     -moz-box-sizing: border-box;

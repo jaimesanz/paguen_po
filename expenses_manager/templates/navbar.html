@@ -1,12 +1,32 @@
-<div id='navbar' class="navbar">
-	<ul>
-		<li class='active'><a href="/home"><span>Home</span></a></li>
-		{% if user.is_authenticated %}
-		<li><a href="/accounts/password/change"><span>Change Password</span></a></li>
-		<li class='last'><a href="/accounts/logout"><span>Logout</span></a></li>
-		{% else %}
-		<li><a href="/accounts/login"><span>Login</span></a></li>
-		<li class='last'><a href="/accounts/register"><span>Register</span></a></li>
-		{% endif %}
-	</ul>
-</div>
+<nav id="navbar" role="navigation" class="navbar navbar-default">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+        <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a href="/home" class="navbar-brand">Cherry</a>
+    </div>
+    <!-- Collection of nav links and other content for toggling -->
+    <div id="navbarCollapse" class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+        	<li><a href="/home">Home</a></li>
+        	{% if user.is_authenticated %}
+        	<li><a href="/accounts/password/change">Change Password</a></li>
+        	{% else %}
+        	<li><a href="/home">About</a></li>
+        	<li class='last'><a href="/accounts/register">Register</a></li>
+        	{% endif %}
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+        	{% if user.is_authenticated %}
+        	<li class='last'><a href="/accounts/logout">Logout</a></li>
+        	{% else %}
+        	<li><a href="/accounts/login">Login</a></li>
+        	{% endif %}
+        </ul>
+    </div>
+</nav>
+
