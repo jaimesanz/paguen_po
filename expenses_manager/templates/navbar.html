@@ -1,0 +1,12 @@
+<div id='navbar'>
+	<ul>
+		<li class='active'><a href="/home"><span>Home</span></a></li>
+		{% if user.is_authenticated %}
+		<li><a href="/accounts/logout"><span>Logout</span></a></li>
+		<li class='last'><a href="/accounts/password/change"><span>Change Password</span></a></li>
+		{% else %}
+		<li><a href="/accounts/login"><span>Login</span></a></li>
+		<li class='last'><a href="/accounts/register"><span>Register</span></a></li>
+		{% endif %}
+	</ul>
+</div>

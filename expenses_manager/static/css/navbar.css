@@ -1,9 +1,9 @@
 @import url(http://fonts.googleapis.com/css?family=Open+Sans:700);
-#cssmenu {
+#navbar {
   background: #f96e5b;
   width: auto;
 }
-#cssmenu ul {
+#navbar ul {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -11,7 +11,7 @@
   display: block;
   zoom: 1;
 }
-#cssmenu ul:after {
+#navbar ul:after {
   content: " ";
   display: block;
   font-size: 0;
@@ -19,18 +19,18 @@
   clear: both;
   visibility: hidden;
 }
-#cssmenu ul li {
+#navbar ul li {
   display: inline-block;
   padding: 0;
   margin: 0;
 }
-#cssmenu.align-right ul li {
+#navbar.align-right ul li {
   float: right;
 }
-#cssmenu.align-center ul {
+#navbar.align-center ul {
   text-align: center;
 }
-#cssmenu ul li a {
+#navbar ul li a {
   color: #ffffff;
   text-decoration: none;
   display: block;
@@ -46,13 +46,13 @@
   -o-transition: color .25s;
   transition: color .25s;
 }
-#cssmenu ul li a:hover {
+#navbar ul li a:hover {
   color: #333333;
 }
-#cssmenu ul li a:hover:before {
+#navbar ul li a:hover:before {
   width: 100%;
 }
-#cssmenu ul li a:after {
+#navbar ul li a:after {
   content: "";
   display: block;
   position: absolute;
@@ -63,7 +63,7 @@
   background: #ffffff;
   opacity: .5;
 }
-#cssmenu ul li a:before {
+#navbar ul li a:before {
   content: "";
   display: block;
   position: absolute;
@@ -78,43 +78,43 @@
   -o-transition: width .25s;
   transition: width .25s;
 }
-#cssmenu ul li.last > a:after,
-#cssmenu ul li:last-child > a:after {
+#navbar ul li.last > a:after,
+#navbar ul li:last-child > a:after {
   display: none;
 }
-#cssmenu ul li.active a {
+#navbar ul li.active a {
   color: #333333;
 }
-#cssmenu ul li.active a:before {
+#navbar ul li.active a:before {
   width: 100%;
 }
-#cssmenu.align-right li.last > a:after,
-#cssmenu.align-right li:last-child > a:after {
+#navbar.align-right li.last > a:after,
+#navbar.align-right li:last-child > a:after {
   display: block;
 }
-#cssmenu.align-right li:first-child a:after {
+#navbar.align-right li:first-child a:after {
   display: none;
 }
 @media screen and (max-width: 768px) {
-  #cssmenu ul li {
+  #navbar ul li {
     float: none;
     display: block;
   }
-  #cssmenu ul li a {
+  #navbar ul li a {
     width: 100%;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
     border-bottom: 1px solid #fb998c;
   }
-  #cssmenu ul li.last > a,
-  #cssmenu ul li:last-child > a {
+  #navbar ul li.last > a,
+  #navbar ul li:last-child > a {
     border: 0;
   }
-  #cssmenu ul li a:after {
+  #navbar ul li a:after {
     display: none;
   }
-  #cssmenu ul li a:before {
+  #navbar ul li a:before {
     display: none;
   }
 }
