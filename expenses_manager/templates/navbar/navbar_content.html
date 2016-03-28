@@ -1,7 +1,10 @@
 <!-- <li><a href="/home">Home</a></li> -->
 {% if user.is_authenticated %}
-<li><a href="/nueva_vivienda">Crear Vivienda</a></li>
-<li><a href="/consultar_vivienda">Vivienda</a></li>
+{% if request.session.user_has_vivienda %}
+	<li><a href="/consultar_vivienda">Vivienda</a></li>
+{% else %}
+	<li><a href="/nueva_vivienda">Crear Vivienda</a></li>
+{% endif %}
 <li><a href="/invites_list">Invitaciones</a></li>
 {% else %}
 <li class='last'><a href="/accounts/register">Registrarse</a></li>

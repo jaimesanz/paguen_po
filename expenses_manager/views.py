@@ -11,6 +11,11 @@ def home(request):
 	# locals() creates a dict() object with all the variables from the local scope. We are passing it to the template
 	return render(request, 'home.html', locals())
 
+def login_post_process(request):
+	# set session variables here
+	request.session['user_has_vivienda']=len(ViviendaUsuario.objects.filter(user=request.user))>0
+	return HttpResponseRedirect("/home")
+
 @login_required
 def invites_list(request):
 	# get list of invites for this user
@@ -28,6 +33,7 @@ def nueva_vivienda(request):
 			# create new viviendausuario
 			vivienda_usuario = ViviendaUsuario(vivienda=new_viv, user=request.user)
 			vivienda_usuario.save()
+			request.session['user_has_vivienda']=True
 			return HttpResponseRedirect("/home")
 
 	vivienda_form = ViviendaForm()

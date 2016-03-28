@@ -2,8 +2,8 @@
 
 {% block content %}
 	{% if user.is_authenticated %}
-	<p>Hola {{user.username}}.</p>
+		<p>Hola {{user.username}}.</p>
 	{% else %}
-	<p>Hola!</p>
+		<p>Hola!</p>
 	{% endif %}
 {% endblock %}
