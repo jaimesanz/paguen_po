@@ -12,20 +12,10 @@
     <!-- Collection of nav links and other content for toggling -->
     <div id="navbarCollapse" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
-        	<li><a href="/home">Home</a></li>
-        	{% if user.is_authenticated %}
-        	<li><a href="/accounts/password/change">Change Password</a></li>
-        	{% else %}
-        	<li><a href="/home">About</a></li>
-        	<li class='last'><a href="/accounts/register">Register</a></li>
-        	{% endif %}
+            {% include "navbar/navbar_content.html" %}
         </ul>
         <ul class="nav navbar-nav navbar-right">
-        	{% if user.is_authenticated %}
-        	<li class='last'><a href="/accounts/logout">Logout</a></li>
-        	{% else %}
-        	<li><a href="/accounts/login">Login</a></li>
-        	{% endif %}
+            {% include "navbar/navbar_content_right.html" %}
         </ul>
     </div>
 </nav>

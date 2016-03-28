@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from forms import UserForm
 from django.contrib.auth.decorators import login_required
+from models import *
 
 
 def home(request):
@@ -14,4 +15,14 @@ def home(request):
 
 @login_required
 def login_test(request):
-    return render(request, "login_test.html", locals())
+	return render(request, "login_test.html", locals())
+
+@login_required
+def invites_list(request):
+	# get list of invites for this user
+	invites = Invitacion.objects.filter(invitado=request.user)
+	return render(request, "invites_list.html", locals())
+
+@login_required
+def new_vivienda(request):
+	return render(request, "new_vivienda.html", locals())

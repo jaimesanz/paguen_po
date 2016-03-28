@@ -1,0 +1,6 @@
+<li><a href="/home">About</a></li>
+{% if user.is_authenticated %}
+<li class='last'><a href="/accounts/logout">Logout</a></li>
+{% else %}
+<li><a href="/accounts/login">Login</a></li>
+{% endif %}

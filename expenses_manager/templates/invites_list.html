@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<p>Hello {{user.username}}x.</p>
+	<br>
+
+	<script type="text/javascript">
+	console.log("printing all invites");
+	{% for i in invites %}
+		console.log(i);
+	{% endfor %}
+	console.log("printing done");
+	</script>
+{% endblock %}
