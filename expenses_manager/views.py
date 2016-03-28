@@ -27,6 +27,10 @@ def invites_list(request):
 	return render(request, "invites_list.html", locals())
 
 @login_required
+def invite_user(request):
+	return render(request, "invite_user.html", locals())
+
+@login_required
 def nueva_vivienda(request):
 	if request.POST:
 		form = ViviendaForm(request.POST)
