@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<h1>Invitaciones</h1>
+	<p>{{invite.invitado_por.user}} te invitó a formar parte de {{invite.invitado_por.vivienda}} </p>
+	<form action="" method="post">
+		{% csrf_token %}
+		<input type="submit" name="SubmitButton" value="Aceptar"></input>
+		<input type="submit" name="SubmitButton" value="Declinar"></input>
+	</form>
+{% endblock %}

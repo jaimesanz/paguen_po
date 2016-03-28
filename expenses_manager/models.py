@@ -24,8 +24,15 @@ class Invitacion(models.Model):
 	invitado = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 	invitado_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
 	email = models.EmailField()
+	estado = models.CharField(max_length=200, default="pendiente")
+	# estado es pendiente, rechazada o aceptada
 	def __unicode__(self):
-		return str(self.invitado) + "__invited__" + str(self.invitado_por)
+		return str(self.invitado_por) + "__invited__" + str(self.invitado)
+	def accept(self):
+		self.estado = "aceptada"
+		return ViviendaUsuario(user=self.invitado, vivienda=self.invitado_por.vivienda)
+	def reject(self):
+		self.estado = "rechazada"
 
 class SolicitudAbandonarVivienda(models.Model):
 	creada_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)

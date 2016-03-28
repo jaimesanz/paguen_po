@@ -14,3 +14,8 @@ class ViviendaForm(forms.ModelForm):
 	class Meta:
 		model = Vivienda
 		fields = ('alias',)
+
+class InvitacionForm(forms.ModelForm):
+	class Meta:
+		model = Invitacion
+		fields = ("email",)

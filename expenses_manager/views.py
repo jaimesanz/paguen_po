@@ -22,13 +22,57 @@ def login_post_process(request):
 
 @login_required
 def invites_list(request):
-	# get list of invites for this user
-	invites = Invitacion.objects.filter(invitado=request.user)
+	# get list of pending invites for this user
+	invites = Invitacion.objects.filter(invitado=request.user, estado="pendiente")
 	return render(request, "invites_list.html", locals())
 
 @login_required
 def invite_user(request):
+	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
+	if request.POST:
+		post = request.POST.copy()
+		post['invitado_por']=vivienda_usuario
+		form = InvitacionForm(post)
+		if form.is_valid():
+			# TODO check that no user with that mail is already in the Vivienda
+			if post['email']==request.user.email:
+				# TODO show message "you cant invite yourself!"
+				return HttpResponseRedirect("/vivienda/")
+			invited_user = User.objects.get(email=post['email'])
+			if invited_user is not None:
+				invite = Invitacion(email=post['email'], invitado_por=vivienda_usuario, invitado=invited_user)
+				# TODO send email with link to register
+			else:
+				invite = Invitacion(email=post['email'], invitado_por=vivienda_usuario)
+				# TODO send email with link accept/decline
+			invite.save()
+			return HttpResponseRedirect("/home")
+		else:
+			return HttpResponseRedirect("/about")
+	invite_form = InvitacionForm()
 	return render(request, "invite_user.html", locals())
+
+@login_required
+def invite(request, invite_id):
+	# TODO check that the user has permission to view this invite
+	invite = Invitacion.objects.get(id=invite_id)
+	if request.POST:
+		ans = request.POST['SubmitButton']
+		if ans == "Aceptar":
+			if request.session['user_has_vivienda']:
+				# user can't have 2 viviendas
+				# TODO show message saying he must leave the current vivienda before joining another
+				return HttpResponseRedirect("/invites_list")
+			new_vivienda_usuario = invite.accept()
+			request.session['user_has_vivienda']=True
+			new_vivienda_usuario.save()
+		else:
+			invite.reject()
+		invite.save()
+		# TODO show message saying the nvite was accepted or rejected
+		return HttpResponseRedirect("/home")
+
+	return render(request, "invite.html", locals())
 
 @login_required
 def nueva_vivienda(request):
@@ -48,11 +92,12 @@ def nueva_vivienda(request):
 	return render(request, "nueva_vivienda.html", locals())
 
 @login_required
-def consultar_vivienda(request):
+def vivienda(request):
 	# get the user's vivienda
 	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
 	# TODO show error message if there are 2 viviendausuario (shouldn't happen!)
-	return render(request, "consultar_vivienda.html", locals())
+	roommates = ViviendaUsuario.objects.filter(vivienda=vivienda_usuario.vivienda)
+	return render(request, "vivienda.html", locals())
 
 @login_required
 def user_info(request):

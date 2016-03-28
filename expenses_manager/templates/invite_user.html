@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-	formulario para invitar usuario
+	<h1>{{vivienda_usuario.vivienda}}</h1>
+	<form method="post" action="">
+		{% csrf_token %}
+		{{ invite_form.as_p }}
+		<input type="submit" value="Invitar usuario"></input>
+	</form>
 {% endblock %}
