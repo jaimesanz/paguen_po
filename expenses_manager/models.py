@@ -16,7 +16,7 @@ class ViviendaUsuario(models.Model):
 	vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE)
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	def __unicode__(self):
-		return self.vivienda + "__" + self.user
+		return str(self.vivienda) + "__" + str(self.user)
 
 class Invitacion(models.Model):
 	# this key can be null if you invite an account-less user. In this case the invitation is sent to the email.

@@ -9,3 +9,8 @@ class UserForm(forms.ModelForm):
 	class Meta:
 		model = User
 		fields = ('username', 'email', 'password')
+
+class ViviendaForm(forms.ModelForm):
+	class Meta:
+		model = Vivienda
+		fields = ('alias',)

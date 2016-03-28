@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-	<p>Holiwi</p>
+	<form method="post" action="">
+		{% csrf_token %}
+		{{ vivienda_form.as_p }}
+		<input type="submit" value="Crear Vivienda"></input>
+	</form>
 {% endblock %}

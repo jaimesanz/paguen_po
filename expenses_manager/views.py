@@ -2,7 +2,7 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth import authenticate, login, logout
-from forms import UserForm
+from forms import *
 from django.contrib.auth.decorators import login_required
 from models import *
 
@@ -25,4 +25,16 @@ def invites_list(request):
 
 @login_required
 def nueva_vivienda(request):
+	if request.POST:
+		form = ViviendaForm(request.POST)
+		if form.is_valid():
+			# process data
+			# save new vivienda
+			new_viv = form.save()
+			# create new viviendausuario
+			vivienda_usuario = ViviendaUsuario(vivienda=new_viv, user=request.user)
+			vivienda_usuario.save()
+			return HttpResponseRedirect("/home")
+
+	vivienda_form = ViviendaForm()
 	return render(request, "nueva_vivienda.html", locals())
