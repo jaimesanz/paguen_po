@@ -24,5 +24,5 @@ def invites_list(request):
 	return render(request, "invites_list.html", locals())
 
 @login_required
-def new_vivienda(request):
-	return render(request, "new_vivienda.html", locals())
+def nueva_vivienda(request):
+	return render(request, "nueva_vivienda.html", locals())
