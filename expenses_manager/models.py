@@ -15,6 +15,7 @@ class ViviendaUsuario(models.Model):
 		unique_together = (('vivienda', 'user'),)
 	vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE)
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
+
 	def __unicode__(self):
 		return str(self.vivienda) + "__" + str(self.user)
 
@@ -24,14 +25,14 @@ class Invitacion(models.Model):
 	invitado_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
 	email = models.EmailField()
 	def __unicode__(self):
-		return self.invitado + "__invited__" + self.invitado_por
+		return str(self.invitado) + "__invited__" + str(self.invitado_por)
 
 class SolicitudAbandonarVivienda(models.Model):
 	creada_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
 	fecha = models.DateField()
 	estado = models.CharField(max_length=100)
 	def __unicode__(self):
-		return creada_por + "__" + self.fecha
+		return str(self.creada_por) + "__" + str(self.fecha)
 
 class Categoria(models.Model):
 	nombre = models.CharField(max_length=100, primary_key=True)
@@ -51,7 +52,7 @@ class YearMonth(models.Model):
 	year = models.IntegerField()
 	month = models.IntegerField()
 	def __unicode__(self):
-		return self.year + "__" + self.month
+		return str(self.year) + "__" + str(self.month)
 
 class Presupuesto(models.Model):
 	class Meta:
@@ -61,15 +62,14 @@ class Presupuesto(models.Model):
 	vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE)
 	year_month = models.ForeignKey(YearMonth, on_delete=models.CASCADE)
 	def __unicode__(self):
-		return "".join((self.vivienda, "__", self.categoria, "__", self.year_month))
+		return "".join((str(self.vivienda), "__", str(self.categoria), "__", str(self.year_month)))
 
 class ListaCompras(models.Model):
 	usuario_creacion = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
 	fecha = models.DateField()
 	estado = models.CharField(max_length=255)
 	def __unicode__(self):
-		return "".join((self.usuario_creacion, "__", self.fecha, "__", self.estado))
-
+		return "".join((str(self.usuario_creacion), "__", str(self.fecha), "__", str(self.estado)))
 
 class ItemLista(models.Model):
 	class Meta:
@@ -81,8 +81,7 @@ class ItemLista(models.Model):
 	cantidad_comprada = models.IntegerField()
 	estado = models.CharField(max_length=255)
 	def __unicode__(self):
-		return self.item + "__" + self.lista
-
+		return str(self.item) + "__" + str(self.lista)
 
 class Gasto(models.Model):
 	monto = models.IntegerField()
@@ -94,6 +93,4 @@ class Gasto(models.Model):
 	lista_compras = models.ForeignKey(ListaCompras, on_delete=models.CASCADE, blank=True, null=True)
 	estado = models.CharField(max_length=255)
 	def __unicode__(self):
-		return "".join((self.usuario, "__", self.categoria, "__", self.year_month))
-
-
+		return "".join((str(self.usuario), "__", str(self.categoria), "__", str(self.year_month)))

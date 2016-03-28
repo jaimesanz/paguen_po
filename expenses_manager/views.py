@@ -8,8 +8,6 @@ from models import *
 
 
 def home(request):
-	a = 5
-	b = 10
 	# locals() creates a dict() object with all the variables from the local scope. We are passing it to the template
 	return render(request, 'home.html', locals())
 
@@ -38,3 +36,11 @@ def nueva_vivienda(request):
 
 	vivienda_form = ViviendaForm()
 	return render(request, "nueva_vivienda.html", locals())
+
+@login_required
+def consultar_vivienda(request):
+	# get the user's vivienda
+	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
+	# TODO show error message if there are 2 viviendausuario (shouldn't happen!)
+	return render(request, "consultar_vivienda.html", locals())
+
