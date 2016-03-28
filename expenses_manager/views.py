@@ -11,6 +11,9 @@ def home(request):
 	# locals() creates a dict() object with all the variables from the local scope. We are passing it to the template
 	return render(request, 'home.html', locals())
 
+def about(request):
+	return render(request, "about.html", locals())
+
 @login_required
 def login_post_process(request):
 	# set session variables here
