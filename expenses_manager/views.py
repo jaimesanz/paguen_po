@@ -11,6 +11,7 @@ def home(request):
 	# locals() creates a dict() object with all the variables from the local scope. We are passing it to the template
 	return render(request, 'home.html', locals())
 
+@login_required
 def login_post_process(request):
 	# set session variables here
 	request.session['user_has_vivienda']=len(ViviendaUsuario.objects.filter(user=request.user))>0
