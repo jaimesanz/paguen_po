@@ -12,10 +12,6 @@ def home(request):
 	return render(request, 'home.html', locals())
 
 @login_required
-def login_test(request):
-	return render(request, "login_test.html", locals())
-
-@login_required
 def invites_list(request):
 	# get list of invites for this user
 	invites = Invitacion.objects.filter(invitado=request.user)
@@ -46,4 +42,5 @@ def consultar_vivienda(request):
 
 @login_required
 def user_info(request):
+	print request.session
 	return render(request, "user_info.html", locals())
