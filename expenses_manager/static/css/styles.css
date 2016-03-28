@@ -2,3 +2,10 @@
   width:80%;
   margin:0 auto;/*this will center the content*/
 }
+
+@media screen and (max-width: 768px) {
+  #content{
+    width:100%;
+    margin:0 auto;/*this will center the content*/
+  }
+}
