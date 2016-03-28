@@ -44,3 +44,6 @@ def consultar_vivienda(request):
 	# TODO show error message if there are 2 viviendausuario (shouldn't happen!)
 	return render(request, "consultar_vivienda.html", locals())
 
+@login_required
+def user_info(request):
+	return render(request, "user_info.html", locals())
