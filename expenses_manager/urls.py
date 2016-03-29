@@ -20,5 +20,8 @@ urlpatterns = [
 	url(r'^manage_users/$', views.manage_users, name='manage_users'),
 	url(r'^balance/$', views.balance, name='balance'),
 	url(r'^visualizations/$', views.visualizations, name='visualizations'),
+	url(r'^abandon/$', views.abandon, name='abandon'),
+	url(r'^gastos/$', views.gastos, name='gastos'),
+	url(r'^presupuestos/$', views.presupuestos, name='presupuestos'),
 	url(r'^$', views.home, name='home')
 ]

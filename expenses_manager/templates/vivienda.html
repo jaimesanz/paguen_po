@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
+{% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
 {% block content %}
-	<h1>{{vivienda_usuario.vivienda}}</h1>
 	<p>Usuarios de la vivienda:</p>
 	<ul>
 		{% for rm in roommates %}
@@ -12,4 +12,6 @@
 	<p><a href="/manage_users">Gestionar usuarios</a></p>
 	<p><a href="/balance">Ver balance de gastos</a></p>
 	<p><a href="/visualizations">Ver visualizaciones</a></p>
+	<p><a href="/gastos">Ver listado de gastos</a></p>
+	<p><a href="/presupuestos">Ver presupuestos</a></p>
 {% endblock %}

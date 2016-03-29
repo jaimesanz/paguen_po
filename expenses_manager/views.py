@@ -110,7 +110,7 @@ def nueva_vivienda(request):
 			vivienda_usuario = ViviendaUsuario(vivienda=new_viv, user=request.user)
 			vivienda_usuario.save()
 			request.session['user_has_vivienda']=True
-			return HttpResponseRedirect("/home")
+			return HttpResponseRedirect("/vivienda")
 
 	vivienda_form = ViviendaForm()
 	return render(request, "nueva_vivienda.html", locals())
@@ -129,9 +129,28 @@ def manage_users(request):
 	return render(request, "manage_users.html", locals())
 
 @login_required
+def abandon(request):
+	if request.POST:
+		get_object_or_404(ViviendaUsuario, user=request.user).delete()
+		request.session['user_has_vivienda']=False
+	return HttpResponseRedirect("/home")
+
+@login_required
 def balance(request):
+	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
 	return render(request, "balance.html", locals())
 
 @login_required
 def visualizations(request):
+	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
 	return render(request, "visualizations.html", locals())
+
+@login_required
+def gastos(request):
+	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
+	return render(request, "gastos.html", locals())
+
+@login_required
+def presupuestos(request):
+	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
+	return render(request, "presupuestos.html", locals())

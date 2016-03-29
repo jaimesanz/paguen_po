@@ -2,6 +2,8 @@
 
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
 {% block content %}
+	<h3>Gestionar Usuarios</h3>
 	<p>¿Qué desea hacer?</p>
 	<p><a href="/invite_user">Invitar usuarios a la vivienda</a></p>
+	<form action="/abandon/" method="POST">{% csrf_token %}<input type="submit" name="submit" value="Abandonar vivienda"></input></form>
 {% endblock %}
