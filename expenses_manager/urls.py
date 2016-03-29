@@ -16,5 +16,6 @@ urlpatterns = [
 	url(r'^about/$', views.about, name='about'),
 	url(r'^invite_user/$', views.invite_user, name='invite_user'),
 	url(r'^invite/(?P<invite_id>.*)/$', views.invite, name='invite'),
+	url(r'^error/$', views.error, name='error'),
 	url(r'^$', views.home, name='home')
 ]

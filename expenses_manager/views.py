@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from forms import *
 from django.contrib.auth.decorators import login_required
 from models import *
+
 
 
 def home(request):
@@ -13,6 +14,9 @@ def home(request):
 
 def about(request):
 	return render(request, "about.html", locals())
+
+def error(request):
+	return render(request, "error.html", locals())
 
 @login_required
 def login_post_process(request):
@@ -55,8 +59,8 @@ def invite_user(request):
 
 @login_required
 def invite(request, invite_id):
-	# TODO check that the user has permission to view this invite
-	invite = Invitacion.objects.get(id=invite_id)
+	# TODO add custom error 404 page
+	invite = get_object_or_404(Invitacion, id=invite_id)
 	invite_in = invite.invitado == request.user
 	if invite_in:
 		if request.POST:
@@ -87,7 +91,7 @@ def invite(request, invite_id):
 		return render(request, "invites/invite.html", locals())
 	else:
 		# redirect to page showing message "restricted" 
-		return HttpResponseRedirect("/invites_list")
+		return HttpResponseRedirect("/error")
 
 @login_required
 def nueva_vivienda(request):
