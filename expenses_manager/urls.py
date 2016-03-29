@@ -18,5 +18,6 @@ urlpatterns = [
 	url(r'^invite/(?P<invite_id>.*)/$', views.invite, name='invite'),
 	url(r'^error/$', views.error, name='error'),
 	url(r'^manage_users/$', views.manage_users, name='manage_users'),
+	url(r'^balance/$', views.balance, name='balance'),
 	url(r'^$', views.home, name='home')
 ]

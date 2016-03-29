@@ -25,6 +25,11 @@ def login_post_process(request):
 	return HttpResponseRedirect("/home")
 
 @login_required
+def user_info(request):
+	print request.session
+	return render(request, "user_info.html", locals())
+
+@login_required
 def invites_list(request):
 	# get list of pending invites for this user
 	invites_in = Invitacion.objects.filter(invitado=request.user, estado="pendiente")
@@ -111,11 +116,6 @@ def nueva_vivienda(request):
 	return render(request, "nueva_vivienda.html", locals())
 
 @login_required
-def manage_users(request):
-	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
-	return render(request, "manage_users.html", locals())
-
-@login_required
 def vivienda(request):
 	# get the user's vivienda
 	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
@@ -124,6 +124,10 @@ def vivienda(request):
 	return render(request, "vivienda.html", locals())
 
 @login_required
-def user_info(request):
-	print request.session
-	return render(request, "user_info.html", locals())
+def manage_users(request):
+	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
+	return render(request, "manage_users.html", locals())
+
+@login_required
+def balance(request):
+	return render(request, "balance.html", locals())
