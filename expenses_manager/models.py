@@ -33,6 +33,8 @@ class Invitacion(models.Model):
 		return ViviendaUsuario(user=self.invitado, vivienda=self.invitado_por.vivienda)
 	def reject(self):
 		self.estado = "rechazada"
+	def cancel(self):
+		self.estado = "cancelada"
 
 class SolicitudAbandonarVivienda(models.Model):
 	creada_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)

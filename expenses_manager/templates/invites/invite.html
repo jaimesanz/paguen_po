@@ -2,10 +2,18 @@
 
 {% block content_title %}Invitaciones{% endblock %}
 {% block content %}
-	<p>{{invite.invitado_por.user}} te invitó a formar parte de {{invite.invitado_por.vivienda}} </p>
-	<form action="" method="post">
-		{% csrf_token %}
-		<input type="submit" name="SubmitButton" value="Aceptar"></input>
-		<input type="submit" name="SubmitButton" value="Declinar"></input>
-	</form>
+	{% if invite_in %}
+		<p>{{invite.invitado_por.user}} te invitó a formar parte de {{invite.invitado_por.vivienda}} </p>
+		<form action="" method="post">
+			{% csrf_token %}
+			<input type="submit" name="SubmitButton" value="Aceptar"></input>
+			<input type="submit" name="SubmitButton" value="Declinar"></input>
+		</form>
+	{% else %}
+		<p>Has invitado a {{invite.invitado_por.user}} a formar parte de {{invite.invitado_por.vivienda}} </p>
+		<form action="" method="post">
+			{% csrf_token %}
+			<input type="submit" name="SubmitButton" value="Cancelar"></input>
+		</form>
+	{% endif %}
 {% endblock %}
