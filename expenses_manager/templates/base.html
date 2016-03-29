@@ -19,8 +19,11 @@
 		<div id="content">
 			{% include "navbar/navbar.html" %}
 			<hr>
-			{% block content %}
-			{% endblock %}
+			<h1>{% block content_title %}{% endblock %}</h1>
+			<div id="content_body">
+				{% block content %}
+				{% endblock %}
+			</div>
 		</div>
 		<div id="footer">
 			{% block footer %}
