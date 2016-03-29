@@ -3,6 +3,11 @@
   margin:0 auto;/*this will center the content*/
 }
 
+#content_body, #content_title{
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
 @media screen and (max-width: 768px) {
   #content{
     width:100%;

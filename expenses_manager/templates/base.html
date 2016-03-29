@@ -6,7 +6,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
-		<link rel="stylesheet" href="{% static 'css/bootstrap-theme.css' %}">
+		<!-- <link rel="stylesheet" href="{% static 'css/bootstrap-theme.css' %}"> -->
 		<link rel="stylesheet" href="{% static 'css/navbar.css' %}">
 		<link rel="stylesheet" href="{% static 'css/styles.css' %}">
 		<link rel="shortcut icon" href="{% static 'img/favicon.ico' %}"/>
@@ -19,7 +19,7 @@
 		<div id="content">
 			{% include "navbar/navbar.html" %}
 			<hr>
-			<h1>{% block content_title %}{% endblock %}</h1>
+			<h1 id="content_title">{% block content_title %}{% endblock %}</h1>
 			<div id="content_body">
 				{% block content %}
 				{% endblock %}
@@ -29,5 +29,6 @@
 			{% block footer %}
 			{% endblock %}
 		</div>
+		<br>
 	</body>
 </html>
