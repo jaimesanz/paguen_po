@@ -24,7 +24,7 @@ def login_post_process(request):
 def invites_list(request):
 	# get list of pending invites for this user
 	invites = Invitacion.objects.filter(invitado=request.user, estado="pendiente")
-	return render(request, "invites_list.html", locals())
+	return render(request, "invites/invites_list.html", locals())
 
 @login_required
 def invite_user(request):
@@ -50,7 +50,7 @@ def invite_user(request):
 		else:
 			return HttpResponseRedirect("/about")
 	invite_form = InvitacionForm()
-	return render(request, "invite_user.html", locals())
+	return render(request, "invites/invite_user.html", locals())
 
 @login_required
 def invite(request, invite_id):
@@ -72,7 +72,7 @@ def invite(request, invite_id):
 		# TODO show message saying the nvite was accepted or rejected
 		return HttpResponseRedirect("/home")
 
-	return render(request, "invite.html", locals())
+	return render(request, "invites/invite.html", locals())
 
 @login_required
 def nueva_vivienda(request):
