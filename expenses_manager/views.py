@@ -111,6 +111,11 @@ def nueva_vivienda(request):
 	return render(request, "nueva_vivienda.html", locals())
 
 @login_required
+def manage_users(request):
+	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
+	return render(request, "manage_users.html", locals())
+
+@login_required
 def vivienda(request):
 	# get the user's vivienda
 	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
