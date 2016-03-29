@@ -19,5 +19,6 @@ urlpatterns = [
 	url(r'^error/$', views.error, name='error'),
 	url(r'^manage_users/$', views.manage_users, name='manage_users'),
 	url(r'^balance/$', views.balance, name='balance'),
+	url(r'^visualizations/$', views.visualizations, name='visualizations'),
 	url(r'^$', views.home, name='home')
 ]

@@ -131,3 +131,7 @@ def manage_users(request):
 @login_required
 def balance(request):
 	return render(request, "balance.html", locals())
+
+@login_required
+def visualizations(request):
+	return render(request, "visualizations.html", locals())
