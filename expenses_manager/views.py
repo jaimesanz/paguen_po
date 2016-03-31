@@ -83,7 +83,7 @@ def invite(request, invite_id):
 
 			invite.reject()
 			invite.save()
-			# TODO show message saying the nvite was accepted or rejected
+			# TODO show message saying the invite was accepted or rejected
 			return HttpResponseRedirect("/home")
 
 		return render(request, "invites/invite.html", locals())
