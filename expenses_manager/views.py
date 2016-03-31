@@ -26,7 +26,14 @@ def login_post_process(request):
 
 @login_required
 def user_info(request):
-	print request.session
+	print "getting"
+	u = MyUser.objects.get(id=request.user.id)
+	try:
+		u.do_something()
+		print "a"
+	except Exception, e:
+		print e
+	print "gotit"
 	return render(request, "user_info.html", locals())
 
 @login_required

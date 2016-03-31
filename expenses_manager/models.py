@@ -5,6 +5,14 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+# proxy user. This is used to add methods to the User class without altering the default django
+class MyUser(User):
+	class Meta:
+		proxy = True
+
+	def do_something(self):
+		print "it worked bitcheeees"
+
 class Vivienda(models.Model):
 	alias = models.CharField(max_length=200)
 	def __unicode__(self):
