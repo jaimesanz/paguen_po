@@ -21,12 +21,11 @@ def error(request):
 @login_required
 def login_post_process(request):
 	# set session variables here
-	request.session['user_has_vivienda']=len(ViviendaUsuario.objects.filter(user=request.user))>0
+	request.session['user_has_vivienda'] = request.user.has_vivienda()
 	return HttpResponseRedirect("/home")
 
 @login_required
 def user_info(request):
-	request.user.dummy_proxy()
 	return render(request, "user_info.html", locals())
 
 @login_required

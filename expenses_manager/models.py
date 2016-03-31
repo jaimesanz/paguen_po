@@ -9,9 +9,8 @@ from django.contrib.auth.models import User
 class ProxyUser(User):
 	class Meta:
 		proxy = True
-
-	def dummy_proxy(self):
-		print "it worked"
+	def has_vivienda(self):
+		return len(ViviendaUsuario.objects.filter(user=self))>0
 
 class Vivienda(models.Model):
 	alias = models.CharField(max_length=200)
