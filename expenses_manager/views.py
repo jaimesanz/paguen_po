@@ -26,14 +26,7 @@ def login_post_process(request):
 
 @login_required
 def user_info(request):
-	print "getting"
-	u = MyUser.objects.get(id=request.user.id)
-	try:
-		u.do_something()
-		print "a"
-	except Exception, e:
-		print e
-	print "gotit"
+	request.user.dummy_proxy()
 	return render(request, "user_info.html", locals())
 
 @login_required
