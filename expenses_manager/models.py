@@ -12,10 +12,16 @@ class Vivienda(models.Model):
 
 class ViviendaUsuario(models.Model):
 	class Meta:
-		unique_together = (('vivienda', 'user'),)
+		unique_together = (('vivienda', 'user', 'fecha_creacion'),)
 	vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE)
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
-
+	estado = models.CharField(max_length=200, default="activo")
+	fecha_creacion = DateTimeField(auto_now_add=True)
+	def leave(self):
+		self.estado = "inactivo"
+		self.save()
+	def is_active(self):
+		return self.estado == "activo"
 	def __unicode__(self):
 		return str(self.vivienda) + "__" + str(self.user)
 
@@ -38,7 +44,7 @@ class Invitacion(models.Model):
 
 class SolicitudAbandonarVivienda(models.Model):
 	creada_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
-	fecha = models.DateField()
+	fecha = models.DateTimeField(auto_now_add=True)
 	estado = models.CharField(max_length=100)
 	def __unicode__(self):
 		return str(self.creada_por) + "__" + str(self.fecha)
@@ -96,8 +102,8 @@ class Gasto(models.Model):
 	monto = models.IntegerField()
 	usuario = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE, null=True)
 	categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
-	fecha_creacion = models.DateField()
-	fecha_pago = models.DateField(null=True)
+	fecha_creacion = models.DateTimeField(auto_now_add=True)
+	fecha_pago = models.DateTimeField(null=True)
 	year_month = models.ForeignKey(YearMonth, on_delete=models.CASCADE, null=True)
 	lista_compras = models.ForeignKey(ListaCompras, on_delete=models.CASCADE, blank=True, null=True)
 	estado = models.CharField(max_length=255)
