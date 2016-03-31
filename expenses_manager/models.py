@@ -16,7 +16,7 @@ class ViviendaUsuario(models.Model):
 	vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE)
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	estado = models.CharField(max_length=200, default="activo")
-	fecha_creacion = DateTimeField(auto_now_add=True)
+	fecha_creacion = models.DateTimeField(auto_now_add=True)
 	def leave(self):
 		self.estado = "inactivo"
 		self.save()
