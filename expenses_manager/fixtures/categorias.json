@@ -1,1 +1,57 @@
-[{"model": "expenses_manager.categoria", "pk": "agua", "fields": {}}, {"model": "expenses_manager.categoria", "pk": "arriendo", "fields": {}}, {"model": "expenses_manager.categoria", "pk": "cable", "fields": {}}, {"model": "expenses_manager.categoria", "pk": "gas", "fields": {}}, {"model": "expenses_manager.categoria", "pk": "gastos comunes", "fields": {}}, {"model": "expenses_manager.categoria", "pk": "internet", "fields": {}}, {"model": "expenses_manager.categoria", "pk": "luz", "fields": {}}, {"model": "expenses_manager.categoria", "pk": "otros", "fields": {}}, {"model": "expenses_manager.categoria", "pk": "servicios", "fields": {}}, {"model": "expenses_manager.categoria", "pk": "supermercado", "fields": {}}, {"model": "expenses_manager.categoria", "pk": "telefono", "fields": {}}]
+[
+{
+    "model": "expenses_manager.categoria",
+    "pk": "agua",
+    "fields": {}
+},
+{
+    "model": "expenses_manager.categoria",
+    "pk": "arriendo",
+    "fields": {}
+},
+{
+    "model": "expenses_manager.categoria",
+    "pk": "cable",
+    "fields": {}
+},
+{
+    "model": "expenses_manager.categoria",
+    "pk": "gas",
+    "fields": {}
+},
+{
+    "model": "expenses_manager.categoria",
+    "pk": "gastos comunes",
+    "fields": {}
+},
+{
+    "model": "expenses_manager.categoria",
+    "pk": "internet",
+    "fields": {}
+},
+{
+    "model": "expenses_manager.categoria",
+    "pk": "luz",
+    "fields": {}
+},
+{
+    "model": "expenses_manager.categoria",
+    "pk": "otros",
+    "fields": {}
+},
+{
+    "model": "expenses_manager.categoria",
+    "pk": "servicios",
+    "fields": {}
+},
+{
+    "model": "expenses_manager.categoria",
+    "pk": "supermercado",
+    "fields": {}
+},
+{
+    "model": "expenses_manager.categoria",
+    "pk": "telefono",
+    "fields": {}
+}
+]
