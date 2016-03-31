@@ -9,8 +9,36 @@ from django.contrib.auth.models import User
 class ProxyUser(User):
 	class Meta:
 		proxy = True
+
+	# returns the user's current active vivienda, or None
+	def get_vu(self):
+		return ViviendaUsuario.objects.filter(user=self, estado="activo").first()
+
+	# returns a boolean value indicating if the user has an active vivienda
 	def has_vivienda(self):
-		return len(ViviendaUsuario.objects.filter(user=self))>0
+		return self.get_vu() is not None
+
+	# returns the vivienda of the user, or None
+	def get_vivienda(self):
+		vivienda_usuario = self.get_vu()
+		if vivienda_usuario is not None:
+			return vivienda_usuario.vivienda
+		else:
+			return None
+
+	# return a list of all active members of the Vivienda, including the User that calls the method
+	# if there's no active vivienda, returns None
+	def get_roommates(self):
+		if self.has_vivienda():
+			return ViviendaUsuario.objects.filter(vivienda=self.get_vivienda(), estado="activo")
+		else:
+			return None
+
+	# returns pending invites related to the user (received and sent invites)
+	def get_invites(self):
+		invites_in = Invitacion.objects.filter(invitado=self, estado="pendiente")
+		invites_out = Invitacion.objects.filter(invitado_por__user=self, estado="pendiente")
+		return invites_in,invites_out
 
 class Vivienda(models.Model):
 	alias = models.CharField(max_length=200)

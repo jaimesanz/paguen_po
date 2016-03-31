@@ -31,13 +31,12 @@ def user_info(request):
 @login_required
 def invites_list(request):
 	# get list of pending invites for this user
-	invites_in = Invitacion.objects.filter(invitado=request.user, estado="pendiente")
-	invites_out = Invitacion.objects.filter(invitado_por__user=request.user, estado="pendiente")
+	invites_in, invites_out = request.user.get_invites()
 	return render(request, "invites/invites_list.html", locals())
 
 @login_required
 def invite_user(request):
-	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
+	vivienda_usuario = request.user.get_vu()
 	if request.POST:
 		post = request.POST.copy()
 		post['invitado_por']=vivienda_usuario
@@ -119,14 +118,14 @@ def nueva_vivienda(request):
 @login_required
 def vivienda(request):
 	# get the user's vivienda
-	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
+	vivienda_usuario = request.user.get_vu()
 	# TODO show error message if there are 2 viviendausuario (shouldn't happen!)
-	roommates = ViviendaUsuario.objects.filter(vivienda=vivienda_usuario.vivienda)
+	roommates = request.user.get_roommates()
 	return render(request, "vivienda.html", locals())
 
 @login_required
 def manage_users(request):
-	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
+	vivienda_usuario = request.user.get_vu()
 	return render(request, "manage_users.html", locals())
 
 @login_required
@@ -138,20 +137,20 @@ def abandon(request):
 
 @login_required
 def balance(request):
-	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
+	vivienda_usuario = request.user.get_vu()
 	return render(request, "balance.html", locals())
 
 @login_required
 def visualizations(request):
-	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
+	vivienda_usuario = request.user.get_vu()
 	return render(request, "visualizations.html", locals())
 
 @login_required
 def gastos(request):
-	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
+	vivienda_usuario = request.user.get_vu()
 	return render(request, "gastos.html", locals())
 
 @login_required
 def presupuestos(request):
-	vivienda_usuario = ViviendaUsuario.objects.get(user=request.user)
+	vivienda_usuario = request.user.get_vu()
 	return render(request, "presupuestos.html", locals())
