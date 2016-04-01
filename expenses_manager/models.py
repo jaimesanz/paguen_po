@@ -47,7 +47,7 @@ class Vivienda(models.Model):
 
 class ViviendaUsuario(models.Model):
 	class Meta:
-		unique_together = (('vivienda', 'user', 'fecha_creacion'),)
+		unique_together = (('vivienda', 'user', 'estado', 'fecha_creacion'),)
 	vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE)
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	estado = models.CharField(max_length=200, default="activo")
@@ -71,11 +71,21 @@ class Invitacion(models.Model):
 		return str(self.invitado_por) + "__invited__" + str(self.invitado)
 	def accept(self):
 		self.estado = "aceptada"
+		self.save()
 		return ViviendaUsuario(user=self.invitado, vivienda=self.invitado_por.vivienda)
 	def reject(self):
 		self.estado = "rechazada"
+		self.save()
 	def cancel(self):
 		self.estado = "cancelada"
+		self.save()
+
+	# return True if the given user is the one that's beign invited
+	def is_invited_user(self, user):
+		return self.invitado == user
+	# returns True if the given user is the one sendnf the invitation
+	def is_invited_by_user(self, user):
+		return self.invitado_por.user == user
 
 class SolicitudAbandonarVivienda(models.Model):
 	creada_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)

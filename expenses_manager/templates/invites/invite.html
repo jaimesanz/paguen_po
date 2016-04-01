@@ -10,7 +10,7 @@
 			<input type="submit" name="SubmitButton" value="Declinar"></input>
 		</form>
 	{% else %}
-		<p>Has invitado a {{invite.invitado_por.user}} a formar parte de {{invite.invitado_por.vivienda}} </p>
+		<p>Has invitado a {{invite.invitado}} a formar parte de {{invite.invitado_por.vivienda}} </p>
 		<form action="" method="post">
 			{% csrf_token %}
 			<input type="submit" name="SubmitButton" value="Cancelar"></input>

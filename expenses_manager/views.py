@@ -64,7 +64,7 @@ def invite_user(request):
 def invite(request, invite_id):
 	# TODO add custom error 404 page
 	invite = get_object_or_404(Invitacion, id=invite_id)
-	invite_in = invite.invitado == request.user
+	invite_in = invite.is_invited_user(request.user)
 	if invite_in:
 		if request.POST:
 			ans = request.POST['SubmitButton']
@@ -76,21 +76,18 @@ def invite(request, invite_id):
 				new_vivienda_usuario = invite.accept()
 				request.session['user_has_vivienda']=True
 				new_vivienda_usuario.save()
-				invite.save()
 				return HttpResponseRedirect("/vivienda")
 
 			invite.reject()
-			invite.save()
 			# TODO show message saying the invite was accepted or rejected
 			return HttpResponseRedirect("/home")
 
 		return render(request, "invites/invite.html", locals())
-	elif invite.invitado_por.user==request.user:
+	elif invite.is_invited_by_user(request.user):
 		if request.POST:
 			ans = request.POST['SubmitButton']
 			if ans == "Cancelar":
 				invite.cancel()
-				invite.save()
 				return HttpResponseRedirect("/invites_list")
 
 		return render(request, "invites/invite.html", locals())
@@ -131,7 +128,7 @@ def manage_users(request):
 @login_required
 def abandon(request):
 	if request.POST:
-		get_object_or_404(ViviendaUsuario, user=request.user).delete()
+		get_object_or_404(ViviendaUsuario, user=request.user, estado="activo").leave()
 		request.session['user_has_vivienda']=False
 	return HttpResponseRedirect("/home")
 
