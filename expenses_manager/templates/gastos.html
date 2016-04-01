@@ -1,9 +1,89 @@
 {% extends "base.html" %}
 
+{% block page_imports %}
+	{% include "datatables.html" %}
+{% endblock %}
 
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
 {% block content %}
+
 	<h3>Gastos</h3>
-	<p><a href="/nuevo_gasto">Nuevo Gasto</a></p>
-	<p>TODO Mostrar listado de gastos en tabla con pestañas "pendientes" y "pagados" </p>
+	<!-- Nav tabs -->
+	<ul class="nav nav-tabs" role="tablist">
+		<li role="presentation" class="active"><a href="#nuevo_gasto" aria-controls="nuevo_gasto" role="tab" data-toggle="tab">Nuevo Gasto</a></li>
+		<li role="presentation"><a href="#pendientes" aria-controls="pendientes" role="tab" data-toggle="tab">Pendientes</a></li>
+		<li role="presentation"><a href="#pagados" aria-controls="pagados" role="tab" data-toggle="tab">Pagados</a></li>
+	</ul>
+	<br>
+
+	<!-- Tab panes -->
+	<div class="tab-content">
+		<!-- nuevo gasto -->
+		<div role="tabpanel" class="tab-pane active" id="nuevo_gasto">
+			<form action="/nuevo_gasto/" method="POST">
+				{% csrf_token %}
+				{{ gasto_form.as_p }}
+				<p><label>Pagado: <input type="checkbox" name="is_paid"></label></p>
+				<p><input type="submit" value="Generar"></input></p>
+			</form>
+		</div>
+
+		<!-- pendientes -->
+		<div role="tabpanel" class="tab-pane" id="pendientes">
+			<table id="tabla_gastos_pendientes" class="table table-striped table-bordered" cellspacing="0" width="100%">
+			    <thead>
+			        <tr>
+			            <th>Fecha</th>
+			            <th>Categoria</th>
+			            <th>Monto</th>
+			            <th>Estado</th>
+			        </tr>
+			    </thead>
+			    <tbody>
+			        {% for gasto in gastos_pendientes_list %}
+			        	<tr>
+				            <td>{{gasto.fecha_creacion}}</td>
+				            <td>{{gasto.categoria}}</td>
+				            <td>$ {{gasto.monto}}</td>
+				            <td>{{gasto.estado}}</td>
+			        	</tr>
+			        {% endfor %}
+			    </tbody>
+			</table>
+		</div>
+
+		<!-- pagados -->
+		<div role="tabpanel" class="tab-pane" id="pagados">
+			<div role="tabpanel" class="tab-pane" id="pendientes">
+				<table id="tabla_gastos_pagados" class="table table-striped table-bordered" cellspacing="0" width="100%">
+				    <thead>
+				        <tr>
+				            <th>Fecha</th>
+				            <th>Categoria</th>
+				            <th>Monto</th>
+				            <th>Estado</th>
+				        </tr>
+				    </thead>
+				    <tbody>
+				        {% for gasto in gastos_pagados_list %}
+				        	<tr>
+					            <td>{{gasto.fecha_creacion}}</td>
+					            <td>{{gasto.categoria}}</td>
+					            <td>{{gasto.monto}}</td>
+					            <td>{{gasto.estado}}</td>
+				        	</tr>
+				        {% endfor %}
+				    </tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+
+
+	<script type="text/javascript">
+		$(document).ready(function(){
+		    $('#tabla_gastos_pendientes').DataTable();
+		    $('#tabla_gastos_pagados').DataTable();
+		} );
+	</script>
 {% endblock %}

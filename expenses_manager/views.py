@@ -137,19 +137,19 @@ def nuevo_gasto(request):
 	if request.POST:
 		form = GastoForm(request.POST)
 		if form.is_valid():
+			# set the user who created this
 			nuevo_gasto = form.save(commit=False)
 			nuevo_gasto.creado_por = request.user.get_vu()
 			nuevo_gasto.save()
-			# check if it's paid
+			# check if it's paidxplicando que se agregó con éxito
 			if request.POST.get("is_paid", None):
 				nuevo_gasto.pagar(request.user)
-
+			# TODO poner mensaje e
 			return HttpResponseRedirect("/gastos")
 		else:
-			# redirect to error
+			# TODO redirect to error
 			pass
-	gasto_form = GastoForm()
-	return render(request, "nuevo_gasto.html", locals())
+	return HttpResponseRedirect("/gastos")
 
 @login_required
 def balance(request):
@@ -164,6 +164,9 @@ def visualizations(request):
 @login_required
 def gastos(request):
 	vivienda_usuario = request.user.get_vu()
+	# get list of gastos
+	gastos_pendientes_list, gastos_pagados_list = vivienda_usuario.get_gastos_vivienda()
+	gasto_form = GastoForm()
 	return render(request, "gastos.html", locals())
 
 @login_required

@@ -42,6 +42,17 @@ class ProxyUser(User):
 
 class Vivienda(models.Model):
 	alias = models.CharField(max_length=200)
+
+	def get_gastos(self):
+		gastos = Gasto.objects.filter(creado_por__vivienda=self)
+		gastos_pendientes_list = []
+		gastos_pagados_list = []
+		for g in gastos:
+			if g.is_pending():
+				gastos_pendientes_list.append(g)
+			elif g.is_paid():
+				gastos_pagados_list.append(g)
+		return gastos_pendientes_list, gastos_pagados_list
 	def __unicode__(self):
 		return self.alias
 
@@ -57,6 +68,11 @@ class ViviendaUsuario(models.Model):
 		self.save()
 	def is_active(self):
 		return self.estado == "activo"
+	def get_gastos_vivienda(self):
+		if self.is_active():
+			return self.vivienda.get_gastos()
+		else:
+			return None
 	def __unicode__(self):
 		return str(self.vivienda) + "__" + str(self.user)
 
@@ -146,6 +162,10 @@ class ItemLista(models.Model):
 
 class EstadoGasto(models.Model):
 	estado = models.CharField(max_length=255)
+	def is_pending(self):
+		return self.estado == "pendiente"
+	def is_paid(self):
+		return self.estado == "pagado"
 	def __unicode__(self):
 		return str(self.estado)
 
@@ -179,6 +199,11 @@ class Gasto(models.Model):
 		estado_gasto, created = EstadoGasto.objects.get_or_create(estado="pagado")
 		self.estado = estado_gasto
 		self.save()
+
+	def is_pending(self):
+		return self.estado.is_pending()
+	def is_paid(self):
+		return self.estado.is_paid()
 	def __unicode__(self):
 		return "".join((str(self.usuario), "__", str(self.categoria), "__", str(self.year_month)))
 
