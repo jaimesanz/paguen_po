@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
-
+import datetime
 
 # proxy user. This is used to add methods to the User class without altering the default django
 class ProxyUser(User):
@@ -144,14 +144,41 @@ class ItemLista(models.Model):
 	def __unicode__(self):
 		return str(self.item) + "__" + str(self.lista)
 
-class Gasto(models.Model):
-	monto = models.IntegerField()
-	usuario = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE, null=True)
-	categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
-	fecha_creacion = models.DateTimeField(auto_now_add=True)
-	fecha_pago = models.DateTimeField(null=True)
-	year_month = models.ForeignKey(YearMonth, on_delete=models.CASCADE, null=True)
-	lista_compras = models.ForeignKey(ListaCompras, on_delete=models.CASCADE, blank=True, null=True)
+class EstadoGasto(models.Model):
 	estado = models.CharField(max_length=255)
 	def __unicode__(self):
+		return str(self.estado)
+
+def get_current_yearMonth():
+	today = datetime.datetime.now()
+	year_month, creted = YearMonth.objects.get_or_create(year=today.year, month=today.month)
+	return year_month
+
+def get_default_estadoGasto():
+	estado_gasto, created = EstadoGasto.objects.get_or_create(estado="pendiente")
+	return estado_gasto.id
+
+class Gasto(models.Model):
+	monto = models.IntegerField()
+	usuario = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE, null=True, blank=True)
+	categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+	fecha_creacion = models.DateTimeField(auto_now_add=True)
+	fecha_pago = models.DateTimeField(null=True, blank=True)
+	year_month = models.ForeignKey(YearMonth,
+		on_delete=models.CASCADE,
+		null=True,
+		blank=True)
+	lista_compras = models.ForeignKey(ListaCompras, on_delete=models.CASCADE, blank=True, null=True)
+	estado = models.ForeignKey(EstadoGasto, on_delete=models.CASCADE, default=get_default_estadoGasto, blank=True)
+
+	def pagar(self,user):
+		self.usuario = user.get_vu()
+		self.fecha_pago = datetime.datetime.now()
+		self.year_month = get_current_yearMonth()
+		estado_gasto, created = EstadoGasto.objects.get_or_create(estado="pagado")
+		self.estado = estado_gasto
+		self.save()
+	def __unicode__(self):
 		return "".join((str(self.usuario), "__", str(self.categoria), "__", str(self.year_month)))
+
+

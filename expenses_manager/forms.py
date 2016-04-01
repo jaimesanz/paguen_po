@@ -19,3 +19,8 @@ class InvitacionForm(forms.ModelForm):
 	class Meta:
 		model = Invitacion
 		fields = ("email",)
+
+class GastoForm(forms.ModelForm):
+	class Meta:
+		model = Gasto
+		fields = ('monto', 'categoria')

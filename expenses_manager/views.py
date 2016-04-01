@@ -132,6 +132,24 @@ def abandon(request):
 		request.session['user_has_vivienda']=False
 	return HttpResponseRedirect("/home")
 
+def nuevo_gasto(request):
+	vivienda_usuario = request.user.get_vu()
+	if request.POST:
+		form = GastoForm(request.POST)
+		print request.POST
+		if form.is_valid():
+			nuevo_gasto = form.save()
+			# check if it's paid
+			if request.POST.get("is_paid", None):
+				nuevo_gasto.pagar(request.user)
+
+			return HttpResponseRedirect("/gastos")
+		else:
+			# redirect to error
+			pass
+	gasto_form = GastoForm()
+	return render(request, "nuevo_gasto.html", locals())
+
 @login_required
 def balance(request):
 	vivienda_usuario = request.user.get_vu()
