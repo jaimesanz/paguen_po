@@ -141,10 +141,10 @@ def nuevo_gasto(request):
 			nuevo_gasto = form.save(commit=False)
 			nuevo_gasto.creado_por = request.user.get_vu()
 			nuevo_gasto.save()
-			# check if it's paidxplicando que se agregó con éxito
+			# check if it's paid
 			if request.POST.get("is_paid", None):
 				nuevo_gasto.pagar(request.user)
-			# TODO poner mensaje e
+			# TODO poner mensaje explicando que se agregó con éxito
 			return HttpResponseRedirect("/gastos")
 		else:
 			# TODO redirect to error
