@@ -136,9 +136,10 @@ def nuevo_gasto(request):
 	vivienda_usuario = request.user.get_vu()
 	if request.POST:
 		form = GastoForm(request.POST)
-		print request.POST
 		if form.is_valid():
-			nuevo_gasto = form.save()
+			nuevo_gasto = form.save(commit=False)
+			nuevo_gasto.creado_por = request.user.get_vu()
+			nuevo_gasto.save()
 			# check if it's paid
 			if request.POST.get("is_paid", None):
 				nuevo_gasto.pagar(request.user)

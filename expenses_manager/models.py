@@ -160,6 +160,7 @@ def get_default_estadoGasto():
 
 class Gasto(models.Model):
 	monto = models.IntegerField()
+	creado_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE, related_name="creado_por")
 	usuario = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE, null=True, blank=True)
 	categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
 	fecha_creacion = models.DateTimeField(auto_now_add=True)
