@@ -101,9 +101,10 @@ class Categoria(models.Model):
 
 class Item(models.Model):
 	nombre = models.CharField(max_length=255)
-	descripcion = models.CharField(max_length=255)
+	descripcion = models.CharField(max_length=255, blank=True, null=True)
+	unidad_medida = models.CharField(max_length=255, default="unidad")
 	def __unicode__(self):
-		return self.nombre
+		return str(self.nombre) + " (" + str(self.unidad_medida) + ")"
 
 class YearMonth(models.Model):
 	class Meta:
