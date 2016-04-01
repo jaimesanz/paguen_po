@@ -1,0 +1,110 @@
+[
+{
+    "model": "expenses_manager.item",
+    "pk": 1,
+    "fields": {
+        "nombre": "Pan",
+        "descripcion": "",
+        "unidad_medida": "unidad"
+    }
+},
+{
+    "model": "expenses_manager.item",
+    "pk": 2,
+    "fields": {
+        "nombre": "Arroz",
+        "descripcion": "",
+        "unidad_medida": "unidad"
+    }
+},
+{
+    "model": "expenses_manager.item",
+    "pk": 3,
+    "fields": {
+        "nombre": "Azucar",
+        "descripcion": "",
+        "unidad_medida": "kg"
+    }
+},
+{
+    "model": "expenses_manager.item",
+    "pk": 4,
+    "fields": {
+        "nombre": "Salchichas",
+        "descripcion": "",
+        "unidad_medida": "unidad"
+    }
+},
+{
+    "model": "expenses_manager.item",
+    "pk": 5,
+    "fields": {
+        "nombre": "Tomate",
+        "descripcion": "",
+        "unidad_medida": "kg"
+    }
+},
+{
+    "model": "expenses_manager.item",
+    "pk": 6,
+    "fields": {
+        "nombre": "Palta",
+        "descripcion": "",
+        "unidad_medida": "kg"
+    }
+},
+{
+    "model": "expenses_manager.item",
+    "pk": 7,
+    "fields": {
+        "nombre": "Jugo en polvo",
+        "descripcion": "",
+        "unidad_medida": "unidad"
+    }
+},
+{
+    "model": "expenses_manager.item",
+    "pk": 8,
+    "fields": {
+        "nombre": "Sal",
+        "descripcion": "",
+        "unidad_medida": "kg"
+    }
+},
+{
+    "model": "expenses_manager.item",
+    "pk": 9,
+    "fields": {
+        "nombre": "Leche",
+        "descripcion": "",
+        "unidad_medida": "litros"
+    }
+},
+{
+    "model": "expenses_manager.item",
+    "pk": 10,
+    "fields": {
+        "nombre": "Cereal",
+        "descripcion": "",
+        "unidad_medida": "unidad"
+    }
+},
+{
+    "model": "expenses_manager.item",
+    "pk": 11,
+    "fields": {
+        "nombre": "Cebolla",
+        "descripcion": "",
+        "unidad_medida": "kg"
+    }
+},
+{
+    "model": "expenses_manager.item",
+    "pk": 12,
+    "fields": {
+        "nombre": "Huevos",
+        "descripcion": "",
+        "unidad_medida": "unidad"
+    }
+}
+]
