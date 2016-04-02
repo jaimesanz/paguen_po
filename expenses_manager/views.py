@@ -187,6 +187,33 @@ def detalle_gasto(request, gasto_id):
 		gasto.pagar(request.user)
 	return render(request, "detalle_gasto.html", locals())
 
+def lists(request):
+	items = Item.objects.all()
+	return render(request, "lists.html", locals())
+
+def nueva_lista(request):
+	if request.POST:
+		print request.POST
+		# get the number of items in the list. The post contains 2 inputs for each item,
+		# plus an additional field (???)
+		number_of_items = (len(request.POST)-1)/2
+		if number_of_items>0:
+			# TODO create list
+			nueva_lista = ListaCompras(usuario_creacion=request.user.get_vu())
+			nueva_lista.save()
+			for item_index in range(1,number_of_items+1):
+				# TODO IMPORTANT get item id
+				# TODO this contains the __unicode__ form of the item. WHAT DO I NEED THE ID
+				item = request.POST.get("item_"+str(item_index))
+				item_id = -1
+				quantity = request.POST.get("quantity_"+str(item_index))
+				nueva_lista.add_item(item_id, quantity)
+				print item
+		else:
+			# TODO show error message
+			return HttpResponseRedirect("/error")
+	return HttpResponseRedirect("/lists")
+
 @login_required
 def presupuestos(request):
 	vivienda_usuario = request.user.get_vu()

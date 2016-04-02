@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block page_imports %}
+	{% include "datatables.html" %}
+{% endblock %}
+
+{% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
+{% block content %}
+
+	<h3>Listas</h3>
+	<!-- Nav tabs -->
+	<ul class="nav nav-tabs" role="tablist">
+		<li role="presentation" class="active"><a href="#nueva_lista" aria-controls="nueva_lista" role="tab" data-toggle="tab">Nueva Lista</a></li>
+		<li role="presentation"><a href="#pendientes" aria-controls="pendientes" role="tab" data-toggle="tab">Pendientes</a></li>
+	</ul>
+	<br>
+
+	<!-- Tab panes -->
+	<div class="tab-content">
+		<!-- nueva lista -->
+		<div role="tabpanel" class="tab-pane active" id="nueva_lista">
+			<form action="/nueva_lista/" method="POST" id="nueva_lista_form">
+				{% csrf_token %}
+				<p>
+					<input type="button" value="Agregar ítem" id="add_item"></input>
+					<input type="submit" value="Generar lista"></input>
+				</p>
+				<div id="nueva_lista_form_dyn"></div>
+				<!-- TODO add ajax (?????) autocomplete to input fields -->
+			</form>
+		</div>
+
+		<!-- pendientes -->
+		<div role="tabpanel" class="tab-pane" id="pendientes">
+			<table id="tabla_listas_pendientes" class="table table-striped table-bordered" cellspacing="0" width="100%">
+			    <thead>
+			        <tr>
+			            <th>Fecha</th>
+			            <th>Ítems</th>
+			            <th>Creada por</th>
+			        </tr>
+			    </thead>
+			    <tbody>
+			        {% for lista in listas_pendientes %}
+			        	<tr>
+				            <!-- <td><a href="/detalle_gasto/{{gasto.id}}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{gasto.fecha_creacion}}</td>
+				            <td>{{gasto.categoria}}</td>
+				            <td>$ {{gasto.monto}}</td>
+				            <td>{{gasto.estado}}</td> -->
+			        	</tr>
+			        {% endfor %}
+			    </tbody>
+			</table>
+		</div>
+	</div>
+
+
+	<script type="text/javascript">
+		var input_number = 1
+		var items = [];
+		{% for i in items %}
+			items.push("{{i}}");
+		{% endfor %}
+		$(document).ready(function(){
+			// TODO customize tables. Currently using the default argument-less dataTable
+			$('#tabla_listas_pendientes').DataTable();
+			$('#add_item').click(function(){
+				this_item_number = input_number++;
+				this_item_input_id = "item_"+ this_item_number
+				item = $("<input>")
+					.attr("type", "text")
+					.attr("value", "")
+					.attr("id", this_item_input_id)
+					.attr("name", "item_"+ this_item_number);
+				quantity = $("<input>")
+					.attr("type", "number")
+					.attr("value", "")
+					.attr("name", "quantity_" + this_item_number);
+				nuevo_input = $("<p>").append("Item: ").append(item).append(" Cantidad: ").append(quantity);
+				$("#nueva_lista_form_dyn").prepend(nuevo_input);
+				$("#"+this_item_input_id).autocomplete({
+					source: items
+				})
+			});
+		} );
+	</script>
+{% endblock %}

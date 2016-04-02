@@ -143,8 +143,20 @@ class Presupuesto(models.Model):
 
 class ListaCompras(models.Model):
 	usuario_creacion = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
-	fecha = models.DateField()
-	estado = models.CharField(max_length=255)
+	fecha = models.DateTimeField(auto_now_add=True)
+	estado = models.CharField(max_length=255, default="pendiente")
+	# creates and instance of ItemLista with the given Item and quantity, where the list is self
+	def add_item(self,item_id, quantity):
+		if item_id>0 and item_id is not None:
+			new_list_item = ItemLista(
+				item=Item.objects.get(id=item_id), 
+				lista=self, 
+				cantidad_solicitada=quantity)
+			new_list_item.save()
+			return new_list_item
+		else:
+			print "nope"
+			return None
 	def __unicode__(self):
 		return "".join((str(self.usuario_creacion), "__", str(self.fecha), "__", str(self.estado)))
 
@@ -155,8 +167,8 @@ class ItemLista(models.Model):
 	item = models.ForeignKey(Item, on_delete=models.CASCADE)
 	lista = models.ForeignKey(ListaCompras, on_delete=models.CASCADE)
 	cantidad_solicitada = models.IntegerField()
-	cantidad_comprada = models.IntegerField()
-	estado = models.CharField(max_length=255)
+	cantidad_comprada = models.IntegerField(null=True, blank=True)
+	estado = models.CharField(max_length=255, default="pendiente")
 	def __unicode__(self):
 		return str(self.item) + "__" + str(self.lista)
 
