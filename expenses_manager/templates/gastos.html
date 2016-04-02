@@ -34,7 +34,7 @@
 			    <thead>
 			        <tr>
 			            <th>Fecha</th>
-			            <th>Categoria</th>
+			            <th>Categoría</th>
 			            <th>Monto</th>
 			            <th>Estado</th>
 			        </tr>
@@ -42,7 +42,7 @@
 			    <tbody>
 			        {% for gasto in gastos_pendientes_list %}
 			        	<tr>
-				            <td>{{gasto.fecha_creacion}}</td>
+				            <td><a href="/detalle_gasto/{{gasto.id}}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{gasto.fecha_creacion}}</td>
 				            <td>{{gasto.categoria}}</td>
 				            <td>$ {{gasto.monto}}</td>
 				            <td>{{gasto.estado}}</td>
@@ -59,7 +59,7 @@
 				    <thead>
 				        <tr>
 				            <th>Fecha</th>
-				            <th>Categoria</th>
+				            <th>Categoría</th>
 				            <th>Monto</th>
 				            <th>Estado</th>
 				        </tr>
@@ -67,7 +67,7 @@
 				    <tbody>
 				        {% for gasto in gastos_pagados_list %}
 				        	<tr>
-					            <td>{{gasto.fecha_creacion}}</td>
+					            <td><a href="/detalle_gasto/{{gasto.id}}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{gasto.fecha_creacion}}</td>
 					            <td>{{gasto.categoria}}</td>
 					            <td>{{gasto.monto}}</td>
 					            <td>{{gasto.estado}}</td>
@@ -82,6 +82,7 @@
 
 	<script type="text/javascript">
 		$(document).ready(function(){
+			// TODO customize tables. Currently using the default argument-less dataTable
 		    $('#tabla_gastos_pendientes').DataTable();
 		    $('#tabla_gastos_pagados').DataTable();
 		} );

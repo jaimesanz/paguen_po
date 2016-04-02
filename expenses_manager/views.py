@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from forms import *
 from django.contrib.auth.decorators import login_required
 from models import *
-
+from django.forms.models import model_to_dict
 
 
 def home(request):
@@ -17,6 +17,10 @@ def about(request):
 
 def error(request):
 	return render(request, "error.html", locals())
+
+######################################################
+# from here on, everything must have @login_required
+######################################################
 
 @login_required
 def login_post_process(request):
@@ -132,6 +136,7 @@ def abandon(request):
 		request.session['user_has_vivienda']=False
 	return HttpResponseRedirect("/home")
 
+@login_required
 def nuevo_gasto(request):
 	vivienda_usuario = request.user.get_vu()
 	if request.POST:
@@ -168,6 +173,19 @@ def gastos(request):
 	gastos_pendientes_list, gastos_pagados_list = vivienda_usuario.get_gastos_vivienda()
 	gasto_form = GastoForm()
 	return render(request, "gastos.html", locals())
+
+@login_required
+def detalle_gasto(request, gasto_id):
+	# TODO retrict access!
+	vivienda_usuario = request.user.get_vu()
+	gasto = get_object_or_404(Gasto, id=gasto_id)
+	if not gasto.allow_user(request.user):
+		# TODO show error message
+		return HttpResponseRedirect("/error")
+	gasto_form = GastoForm(model_to_dict(gasto))
+	if request.POST:
+		gasto.pagar(request.user)
+	return render(request, "detalle_gasto.html", locals())
 
 @login_required
 def presupuestos(request):

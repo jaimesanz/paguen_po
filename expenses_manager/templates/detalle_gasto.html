@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
+{% block content %}
+	<h3>Detalle Gasto</h3>
+	{% if gasto.is_pending %}
+		<form method="post" action="">
+			{% csrf_token %}
+			{% for field in gasto_form %}
+			    <li><b>{{ field.label }}:</b> {{ field.data }}</li>
+			{% endfor %}
+			<br>
+			<input type="submit" value="Pagar"></input>
+		</form>
+	{% else %}
+		<ul>
+			<!-- TODO hide None info -->
+			<li><b>Monto:</b> {{gasto.monto}}</li>
+			<li><b>Creado por:</b> {{gasto.creado_por.user}}</li>
+			<li><b>Usuario:</b> {{gasto.usuario.user}}</li>
+			<li><b>Categoria:</b> {{gasto.categoria}}</li>
+			<li><b>Fecha creacion:</b> {{gasto.fecha_creacion}}</li>
+			<li><b>Fecha pago:</b> {{gasto.fecha_pago}}</li>
+			<li><b>Periodo:</b> {{gasto.year_month}}</li>
+			<li><b>Lista compras:</b> {{gasto.lista_compras}}</li>
+			<li><b>Estado:</b> {{gasto.estado}}</li>
+		</ul>
+	{% endif %}
+{% endblock %}

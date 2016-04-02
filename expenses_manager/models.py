@@ -204,6 +204,9 @@ class Gasto(models.Model):
 		return self.estado.is_pending()
 	def is_paid(self):
 		return self.estado.is_paid()
+	def allow_user(self, user):
+		# check that user is active in the vivienda
+		return  user.has_vivienda() and user.get_vivienda() == self.creado_por.vivienda
 	def __unicode__(self):
 		return "".join((str(self.usuario), "__", str(self.categoria), "__", str(self.year_month)))
 
