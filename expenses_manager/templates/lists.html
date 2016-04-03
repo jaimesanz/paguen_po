@@ -33,23 +33,22 @@
 		<!-- pendientes -->
 		<div role="tabpanel" class="tab-pane" id="pendientes">
 			<table id="tabla_listas_pendientes" class="table table-striped table-bordered" cellspacing="0" width="100%">
-			    <thead>
-			        <tr>
-			            <th>Fecha</th>
-			            <th>Ítems</th>
-			            <th>Creada por</th>
-			        </tr>
-			    </thead>
-			    <tbody>
-			        {% for lista in listas_pendientes %}
-			        	<tr>
-				            <!-- <td><a href="/detalle_gasto/{{gasto.id}}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{gasto.fecha_creacion}}</td>
-				            <td>{{gasto.categoria}}</td>
-				            <td>$ {{gasto.monto}}</td>
-				            <td>{{gasto.estado}}</td> -->
-			        	</tr>
-			        {% endfor %}
-			    </tbody>
+				<thead>
+					<tr>
+						<th>Fecha</th>
+						<th>Ítems</th>
+						<th>Creada por</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for lista in listas_pendientes %}
+					<tr>
+						<td><a href="/detalle_lista/{{lista.id}}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{lista.fecha}}</td>
+						<td>{{lista.count_items}}</td>
+						<td>{{lista.usuario_creacion.user}}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
 			</table>
 		</div>
 	</div>
@@ -61,7 +60,6 @@
 		{% for i in items %}
 			items.push("{{i.nombre}}");
 		{% endfor %}
-
 		$(document).ready(function(){
 			// TODO customize tables. Currently using the default argument-less dataTable
 			$('#tabla_listas_pendientes').DataTable();

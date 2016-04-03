@@ -161,6 +161,9 @@ class ListaCompras(models.Model):
 	def add_item_by_name(self,item_name, quantity):
 		item_id = Item.objects.get(nombre=item_name).id
 		self.add_item(item_id,quantity)
+	def count_items(self):
+		this_list_items = ItemLista.objects.filter(lista=self)
+		return len(this_list_items)
 	def __unicode__(self):
 		return "".join((str(self.usuario_creacion), "__", str(self.fecha), "__", str(self.estado)))
 

@@ -189,7 +189,10 @@ def detalle_gasto(request, gasto_id):
 
 @login_required
 def lists(request):
-	items = Item.objects.all()
+	items = Item.objects.all().values("nombre")
+	listas_pendientes = ListaCompras.objects.filter(
+							usuario_creacion__vivienda=request.user.get_vivienda(),
+							estado="pendiente")
 	return render(request, "lists.html", locals())
 
 @login_required
@@ -211,6 +214,11 @@ def nueva_lista(request):
 			# TODO show error message
 			return HttpResponseRedirect("/error")
 	return HttpResponseRedirect("/lists")
+
+@login_required
+def detalle_lista(request, lista_id):
+	vivienda_usuario = request.user.get_vu()
+	return render(request, "detalle_lista.html", locals())
 
 @login_required
 def presupuestos(request):
