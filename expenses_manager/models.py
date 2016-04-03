@@ -165,7 +165,7 @@ class ListaCompras(models.Model):
 		this_list_items = ItemLista.objects.filter(lista=self)
 		return len(this_list_items)
 	def allow_user(self, vivienda_usuario):
-		return self.usuario_creacion.vivienda == vivienda_usuario.vivienda
+		return (vivienda_usuario is not None) and self.usuario_creacion.vivienda == vivienda_usuario.vivienda
 	def __unicode__(self):
 		return "".join((str(self.usuario_creacion), "__", str(self.fecha), "__", str(self.estado)))
 
@@ -230,5 +230,3 @@ class Gasto(models.Model):
 		return  user.has_vivienda() and user.get_vivienda() == self.creado_por.vivienda
 	def __unicode__(self):
 		return "".join((str(self.usuario), "__", str(self.categoria), "__", str(self.year_month)))
-
-
