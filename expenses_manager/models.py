@@ -164,6 +164,8 @@ class ListaCompras(models.Model):
 	def count_items(self):
 		this_list_items = ItemLista.objects.filter(lista=self)
 		return len(this_list_items)
+	def allow_user(self, vivienda_usuario):
+		return self.usuario_creacion.vivienda == vivienda_usuario.vivienda
 	def __unicode__(self):
 		return "".join((str(self.usuario_creacion), "__", str(self.fecha), "__", str(self.estado)))
 

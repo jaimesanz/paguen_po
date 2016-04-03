@@ -218,7 +218,11 @@ def nueva_lista(request):
 @login_required
 def detalle_lista(request, lista_id):
 	vivienda_usuario = request.user.get_vu()
-	return render(request, "detalle_lista.html", locals())
+	lista = get_object_or_404(ListaCompras, id=lista_id)
+	if lista.allow_user(vivienda_usuario):
+		return render(request, "detalle_lista.html", locals())
+	else:
+		return HttpResponseRedirect("/error")
 
 @login_required
 def presupuestos(request):
