@@ -187,28 +187,26 @@ def detalle_gasto(request, gasto_id):
 		gasto.pagar(request.user)
 	return render(request, "detalle_gasto.html", locals())
 
+@login_required
 def lists(request):
 	items = Item.objects.all()
 	return render(request, "lists.html", locals())
 
+@login_required
 def nueva_lista(request):
 	if request.POST:
-		print request.POST
 		# get the number of items in the list. The post contains 2 inputs for each item,
 		# plus an additional field (???)
 		number_of_items = (len(request.POST)-1)/2
 		if number_of_items>0:
-			# TODO create list
+			# create list
 			nueva_lista = ListaCompras(usuario_creacion=request.user.get_vu())
 			nueva_lista.save()
 			for item_index in range(1,number_of_items+1):
-				# TODO IMPORTANT get item id
-				# TODO this contains the __unicode__ form of the item. WHAT DO I NEED THE ID
-				item = request.POST.get("item_"+str(item_index))
-				item_id = -1
+				# add items to list
+				item_name = request.POST.get("item_"+str(item_index))
 				quantity = request.POST.get("quantity_"+str(item_index))
-				nueva_lista.add_item(item_id, quantity)
-				print item
+				nueva_lista.add_item_by_name(item_name, quantity)
 		else:
 			# TODO show error message
 			return HttpResponseRedirect("/error")

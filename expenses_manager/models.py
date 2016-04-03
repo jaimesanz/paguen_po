@@ -145,7 +145,7 @@ class ListaCompras(models.Model):
 	usuario_creacion = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
 	fecha = models.DateTimeField(auto_now_add=True)
 	estado = models.CharField(max_length=255, default="pendiente")
-	# creates and instance of ItemLista with the given Item and quantity, where the list is self
+	# creates an instance of ItemLista with the given Item and quantity, where the list is self
 	def add_item(self,item_id, quantity):
 		if item_id>0 and item_id is not None:
 			new_list_item = ItemLista(
@@ -157,6 +157,10 @@ class ListaCompras(models.Model):
 		else:
 			print "nope"
 			return None
+	# same as add_item, but receives the item's name instead of ID
+	def add_item_by_name(self,item_name, quantity):
+		item_id = Item.objects.get(nombre=item_name).id
+		self.add_item(item_id,quantity)
 	def __unicode__(self):
 		return "".join((str(self.usuario_creacion), "__", str(self.fecha), "__", str(self.estado)))
 

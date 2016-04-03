@@ -59,8 +59,9 @@
 		var input_number = 1
 		var items = [];
 		{% for i in items %}
-			items.push("{{i}}");
+			items.push("{{i.nombre}}");
 		{% endfor %}
+
 		$(document).ready(function(){
 			// TODO customize tables. Currently using the default argument-less dataTable
 			$('#tabla_listas_pendientes').DataTable();
