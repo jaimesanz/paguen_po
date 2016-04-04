@@ -26,9 +26,14 @@
 				{% for i in lista.get_items %}
 					<tr>
 						<td>{{i.item.nombre}}</td>
-						<td>{{i.cantidad_solicitada}} ({{i.item.unidad_medida}})</td>
+						<td class="cantidad_solicitada">{{i.cantidad_solicitada}} ({{i.item.unidad_medida}})</td>
 						<td>
 							<div class="input-group">
+								<span class="input-group-btn auto_fill" value="{{i.cantidad_solicitada}}">
+									<button type="button" class="btn btn-info">
+										<span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
+									</button>
+								</span>
 								<span class="input-group-addon plus_icon">
 									<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
 								</span>
@@ -37,17 +42,23 @@
 									<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
 								</span>
 							</div>
-							
 						</td>
 					</tr>
 				{% endfor %}
 			</tbody>
 		</table>
-		Total: <p><input type="number" id="monto_total"></input></p>
-		<p><button type="submit" class="btn btn-primary">Pagar</button></p>
+		<div class="input-group">
+			<input type="text" class="form-control" placeholder="Monto total" id="monto_total">
+			<span class="input-group-btn">
+				<button type="submit" class="btn btn-primary">Pagar</button>
+			</span>
+		</div>
 	</form>
 
 	<script type="text/javascript">
+		var fill_value = function(val){
+			console.log($(this).parent());
+		};
 		$(document).ready(function(){
 			$("#items_lista_form").submit(function(){
 				// TODO check other conditions: form must not be empty, monto_total can't be empty nor negative, if values dont all match, ask what to do with remaining list
@@ -56,6 +67,14 @@
 					return false;
 				}
 			});
+
+			$(".auto_fill").click(function(){
+				// get value
+				value = $(this).attr("value");
+				// set value
+				$(this).siblings("input").val(value);
+			});
+
 			var add_item = function(element, n){
 				input = element.siblings("input")
 				current_value = parseInt(input.val())
@@ -76,7 +95,6 @@
 			$(".minus_icon").click(function(){
 				add_item($(this), -1);
 			});
-
 		});
 	</script>
 
