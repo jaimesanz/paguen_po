@@ -1,11 +1,9 @@
 <!-- <li><a href="/home">Home</a></li> -->
 {% if user.is_authenticated %}
 {% if request.session.user_has_vivienda %}
-	<li><a href="/vivienda">Vivienda</a></li>
 	<li><a href="/gastos">Gastos</a></li>
 	<li><a href="/lists">Listas</a></li>
 {% else %}
-	<li><a href="/nueva_vivienda">Crear Vivienda</a></li>
 	<li><a href="/invites_list">Invitaciones</a></li>
 {% endif %}
 {% else %}

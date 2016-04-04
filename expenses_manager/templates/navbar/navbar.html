@@ -7,7 +7,12 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
         </button>
-        <a href="/about" class="navbar-brand">Cherry</a>
+
+        {% if user.is_authenticated and request.session.user_has_vivienda %}
+            <a href="/vivienda" class="navbar-brand">Vivienda</a>
+        {% else %}
+            <a href="/nueva_vivienda" class="navbar-brand">Crear Vivienda</a>
+        {% endif %}
     </div>
     <!-- Collection of nav links and other content for toggling -->
     <div id="navbarCollapse" class="collapse navbar-collapse">
@@ -19,4 +24,3 @@
         </ul>
     </div>
 </nav>
-
