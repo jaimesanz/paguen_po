@@ -6,14 +6,24 @@
 	{% if gasto.is_pending %}
 		<form method="post" action="">
 			{% csrf_token %}
-			{% for field in gasto_form %}
-			    <li><b>{{ field.label }}:</b> {{ field.data }}</li>
-			{% endfor %}
-			<br>
-			<input type="submit" value="Pagar"></input>
+			<table id="gasto_detail" class="table table-striped table-bordered" cellspacing="0" width="100%">
+				<thead>
+					<tr>
+					</tr>
+				</thead>
+				<tbody>
+					{% for field in gasto_form %}
+						<tr>
+						    <td><b>{{ field.label }}:</b> </td>
+						    <td>{{ field.data }}</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+			<button type="submit" class="btn btn-primary">Pagar</input>
 		</form>
 	{% else %}
-		<table id="items_lista" class="table table-striped table-bordered" cellspacing="0" width="100%">
+		<table id="gasto_detail" class="table table-striped table-bordered" cellspacing="0" width="100%">
 			<thead>
 				<tr>
 				</tr>
