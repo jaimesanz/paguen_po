@@ -189,6 +189,7 @@ def detalle_gasto(request, gasto_id):
 
 @login_required
 def lists(request):
+	vivienda_usuario = request.user.get_vu()
 	items = Item.objects.all().values("nombre")
 	listas_pendientes = ListaCompras.objects.filter(
 							usuario_creacion__vivienda=request.user.get_vivienda(),
@@ -220,8 +221,25 @@ def detalle_lista(request, lista_id):
 	vivienda_usuario = request.user.get_vu()
 	lista = get_object_or_404(ListaCompras, id=lista_id)
 	if lista.allow_user(vivienda_usuario):
-		return render(request, "detalle_lista.html", locals())
+		if request.POST:
+			monto_total = request.POST.get("monto_total", None)
+			# TODO handle None case
+			# filter request.POST to get only the ids and values of the items in the list
+			item_list = []
+			for key, value in request.POST.items():
+				try:
+					item_id_int = int(key)
+					item_quantity = int(value)
+					item_list.append((item_id_int, item_quantity))
+				except ValueError:
+					pass
+			lista.buy_list(item_list, monto_total, vivienda_usuario)
+			return render(request, "detalle_lista.html", locals())
+		else:
+			# not post
+			return render(request, "detalle_lista.html", locals())
 	else:
+		# user is not allowed
 		return HttpResponseRedirect("/error")
 
 @login_required

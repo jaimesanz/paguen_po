@@ -168,6 +168,30 @@ class ListaCompras(models.Model):
 		return len(this_list_items)
 	def allow_user(self, vivienda_usuario):
 		return (vivienda_usuario is not None) and self.usuario_creacion.vivienda == vivienda_usuario.vivienda
+	def is_done(self):
+		return self.estado=="pagada"
+	def set_done_state(self):
+		self.estado = "pagada"
+		self.save()
+
+	# mark item as bought
+	def buy_item(self, item_id, quantity):
+		il = ItemLista.objects.get(id=item_id)
+		il.buy(quantity)
+	def buy_list(self, item_list, monto_total, vivienda_usuario):
+		# mark items as bought
+		for item_id,quantity in item_list:
+			self.buy_item(item_id, quantity)
+		self.set_done_state()
+		# create new Gasto
+		nuevo_gasto = Gasto(
+			monto=monto_total,
+			creado_por=vivienda_usuario,
+			categoria=Categoria.objects.get_or_create(nombre="supermercado")[0],
+			lista_compras=self)
+		nuevo_gasto.pagar_vu(vivienda_usuario)
+
+
 	def __unicode__(self):
 		return "".join((str(self.usuario_creacion), "__", str(self.fecha), "__", str(self.estado)))
 
@@ -180,6 +204,15 @@ class ItemLista(models.Model):
 	cantidad_solicitada = models.IntegerField()
 	cantidad_comprada = models.IntegerField(null=True, blank=True)
 	estado = models.CharField(max_length=255, default="pendiente")
+	def set_done_state(self):
+		self.estado = "comprado"
+		self.save()
+	def is_pending(self):
+		return self.estado == "comprado"
+	def buy(self, quantity):
+		self.cantidad_comprada=quantity
+		self.set_done_state()
+		self.save()
 	def __unicode__(self):
 		return str(self.item) + "__" + str(self.lista)
 
@@ -205,6 +238,7 @@ class Gasto(models.Model):
 	monto = models.IntegerField()
 	creado_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE, related_name="creado_por")
 	usuario = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE, null=True, blank=True)
+	# TODO categoria should default to "supermercado"
 	categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
 	fecha_creacion = models.DateTimeField(auto_now_add=True)
 	fecha_pago = models.DateTimeField(null=True, blank=True)
@@ -215,13 +249,18 @@ class Gasto(models.Model):
 	lista_compras = models.ForeignKey(ListaCompras, on_delete=models.CASCADE, blank=True, null=True)
 	estado = models.ForeignKey(EstadoGasto, on_delete=models.CASCADE, default=get_default_estadoGasto, blank=True)
 
-	def pagar(self,user):
-		self.usuario = user.get_vu()
+	# receives a ViviendaUsuario instance
+	def pagar_vu(self,vu):
+		self.usuario = vu
 		self.fecha_pago = datetime.datetime.now()
 		self.year_month = get_current_yearMonth()
 		estado_gasto, created = EstadoGasto.objects.get_or_create(estado="pagado")
 		self.estado = estado_gasto
 		self.save()
+
+	# receives a User instance
+	def pagar(self,user):
+		self.pagar_vu(user.get_vu())
 
 	def is_pending(self):
 		return self.estado.is_pending()

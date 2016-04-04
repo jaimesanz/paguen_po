@@ -11,7 +11,9 @@
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
 {% block content %}
 	<h3>Lista {{lista.fecha}}</h3>
-
+	{% if lista.is_done %}
+	<p>La lista esta pagada</p>
+	{% else %}
 	<form id="items_lista_form" action="" method="POST">
 		{% csrf_token %}
 		<table id="items_lista" class="table table-striped table-bordered" cellspacing="0" width="100%">
@@ -37,7 +39,7 @@
 								<span class="input-group-addon plus_icon">
 									<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
 								</span>
-								<input type="number" class="form-control" aria-label="TODO poner algo aqui"></input>
+								<input type="number" class="form-control" aria-label="TODO poner algo aqui" name="{{i.id}}"></input>
 								<span class="input-group-addon minus_icon">
 									<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
 								</span>
@@ -48,7 +50,7 @@
 			</tbody>
 		</table>
 		<div class="input-group">
-			<input type="text" class="form-control" placeholder="Monto total" id="monto_total">
+			<input type="text" class="form-control" placeholder="Monto total" id="monto_total" name="monto_total">
 			<span class="input-group-btn">
 				<button type="submit" class="btn btn-primary">Pagar</button>
 			</span>
@@ -97,6 +99,7 @@
 			});
 		});
 	</script>
+	{% endif %}
 
 
 {% endblock %}

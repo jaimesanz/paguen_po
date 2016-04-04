@@ -22,7 +22,12 @@
 			<li><b>Fecha creacion:</b> {{gasto.fecha_creacion}}</li>
 			<li><b>Fecha pago:</b> {{gasto.fecha_pago}}</li>
 			<li><b>Periodo:</b> {{gasto.year_month}}</li>
-			<li><b>Lista compras:</b> {{gasto.lista_compras}}</li>
+			{% if gasto.lista_compras %}
+				<li>
+					<b>Lista compras:</b>
+					<a href="/detalle_lista/{{gasto.lista_compras.id}}/">ver detalle</a>
+				</li>
+			{% endif %}
 			<li><b>Estado:</b> {{gasto.estado}}</li>
 		</ul>
 	{% endif %}
