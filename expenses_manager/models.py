@@ -161,8 +161,10 @@ class ListaCompras(models.Model):
 	def add_item_by_name(self,item_name, quantity):
 		item_id = Item.objects.get(nombre=item_name).id
 		self.add_item(item_id,quantity)
+	def get_items(self):
+		return ItemLista.objects.filter(lista=self)
 	def count_items(self):
-		this_list_items = ItemLista.objects.filter(lista=self)
+		this_list_items = self.get_items()
 		return len(this_list_items)
 	def allow_user(self, vivienda_usuario):
 		return (vivienda_usuario is not None) and self.usuario_creacion.vivienda == vivienda_usuario.vivienda

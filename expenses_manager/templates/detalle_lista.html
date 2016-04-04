@@ -1,7 +1,84 @@
 {% extends "base.html" %}
 
+{% block custom_css %}
+<style type="text/css">
+	.plus_icon, .minus_icon {
+		cursor: pointer;
+	}
+</style>
+{% endblock %}
+
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
 {% block content %}
-	<h3>Detalle Lista</h3>
-	<p>Aqui va el detalle de la lista</p>
+	<h3>Lista {{lista.fecha}}</h3>
+
+	<form id="items_lista_form" action="" method="POST">
+		{% csrf_token %}
+		<table id="items_lista" class="table table-striped table-bordered" cellspacing="0" width="100%">
+			<thead>
+				<tr>
+					<th>Ítem</th>
+					<th>Pedido</th>
+					<th>Esta Compra</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for i in lista.get_items %}
+					<tr>
+						<td>{{i.item.nombre}}</td>
+						<td>{{i.cantidad_solicitada}} ({{i.item.unidad_medida}})</td>
+						<td>
+							<div class="input-group">
+								<span class="input-group-addon plus_icon">
+									<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+								</span>
+								<input type="number" class="form-control" aria-label="TODO poner algo aqui"></input>
+								<span class="input-group-addon minus_icon">
+									<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+								</span>
+							</div>
+							
+						</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		Total: <p><input type="number" id="monto_total"></input></p>
+		<p><button type="submit" class="btn btn-primary">Pagar</button></p>
+	</form>
+
+	<script type="text/javascript">
+		$(document).ready(function(){
+			$("#items_lista_form").submit(function(){
+				// TODO check other conditions: form must not be empty, monto_total can't be empty nor negative, if values dont all match, ask what to do with remaining list
+				if ($("#monto_total").val()<=0){
+					alert("debe ingresar un monto");
+					return false;
+				}
+			});
+			var add_item = function(element, n){
+				input = element.siblings("input")
+				current_value = parseInt(input.val())
+				new_value = current_value+n
+				if (isNaN(current_value) && n>0){
+					input.val(n)
+				}
+				else if (new_value>=0){
+					input.val(new_value)
+				}
+				else {
+					input.val(0)
+				}
+			}
+			$(".plus_icon").click(function(){
+				add_item($(this), 1);
+			});
+			$(".minus_icon").click(function(){
+				add_item($(this), -1);
+			});
+
+		});
+	</script>
+
+
 {% endblock %}
