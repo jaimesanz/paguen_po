@@ -13,22 +13,51 @@
 			<input type="submit" value="Pagar"></input>
 		</form>
 	{% else %}
-		<ul>
-			<!-- TODO hide None info -->
-			<li><b>Monto:</b> {{gasto.monto}}</li>
-			<li><b>Creado por:</b> {{gasto.creado_por.user}}</li>
-			<li><b>Usuario:</b> {{gasto.usuario.user}}</li>
-			<li><b>Categoria:</b> {{gasto.categoria}}</li>
-			<li><b>Fecha creacion:</b> {{gasto.fecha_creacion}}</li>
-			<li><b>Fecha pago:</b> {{gasto.fecha_pago}}</li>
-			<li><b>Periodo:</b> {{gasto.year_month}}</li>
-			{% if gasto.lista_compras %}
-				<li>
-					<b>Lista compras:</b>
-					<a href="/detalle_lista/{{gasto.lista_compras.id}}/">ver detalle</a>
-				</li>
-			{% endif %}
-			<li><b>Estado:</b> {{gasto.estado}}</li>
-		</ul>
+		<table id="items_lista" class="table table-striped table-bordered" cellspacing="0" width="100%">
+			<thead>
+				<tr>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td><b>Monto:</b> </td>
+					<td>{{gasto.monto}}</td>
+				</tr>
+				<tr>
+					<td><b>Creado por:</b></td>
+					<td>{{gasto.creado_por.user}}</td>
+				</tr>
+				<tr>
+					<td><b>Usuario:</b></td>
+					<td>{{gasto.usuario.user}}</td>
+				</tr>
+				<tr>
+					<td><b>Categoria:</b></td>
+					<td>{{gasto.categoria}}</td>
+				</tr>
+				<tr>
+					<td><b>Fecha creacion:</b></td>
+					<td>{{gasto.fecha_creacion}}</td>
+					</tr>
+				<tr>
+					<td><b>Fecha pago:</b></td>
+					<td>{{gasto.fecha_pago}}</td>
+				</tr>
+				<tr>
+					<td><b>Periodo:</b></td>
+					<td>{{gasto.year_month}}</td>
+				</tr>
+				{% if gasto.lista_compras %}
+					<tr>
+						<td><b>Lista compras:</b></td>
+						<td><a href="/detalle_lista/{{gasto.lista_compras.id}}/">ver detalle</a></td>
+					</tr>
+				{% endif %}
+				<tr>
+					<td><b>Estado:</b></td>
+					<td>{{gasto.estado}}</td>
+				</tr>
+			</tbody>
+		</table>
 	{% endif %}
 {% endblock %}
