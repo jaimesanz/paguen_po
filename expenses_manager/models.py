@@ -190,6 +190,7 @@ class ListaCompras(models.Model):
 			categoria=Categoria.objects.get_or_create(nombre="supermercado")[0],
 			lista_compras=self)
 		nuevo_gasto.pagar_vu(vivienda_usuario)
+		return nuevo_gasto.id
 
 
 	def __unicode__(self):
@@ -257,11 +258,9 @@ class Gasto(models.Model):
 		estado_gasto, created = EstadoGasto.objects.get_or_create(estado="pagado")
 		self.estado = estado_gasto
 		self.save()
-
 	# receives a User instance
 	def pagar(self,user):
 		self.pagar_vu(user.get_vu())
-
 	def is_pending(self):
 		return self.estado.is_pending()
 	def is_paid(self):

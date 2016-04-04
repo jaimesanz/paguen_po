@@ -233,8 +233,8 @@ def detalle_lista(request, lista_id):
 					item_list.append((item_id_int, item_quantity))
 				except ValueError:
 					pass
-			lista.buy_list(item_list, monto_total, vivienda_usuario)
-			return render(request, "detalle_lista.html", locals())
+			nuevo_gasto = lista.buy_list(item_list, monto_total, vivienda_usuario)
+			return HttpResponseRedirect("/detalle_gasto/" + str(nuevo_gasto))
 		else:
 			# not post
 			return render(request, "detalle_lista.html", locals())
