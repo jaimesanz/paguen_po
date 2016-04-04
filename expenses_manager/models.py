@@ -173,7 +173,6 @@ class ListaCompras(models.Model):
 	def set_done_state(self):
 		self.estado = "pagada"
 		self.save()
-
 	# mark item as bought
 	def buy_item(self, item_id, quantity):
 		il = ItemLista.objects.get(id=item_id)
@@ -191,8 +190,13 @@ class ListaCompras(models.Model):
 			lista_compras=self)
 		nuevo_gasto.pagar_vu(vivienda_usuario)
 		return nuevo_gasto.id
-
-
+	def get_gasto(self):
+		gastos = Gasto.objects.filter(lista_compras = self)
+		if len(gastos)==0 or len(gastos)>1:
+			# TODO raise error
+			return None
+		else:
+			return gastos.first()
 	def __unicode__(self):
 		return "".join((str(self.usuario_creacion), "__", str(self.fecha), "__", str(self.estado)))
 

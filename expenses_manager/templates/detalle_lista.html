@@ -12,7 +12,31 @@
 {% block content %}
 	<h3>Lista {{lista.fecha}}</h3>
 	{% if lista.is_done %}
-	<p>La lista esta pagada</p>
+		<table id="items_lista" class="table table-striped table-bordered" cellspacing="0" width="100%">
+			<thead>
+				<tr>
+					<th>Ítem</th>
+					<th>Pedido</th>
+					<th>Esta Compra</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for i in lista.get_items %}
+					<tr>
+						<td>{{i.item.nombre}}</td>
+						<td class="cantidad_solicitada">{{i.cantidad_solicitada}} ({{i.item.unidad_medida}})</td>
+						<td>{{i.cantidad_comprada}} ({{i.item.unidad_medida}})</td>
+					</tr>
+				{% endfor %}
+				<tr>
+					<td></td>
+					<td></td>
+					{% with gasto=lista.get_gasto %}
+					<td>Monto total: <a href="/detalle_gasto/{{gasto.id}}">${{gasto.monto}}</a></td>
+					{% endwith %}
+				</tr>
+			</tbody>
+		</table>
 	{% else %}
 	<form id="items_lista_form" action="" method="POST">
 		{% csrf_token %}
@@ -100,6 +124,4 @@
 		});
 	</script>
 	{% endif %}
-
-
 {% endblock %}
