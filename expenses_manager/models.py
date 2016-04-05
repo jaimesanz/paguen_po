@@ -186,7 +186,7 @@ class ListaCompras(models.Model):
 		nuevo_gasto = Gasto(
 			monto=monto_total,
 			creado_por=vivienda_usuario,
-			categoria=Categoria.objects.get_or_create(nombre="supermercado")[0],
+			categoria=Categoria.objects.get_or_create(nombre="Supermercado")[0],
 			lista_compras=self)
 		nuevo_gasto.pagar_vu(vivienda_usuario)
 		return nuevo_gasto.id
@@ -243,7 +243,7 @@ class Gasto(models.Model):
 	monto = models.IntegerField()
 	creado_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE, related_name="creado_por")
 	usuario = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE, null=True, blank=True)
-	# TODO categoria should default to "supermercado"
+	# TODO categoria should default to "Supermercado"
 	categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
 	fecha_creacion = models.DateTimeField(auto_now_add=True)
 	fecha_pago = models.DateTimeField(null=True, blank=True)

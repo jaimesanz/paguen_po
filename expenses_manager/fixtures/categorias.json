@@ -1,57 +1,57 @@
 [
 {
     "model": "expenses_manager.categoria",
-    "pk": "agua",
+    "pk": "Agua",
     "fields": {}
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "arriendo",
+    "pk": "Arriendo",
     "fields": {}
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "cable",
+    "pk": "Cable",
     "fields": {}
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "gas",
+    "pk": "Gas",
     "fields": {}
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "gastos comunes",
+    "pk": "Gastos Comunes",
     "fields": {}
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "internet",
+    "pk": "Internet",
     "fields": {}
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "luz",
+    "pk": "Luz",
     "fields": {}
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "otros",
+    "pk": "Otros",
     "fields": {}
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "servicios",
+    "pk": "Servicios",
     "fields": {}
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "supermercado",
+    "pk": "Supermercado",
     "fields": {}
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "telefono",
+    "pk": "Teléfono",
     "fields": {}
 }
 ]
