@@ -53,7 +53,7 @@ class Vivienda(models.Model):
 			elif g.is_paid():
 				gastos_pagados_list.append(g)
 		return gastos_pendientes_list, gastos_pagados_list
-	def __unicode__(self):
+	def __str__(self):
 		return self.alias
 
 class ViviendaUsuario(models.Model):
@@ -73,7 +73,7 @@ class ViviendaUsuario(models.Model):
 			return self.vivienda.get_gastos()
 		else:
 			return None
-	def __unicode__(self):
+	def __str__(self):
 		return str(self.vivienda) + "__" + str(self.user)
 
 class Invitacion(models.Model):
@@ -83,7 +83,7 @@ class Invitacion(models.Model):
 	email = models.EmailField()
 	estado = models.CharField(max_length=200, default="pendiente")
 	# estado es pendiente, rechazada o aceptada
-	def __unicode__(self):
+	def __str__(self):
 		return str(self.invitado_por) + "__invited__" + str(self.invitado)
 	def accept(self):
 		self.estado = "aceptada"
@@ -107,19 +107,19 @@ class SolicitudAbandonarVivienda(models.Model):
 	creada_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
 	fecha = models.DateTimeField(auto_now_add=True)
 	estado = models.CharField(max_length=100)
-	def __unicode__(self):
+	def __str__(self):
 		return str(self.creada_por) + "__" + str(self.fecha)
 
 class Categoria(models.Model):
 	nombre = models.CharField(max_length=100, primary_key=True)
-	def __unicode__(self):
+	def __str__(self):
 		return self.nombre
 
 class Item(models.Model):
 	nombre = models.CharField(max_length=255)
 	descripcion = models.CharField(max_length=255, blank=True, null=True)
 	unidad_medida = models.CharField(max_length=255, default="unidad")
-	def __unicode__(self):
+	def __str__(self):
 		return str(self.nombre) + " (" + str(self.unidad_medida) + ")"
 
 class YearMonth(models.Model):
@@ -128,7 +128,7 @@ class YearMonth(models.Model):
 
 	year = models.IntegerField()
 	month = models.IntegerField()
-	def __unicode__(self):
+	def __str__(self):
 		return str(self.year) + "__" + str(self.month)
 
 class Presupuesto(models.Model):
@@ -138,7 +138,7 @@ class Presupuesto(models.Model):
 	categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
 	vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE)
 	year_month = models.ForeignKey(YearMonth, on_delete=models.CASCADE)
-	def __unicode__(self):
+	def __str__(self):
 		return "".join((str(self.vivienda), "__", str(self.categoria), "__", str(self.year_month)))
 
 class ListaCompras(models.Model):
@@ -155,7 +155,7 @@ class ListaCompras(models.Model):
 			new_list_item.save()
 			return new_list_item
 		else:
-			print "nope"
+			print("nope")
 			return None
 	# same as add_item, but receives the item's name instead of ID
 	def add_item_by_name(self,item_name, quantity):
@@ -197,7 +197,7 @@ class ListaCompras(models.Model):
 			return None
 		else:
 			return gastos.first()
-	def __unicode__(self):
+	def __str__(self):
 		return "".join((str(self.usuario_creacion), "__", str(self.fecha), "__", str(self.estado)))
 
 class ItemLista(models.Model):
@@ -218,7 +218,7 @@ class ItemLista(models.Model):
 		self.cantidad_comprada=quantity
 		self.set_done_state()
 		self.save()
-	def __unicode__(self):
+	def __str__(self):
 		return str(self.item) + "__" + str(self.lista)
 
 class EstadoGasto(models.Model):
@@ -227,7 +227,7 @@ class EstadoGasto(models.Model):
 		return self.estado == "pendiente"
 	def is_paid(self):
 		return self.estado == "pagado"
-	def __unicode__(self):
+	def __str__(self):
 		return str(self.estado)
 
 def get_current_yearMonth():
@@ -272,5 +272,5 @@ class Gasto(models.Model):
 	def allow_user(self, user):
 		# check that user is active in the vivienda
 		return  user.has_vivienda() and user.get_vivienda() == self.creado_por.vivienda
-	def __unicode__(self):
+	def __str__(self):
 		return "".join((str(self.usuario), "__", str(self.categoria), "__", str(self.year_month)))

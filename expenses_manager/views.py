@@ -2,9 +2,9 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth import authenticate, login, logout
-from forms import *
+from expenses_manager.forms import *
 from django.contrib.auth.decorators import login_required
-from models import *
+from expenses_manager.models import *
 from django.forms.models import model_to_dict
 
 
@@ -201,7 +201,7 @@ def nueva_lista(request):
 	if request.POST:
 		# get the number of items in the list. The post contains 2 inputs for each item,
 		# plus an additional field (???)
-		number_of_items = (len(request.POST)-1)/2
+		number_of_items = int((len(request.POST)-1)/2)
 		if number_of_items>0:
 			# create list
 			nueva_lista = ListaCompras(usuario_creacion=request.user.get_vu())

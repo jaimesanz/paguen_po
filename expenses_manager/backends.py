@@ -1,5 +1,5 @@
 from django.contrib.auth import backends
-from models import ProxyUser
+from expenses_manager.models import ProxyUser
 
 class ModelBackend(backends.ModelBackend):
 	'''
