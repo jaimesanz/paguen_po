@@ -155,7 +155,6 @@ class ListaCompras(models.Model):
 			new_list_item.save()
 			return new_list_item
 		else:
-			print("nope")
 			return None
 	# same as add_item, but receives the item's name instead of ID
 	def add_item_by_name(self,item_name, quantity):
@@ -197,6 +196,21 @@ class ListaCompras(models.Model):
 			return None
 		else:
 			return gastos.first()
+	def get_missing_items(self):
+		return ItemLista.objects.filter(lista=self, estado="pendiente")
+	def has_missing_items(self):
+		return len(self.get_missing_items())>0
+	# creates a new Lista using the pending Items form the current Lista
+	def rescue_items(self, vivienda_usuario):
+		if self.has_missing_items():
+			nueva_lista = ListaCompras(usuario_creacion=vivienda_usuario)
+			nueva_lista.save()
+			for item in self.get_missing_items():
+				item.lista = nueva_lista
+				item.save()
+	def discard_items(self):
+		for item in self.get_missing_items():
+			item.delete()
 	def __str__(self):
 		return "".join((str(self.usuario_creacion), "__", str(self.fecha), "__", str(self.estado)))
 
@@ -213,7 +227,7 @@ class ItemLista(models.Model):
 		self.estado = "comprado"
 		self.save()
 	def is_pending(self):
-		return self.estado == "comprado"
+		return self.estado == "pendiente"
 	def buy(self, quantity):
 		self.cantidad_comprada=quantity
 		self.set_done_state()

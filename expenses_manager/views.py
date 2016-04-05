@@ -222,6 +222,8 @@ def detalle_lista(request, lista_id):
 	lista = get_object_or_404(ListaCompras, id=lista_id)
 	if lista.allow_user(vivienda_usuario):
 		if request.POST:
+			rescatar_items = request.POST.get("rescatar_items", None)
+			descartar_items = request.POST.get("descartar_items", None)
 			monto_total = request.POST.get("monto_total", None)
 			# TODO handle None case
 			# filter request.POST to get only the ids and values of the items in the list
@@ -234,6 +236,10 @@ def detalle_lista(request, lista_id):
 				except ValueError:
 					pass
 			nuevo_gasto = lista.buy_list(item_list, monto_total, vivienda_usuario)
+			if rescatar_items:
+				nueva_lista = lista.rescue_items(vivienda_usuario)
+			elif descartar_items:
+				lista.discard_items()
 			return HttpResponseRedirect("/detalle_gasto/" + str(nuevo_gasto))
 		else:
 			# not post

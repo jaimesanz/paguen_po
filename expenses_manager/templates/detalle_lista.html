@@ -22,11 +22,13 @@
 			</thead>
 			<tbody>
 				{% for i in lista.get_items %}
-					<tr>
-						<td>{{i.item.nombre}}</td>
-						<td class="cantidad_solicitada">{{i.cantidad_solicitada}} ({{i.item.unidad_medida}})</td>
-						<td>{{i.cantidad_comprada}} ({{i.item.unidad_medida}})</td>
-					</tr>
+					{% if not i.is_pending %}
+						<tr>
+							<td>{{i.item.nombre}}</td>
+							<td class="cantidad_solicitada">{{i.cantidad_solicitada}} ({{i.item.unidad_medida}})</td>
+							<td>{{i.cantidad_comprada}} ({{i.item.unidad_medida}})</td>
+						</tr>
+					{% endif %}
 				{% endfor %}
 				<tr>
 					<td></td>
@@ -73,6 +75,16 @@
 				{% endfor %}
 			</tbody>
 		</table>
+		<div class="btn-group" data-toggle="buttons">
+			<p>¿Qué hacer con ítems restantes?</p>
+			<label class="btn btn-success active">
+				<input type="radio" name="descartar_items" id="option1" autocomplete="off" checked>Descartar
+			</label>
+			<label class="btn btn-success">
+				<input type="radio" name="rescatar_items" id="option2" autocomplete="off">Nueva lista
+			</label>
+		</div>
+		<br><br>
 		<div class="input-group">
 			<input type="text" class="form-control" placeholder="Monto total" id="monto_total" name="monto_total">
 			<span class="input-group-btn">
