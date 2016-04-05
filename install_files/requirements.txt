@@ -1,5 +1,7 @@
 Django==1.9.4
 django-extensions==1.6.1
+django-jquery==1.12.2
+django-jquery-ui==1.11.4.1
 django-registration==2.0.4
 psycopg2==2.6.1
 pydot==1.0.2
