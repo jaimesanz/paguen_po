@@ -3,6 +3,7 @@
 	<head>
 		{% load staticfiles %}
 		{% load static %}
+		{% load bootstrap3 %}
 		<meta charset='utf-8'>
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,7 +11,6 @@
 		<script type='text/javascript' src='{% static 'js/jquery.js' %}'></script>
 		<script type='text/javascript' src='{% static 'js/jquery-ui.js' %}'></script>
 		<link rel='stylesheet' type='text/css' href='{% static 'css/jquery-ui/smoothness/jquery-ui.css' %}' />
-		{% load bootstrap3 %}
 		{% bootstrap_css %}
 		{% bootstrap_javascript %}
 		<link rel="shortcut icon" href="{% static 'img/favicon.ico' %}"/>
