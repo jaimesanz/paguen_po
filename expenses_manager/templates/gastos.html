@@ -36,7 +36,6 @@
 			            <th>Fecha</th>
 			            <th>Categoría</th>
 			            <th>Monto</th>
-			            <th>Estado</th>
 			        </tr>
 			    </thead>
 			    <tbody>
@@ -45,7 +44,6 @@
 				            <td><a href="/detalle_gasto/{{gasto.id}}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{gasto.fecha_creacion}}</td>
 				            <td>{{gasto.categoria}}</td>
 				            <td>$ {{gasto.monto}}</td>
-				            <td>{{gasto.estado}}</td>
 			        	</tr>
 			        {% endfor %}
 			    </tbody>
@@ -61,7 +59,6 @@
 							<th>Fecha</th>
 							<th>Categoría</th>
 							<th>Monto</th>
-							<th>Estado</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -70,7 +67,6 @@
 							<td><a href="/detalle_gasto/{{gasto.id}}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{gasto.fecha_creacion}}</td>
 							<td>{{gasto.categoria}}</td>
 							<td>{{gasto.monto}}</td>
-							<td>{{gasto.estado}}</td>
 						</tr>
 						{% endfor %}
 					</tbody>
