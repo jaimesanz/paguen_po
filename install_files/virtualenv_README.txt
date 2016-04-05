@@ -1,5 +1,5 @@
-# NOTE: before installing pygraphviz, run this command:
-sudo apt-get install graphviz libgraphviz-dev pkg-config
+# NOTE: before installing anything, run this command:
+sudo apt-get install python3-dev
 
 #######################
 to export the virtualenv:
