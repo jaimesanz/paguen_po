@@ -229,9 +229,10 @@ class ItemLista(models.Model):
 	def is_pending(self):
 		return self.estado == "pendiente"
 	def buy(self, quantity):
-		self.cantidad_comprada=quantity
-		self.set_done_state()
-		self.save()
+		if quantity>0:
+			self.cantidad_comprada=quantity
+			self.set_done_state()
+			self.save()
 	def __str__(self):
 		return str(self.item) + "__" + str(self.lista)
 
