@@ -8,6 +8,10 @@
   margin-right: 10px;
 }
 
+/*#colapse_glyphicon{
+	font-size: 120%;
+}*/
+
 @media screen and (max-width: 768px) {
   #content{
     width:100%;
