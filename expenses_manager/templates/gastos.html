@@ -92,8 +92,11 @@
 	<script type="text/javascript">
 		$(document).ready(function(){
 			// TODO customize tables. Currently using the default argument-less dataTable
-			$('#tabla_gastos_pendientes').DataTable();
-			$('#tabla_gastos_pagados').DataTable();
+			$('#tabla_gastos_pendientes, #tabla_gastos_pagados').each(function(){
+				$(this).DataTable({
+					paging: false
+				});
+			});
 		} );
 	</script>
 {% endblock %}
