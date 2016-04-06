@@ -122,6 +122,10 @@
 						qty_id = "#" + $(this).attr("id") + "_qty";
 						unidad_medida = items_measure[$(this).val()];
 						$(qty_id).attr("placeholder", unidad_medida);
+					},
+					change: function (ev, ui) {
+						if (!ui.item)
+							$(this).val("");
 					}
 				})
 			});

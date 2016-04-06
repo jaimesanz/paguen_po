@@ -199,9 +199,11 @@ def lists(request):
 @login_required
 def nueva_lista(request):
 	if request.POST:
-		# get the number of items in the list. The post contains 2 inputs for each item,
-		# plus an additional field (???)
-		number_of_items = int((len(request.POST)-1)/2)
+		post = request.POST.copy()
+		post.pop("csrfmiddlewaretoken", None)
+
+		# get the number of items in the list. The post contains 2 inputs for each item
+		number_of_items = int(len(post)/2)
 		if number_of_items>0:
 			# create list
 			nueva_lista = ListaCompras(usuario_creacion=request.user.get_vu())
