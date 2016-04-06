@@ -222,6 +222,9 @@ def detalle_lista(request, lista_id):
 	lista = get_object_or_404(ListaCompras, id=lista_id)
 	if lista.allow_user(vivienda_usuario):
 		if request.POST:
+			if lista.is_done():
+				# TODO show message saying that the lista is already paid
+				return HttpResponseRedirect("/error")
 			rescatar_items = request.POST.get("rescatar_items", None)
 			descartar_items = request.POST.get("descartar_items", None)
 			monto_total = request.POST.get("monto_total", None)
@@ -234,6 +237,7 @@ def detalle_lista(request, lista_id):
 					item_quantity = int(value)
 					item_list.append((item_id_int, item_quantity))
 				except ValueError:
+					# TODO ???
 					pass
 			nuevo_gasto = lista.buy_list(item_list, monto_total, vivienda_usuario)
 			if rescatar_items:
