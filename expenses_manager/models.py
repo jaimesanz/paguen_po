@@ -40,6 +40,10 @@ class ProxyUser(User):
 		invites_out = Invitacion.objects.filter(invitado_por__user=self, estado="pendiente")
 		return invites_in,invites_out
 
+	def pagar(self, gasto):
+		if self.has_vivienda():
+			self.get_vu().pagar(gasto)
+
 class Vivienda(models.Model):
 	alias = models.CharField(max_length=200)
 
@@ -73,6 +77,13 @@ class ViviendaUsuario(models.Model):
 			return self.vivienda.get_gastos()
 		else:
 			return None
+	def pagar(self, gasto):
+		gasto.usuario = self
+		gasto.fecha_pago = datetime.datetime.now()
+		gasto.year_month = get_current_yearMonth()
+		estado_gasto, created = EstadoGasto.objects.get_or_create(estado="pagado")
+		gasto.estado = estado_gasto
+		gasto.save()
 	def __str__(self):
 		return str(self.vivienda) + "__" + str(self.user)
 
@@ -187,7 +198,7 @@ class ListaCompras(models.Model):
 			creado_por=vivienda_usuario,
 			categoria=Categoria.objects.get_or_create(nombre="Supermercado")[0],
 			lista_compras=self)
-		nuevo_gasto.pagar_vu(vivienda_usuario)
+		nuevo_gasto.pagar(vivienda_usuario)
 		return nuevo_gasto.id
 	def get_gasto(self):
 		gastos = Gasto.objects.filter(lista_compras = self)
@@ -269,17 +280,10 @@ class Gasto(models.Model):
 	lista_compras = models.ForeignKey(ListaCompras, on_delete=models.CASCADE, blank=True, null=True)
 	estado = models.ForeignKey(EstadoGasto, on_delete=models.CASCADE, default=get_default_estadoGasto, blank=True)
 
-	# receives a ViviendaUsuario instance
-	def pagar_vu(self,vu):
-		self.usuario = vu
-		self.fecha_pago = datetime.datetime.now()
-		self.year_month = get_current_yearMonth()
-		estado_gasto, created = EstadoGasto.objects.get_or_create(estado="pagado")
-		self.estado = estado_gasto
-		self.save()
-	# receives a User instance
+		
+	# receives a User or a ViviendaUsuario instance, and makes use of double dispatch to pay it
 	def pagar(self,user):
-		self.pagar_vu(user.get_vu())
+		user.pagar(self)
 	def is_pending(self):
 		return self.estado.is_pending()
 	def is_paid(self):
