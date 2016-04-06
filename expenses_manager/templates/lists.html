@@ -73,8 +73,10 @@
 	<script type="text/javascript">
 		var input_number = 1
 		var items = [];
+		var items_measure = {};
 		{% for i in items %}
 			items.push("{{i.nombre}}");
+			items_measure["{{i.nombre}}"] = "{{i.unidad_medida}}"
 		{% endfor %}
 		$(document).ready(function(){
 			// TODO customize tables. Currently using the default parameter-less dataTable
@@ -101,6 +103,7 @@
 					.attr("type", "number")
 					.attr("value", "")
 					.attr("name", "quantity_" + this_item_number)
+					.attr("id", this_item_input_id + "_qty")
 					.attr("placeholder", "Cantidad")
 					.attr("class","form-control");
 				
@@ -114,7 +117,12 @@
 				items_lista.row.add([first_content,second_content]).draw();
 
 				$("#"+this_item_input_id).autocomplete({
-					source: items
+					source: items,
+					select: function(){
+						qty_id = "#" + $(this).attr("id") + "_qty";
+						unidad_medida = items_measure[$(this).val()];
+						$(qty_id).attr("placeholder", unidad_medida);
+					}
 				})
 			});
 		} );

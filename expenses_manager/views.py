@@ -190,7 +190,7 @@ def detalle_gasto(request, gasto_id):
 @login_required
 def lists(request):
 	vivienda_usuario = request.user.get_vu()
-	items = Item.objects.all().values("nombre")
+	items = Item.objects.all().values("nombre", "unidad_medida")
 	listas_pendientes = ListaCompras.objects.filter(
 							usuario_creacion__vivienda=request.user.get_vivienda(),
 							estado="pendiente")
