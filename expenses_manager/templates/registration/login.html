@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load bootstrap3 %}
 
 {% block content %}
 <form method="post" action=".">
-  {% csrf_token %} 
-  {{ form.as_p }}
-
-  <input type="submit" value="{% trans 'Log in' %}" />
+  {% csrf_token %}
+  {% bootstrap_form form %}
+  {% bootstrap_button "Entrar" button_type="submit" button_class="btn-primary" %}
+  <!-- <input type="submit" value="Entrar" /> -->
   <input type="hidden" name="next" value="{{ next }}" />
 </form>
-
+<br>
 <p>¿Olvidaste tu clave? <a href="{% url 'auth_password_reset' %}">¡Recuperar contraseña!</a></p>
 <p>¿No estas registrado? <a href="{% url 'registration_register' %}">¡Regístrate!</a></p>
 {% endblock %}
