@@ -121,7 +121,7 @@
 					select: function(){
 						qty_id = "#" + $(this).attr("id") + "_qty";
 						unidad_medida = items_measure[$(this).val()];
-						$(qty_id).attr("placeholder", unidad_medida);
+						$(qty_id).attr("placeholder", unidad_medida).val("");
 					},
 					change: function (ev, ui) {
 						if (!ui.item)
