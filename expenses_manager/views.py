@@ -10,13 +10,13 @@ from django.forms.models import model_to_dict
 
 def home(request):
 	# locals() creates a dict() object with all the variables from the local scope. We are passing it to the template
-	return render(request, 'home.html', locals())
+	return render(request, 'general/home.html', locals())
 
 def about(request):
-	return render(request, "about.html", locals())
+	return render(request, "general/about.html", locals())
 
 def error(request):
-	return render(request, "error.html", locals())
+	return render(request, "general/error.html", locals())
 
 ######################################################
 # from here on, everything must have @login_required
@@ -114,7 +114,7 @@ def nueva_vivienda(request):
 			return HttpResponseRedirect("/vivienda")
 
 	vivienda_form = ViviendaForm()
-	return render(request, "nueva_vivienda.html", locals())
+	return render(request, "vivienda/nueva_vivienda.html", locals())
 
 @login_required
 def vivienda(request):
@@ -122,12 +122,12 @@ def vivienda(request):
 	vivienda_usuario = request.user.get_vu()
 	# TODO show error message if there are 2 viviendausuario (shouldn't happen!)
 	roommates = request.user.get_roommates()
-	return render(request, "vivienda.html", locals())
+	return render(request, "vivienda/vivienda.html", locals())
 
 @login_required
 def manage_users(request):
 	vivienda_usuario = request.user.get_vu()
-	return render(request, "manage_users.html", locals())
+	return render(request, "vivienda/manage_users.html", locals())
 
 @login_required
 def abandon(request):
@@ -172,7 +172,7 @@ def gastos(request):
 	# get list of gastos
 	gastos_pendientes_list, gastos_pagados_list = vivienda_usuario.get_gastos_vivienda()
 	gasto_form = GastoForm()
-	return render(request, "gastos.html", locals())
+	return render(request, "gastos/gastos.html", locals())
 
 @login_required
 def detalle_gasto(request, gasto_id):
@@ -185,7 +185,7 @@ def detalle_gasto(request, gasto_id):
 	gasto_form = GastoForm(model_to_dict(gasto))
 	if request.POST:
 		gasto.pagar(request.user)
-	return render(request, "detalle_gasto.html", locals())
+	return render(request, "gastos/detalle_gasto.html", locals())
 
 @login_required
 def lists(request):
@@ -194,7 +194,7 @@ def lists(request):
 	listas_pendientes = ListaCompras.objects.filter(
 							usuario_creacion__vivienda=request.user.get_vivienda(),
 							estado="pendiente")
-	return render(request, "lists.html", locals())
+	return render(request, "listas/lists.html", locals())
 
 @login_required
 def nueva_lista(request):
@@ -249,7 +249,7 @@ def detalle_lista(request, lista_id):
 			return HttpResponseRedirect("/detalle_gasto/" + str(nuevo_gasto))
 		else:
 			# not post
-			return render(request, "detalle_lista.html", locals())
+			return render(request, "listas/detalle_lista.html", locals())
 	else:
 		# user is not allowed
 		return HttpResponseRedirect("/error")
