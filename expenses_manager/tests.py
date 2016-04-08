@@ -259,24 +259,19 @@ class InvitacionModelTest(TestCase):
 		pass
 
 class SolicitudAbandonarViviendaModelTest(TestCase):
-	def test_pass(self):
-		pass
+	pass
 
 class CategoriaModelTest(TestCase):
-	def test_pass(self):
-		pass
+	pass
 
 class ItemModelTest(TestCase):
-	def test_pass(self):
-		pass
+	pass
 
 class YearMonthModelTest(TestCase):
-	def test_pass(self):
-		pass
+	pass
 
 class PresupuestoModelTest(TestCase):
-	def test_pass(self):
-		pass
+	pass
 
 class ListaComprasModelTest(TestCase):
 	def test_pass(self):
