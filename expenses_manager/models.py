@@ -39,16 +39,12 @@ class ProxyUser(User):
 class Vivienda(models.Model):
 	alias = models.CharField(max_length=200)
 
+	def get_gastos_pendientes(self):
+		return Gasto.objects.filter(creado_por__vivienda=self, estado=get_pending_estadoGasto())
+	def get_gastos_pagados(self):
+		return Gasto.objects.filter(creado_por__vivienda=self, estado=get_done_estadoGato())
 	def get_gastos(self):
-		gastos = Gasto.objects.filter(creado_por__vivienda=self)
-		gastos_pendientes_list = []
-		gastos_pagados_list = []
-		for g in gastos:
-			if g.is_pending():
-				gastos_pendientes_list.append(g)
-			elif g.is_paid():
-				gastos_pagados_list.append(g)
-		return gastos_pendientes_list, gastos_pagados_list
+		return self.get_gastos_pendientes(), self.get_gastos_pagados()
 	def __str__(self):
 		return self.alias
 
@@ -270,6 +266,13 @@ def get_current_yearMonth():
 def get_default_estadoGasto():
 	estado_gasto, created = EstadoGasto.objects.get_or_create(estado="pendiente")
 	return estado_gasto.id
+
+def get_done_estadoGato():
+	return EstadoGasto.objects.get_or_create(estado="pagado")[0]
+
+def get_pending_estadoGasto():
+	return EstadoGasto.objects.get_or_create(estado="pendiente")[0]
+
 
 class Gasto(models.Model):
 	monto = models.IntegerField()

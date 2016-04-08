@@ -5,7 +5,7 @@ from django.template.loader import render_to_string
 from expenses_manager.models import *
 
 class ProxyUserModelTest(TestCase):
-	
+
 	def test_user_ha_no_vivienda(self):
 		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
 		correct_vivienda = Vivienda.objects.create(alias="viv1")
@@ -196,8 +196,59 @@ class ProxyUserModelTest(TestCase):
 		self.assertTrue(gasto.allow_user(user1))
 
 class ViviendaModelTest(TestCase):
-	def test_pass(self):
-		pass
+
+	def test_get_gastos_from_vivienda_without_gastos(self):
+		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
+		correct_vivienda = Vivienda.objects.create(alias="viv1")
+		user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
+
+		gastos_pendientes_direct = correct_vivienda.get_gastos_pendientes()
+		gastos_pagados_direct = correct_vivienda.get_gastos_pagados()
+		gastos_pendientes, gastos_pagados = correct_vivienda.get_gastos()
+
+		self.assertEqual(gastos_pendientes.count(), 0)
+		self.assertEqual(gastos_pagados.count(), 0)
+		self.assertEqual(gastos_pendientes_direct.count(), 0)
+		self.assertEqual(gastos_pagados_direct.count(), 0)
+
+	def test_get_gastos_from_vivienda_with_gastos_pendientes(self):
+		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
+		correct_vivienda = Vivienda.objects.create(alias="viv1")
+		user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
+		dummy_categoria = Categoria.objects.create(nombre="dummy")
+		gasto = Gasto.objects.create(
+			monto=1000,
+			creado_por=user1_viv,
+			categoria=dummy_categoria)
+
+		gastos_pendientes_direct = correct_vivienda.get_gastos_pendientes()
+		gastos_pagados_direct = correct_vivienda.get_gastos_pagados()
+		gastos_pendientes, gastos_pagados = correct_vivienda.get_gastos()
+
+		self.assertEqual(gastos_pendientes.count(), 1)
+		self.assertEqual(gastos_pagados.count(), 0)
+		self.assertEqual(gastos_pendientes_direct.count(), 1)
+		self.assertEqual(gastos_pagados_direct.count(), 0)
+
+	def test_get_gastos_from_vivienda_with_gastos_pagados(self):
+		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
+		correct_vivienda = Vivienda.objects.create(alias="viv1")
+		user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
+		dummy_categoria = Categoria.objects.create(nombre="dummy")
+		gasto = Gasto.objects.create(
+			monto=1000,
+			creado_por=user1_viv,
+			categoria=dummy_categoria)
+		user1.pagar(gasto)
+
+		gastos_pendientes_direct = correct_vivienda.get_gastos_pendientes()
+		gastos_pagados_direct = correct_vivienda.get_gastos_pagados()
+		gastos_pendientes, gastos_pagados = correct_vivienda.get_gastos()
+
+		self.assertEqual(gastos_pendientes.count(), 0)
+		self.assertEqual(gastos_pagados.count(), 1)
+		self.assertEqual(gastos_pendientes_direct.count(), 0)
+		self.assertEqual(gastos_pagados_direct.count(), 1)
 
 class ViviendaUsuarioModelTest(TestCase):
 	def test_pass(self):
