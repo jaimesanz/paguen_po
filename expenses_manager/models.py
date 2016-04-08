@@ -13,11 +13,9 @@ class ProxyUser(User):
 	# returns the user's current active vivienda, or None
 	def get_vu(self):
 		return ViviendaUsuario.objects.filter(user=self, estado="activo").first()
-
 	# returns a boolean value indicating if the user has an active vivienda
 	def has_vivienda(self):
 		return self.get_vu() is not None
-
 	# returns the vivienda of the user, or None
 	def get_vivienda(self):
 		vivienda_usuario = self.get_vu()
@@ -25,7 +23,6 @@ class ProxyUser(User):
 			return vivienda_usuario.vivienda
 		else:
 			return None
-
 	# return a list of all active members of the Vivienda, including the User that calls the method
 	# if there's no active vivienda, returns None
 	def get_roommates(self):
@@ -33,13 +30,11 @@ class ProxyUser(User):
 			return ViviendaUsuario.objects.filter(vivienda=self.get_vivienda(), estado="activo")
 		else:
 			return None
-
 	# returns pending invites related to the user (received and sent invites)
 	def get_invites(self):
 		invites_in = Invitacion.objects.filter(invitado=self, estado="pendiente")
 		invites_out = Invitacion.objects.filter(invitado_por__user=self, estado="pendiente")
 		return invites_in,invites_out
-
 	def pagar(self, gasto):
 		if self.has_vivienda():
 			self.get_vu().pagar(gasto)
@@ -67,6 +62,7 @@ class ViviendaUsuario(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	estado = models.CharField(max_length=200, default="activo")
 	fecha_creacion = models.DateTimeField(auto_now_add=True)
+
 	def leave(self):
 		self.estado = "inactivo"
 		self.save()
@@ -94,6 +90,7 @@ class Invitacion(models.Model):
 	email = models.EmailField()
 	estado = models.CharField(max_length=200, default="pendiente")
 	# estado es pendiente, rechazada o aceptada
+
 	def __str__(self):
 		return str(self.invitado_por) + "__invited__" + str(self.invitado)
 	def accept(self):
@@ -106,7 +103,6 @@ class Invitacion(models.Model):
 	def cancel(self):
 		self.estado = "cancelada"
 		self.save()
-
 	# return True if the given user is the one that's beign invited
 	def is_invited_user(self, user):
 		return self.invitado == user
@@ -118,11 +114,13 @@ class SolicitudAbandonarVivienda(models.Model):
 	creada_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
 	fecha = models.DateTimeField(auto_now_add=True)
 	estado = models.CharField(max_length=100)
+
 	def __str__(self):
 		return str(self.creada_por) + "__" + str(self.fecha)
 
 class Categoria(models.Model):
 	nombre = models.CharField(max_length=100, primary_key=True)
+
 	def __str__(self):
 		return self.nombre
 
@@ -130,25 +128,26 @@ class Item(models.Model):
 	nombre = models.CharField(max_length=255)
 	descripcion = models.CharField(max_length=255, blank=True, null=True)
 	unidad_medida = models.CharField(max_length=255, default="unidad")
+
 	def __str__(self):
 		return str(self.nombre) + " (" + str(self.unidad_medida) + ")"
 
 class YearMonth(models.Model):
 	class Meta:
 		unique_together = (('year', 'month'),)
-
 	year = models.IntegerField()
 	month = models.IntegerField()
+
 	def __str__(self):
 		return str(self.year) + "__" + str(self.month)
 
 class Presupuesto(models.Model):
 	class Meta:
 		unique_together = (('categoria', 'vivienda', 'year_month'),)
-
 	categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
 	vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE)
 	year_month = models.ForeignKey(YearMonth, on_delete=models.CASCADE)
+
 	def __str__(self):
 		return "".join((str(self.vivienda), "__", str(self.categoria), "__", str(self.year_month)))
 
@@ -156,6 +155,7 @@ class ListaCompras(models.Model):
 	usuario_creacion = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
 	fecha = models.DateTimeField(auto_now_add=True)
 	estado = models.CharField(max_length=255, default="pendiente")
+
 	# given an item name, returns the Item instance
 	def get_item_by_name(self, item_name):
 		return Item.objects.filter(nombre=item_name).first()
@@ -233,12 +233,12 @@ class ListaCompras(models.Model):
 class ItemLista(models.Model):
 	class Meta:
 		unique_together = (('item', 'lista'),)
-
 	item = models.ForeignKey(Item, on_delete=models.CASCADE)
 	lista = models.ForeignKey(ListaCompras, on_delete=models.CASCADE)
 	cantidad_solicitada = models.IntegerField()
 	cantidad_comprada = models.IntegerField(null=True, blank=True)
 	estado = models.CharField(max_length=255, default="pendiente")
+
 	def set_done_state(self):
 		self.estado = "comprado"
 		self.save()
@@ -254,6 +254,7 @@ class ItemLista(models.Model):
 
 class EstadoGasto(models.Model):
 	estado = models.CharField(max_length=255)
+
 	def is_pending(self):
 		return self.estado == "pendiente"
 	def is_paid(self):
@@ -284,7 +285,6 @@ class Gasto(models.Model):
 		blank=True)
 	lista_compras = models.ForeignKey(ListaCompras, on_delete=models.CASCADE, blank=True, null=True)
 	estado = models.ForeignKey(EstadoGasto, on_delete=models.CASCADE, default=get_default_estadoGasto, blank=True)
-
 		
 	# receives a User or a ViviendaUsuario instance, and makes use of double dispatch to pay it
 	def pagar(self,user):
