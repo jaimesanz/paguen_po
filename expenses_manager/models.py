@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
-import datetime
+from django.utils import timezone
 
 # proxy user. This is used to add methods to the User class without altering the default django
 class ProxyUser(User):
@@ -26,10 +26,7 @@ class ProxyUser(User):
 	# return a list of all active members of the Vivienda, including the User that calls the method
 	# if there's no active vivienda, returns None
 	def get_roommates(self):
-		if self.has_vivienda():
-			return ViviendaUsuario.objects.filter(vivienda=self.get_vivienda(), estado="activo")
-		else:
-			return None
+		return ViviendaUsuario.objects.filter(vivienda=self.get_vivienda(), estado="activo")
 	# returns pending invites related to the user (received and sent invites)
 	def get_invites(self):
 		invites_in = Invitacion.objects.filter(invitado=self, estado="pendiente")
@@ -75,8 +72,8 @@ class ViviendaUsuario(models.Model):
 			return None
 	def pagar(self, gasto):
 		gasto.usuario = self
-		gasto.fecha_pago = datetime.datetime.now()
-		gasto.year_month = get_current_yearMonth()
+		gasto.fecha_pago = timezone.now()
+		gasto.year_month = get_current_yearMonth_obj()
 		estado_gasto, created = EstadoGasto.objects.get_or_create(estado="pagado")
 		gasto.estado = estado_gasto
 		gasto.save()
@@ -96,7 +93,7 @@ class Invitacion(models.Model):
 	def accept(self):
 		self.estado = "aceptada"
 		self.save()
-		return ViviendaUsuario(user=self.invitado, vivienda=self.invitado_por.vivienda)
+		ViviendaUsuario.objects.create(user=self.invitado, vivienda=self.invitado_por.vivienda)
 	def reject(self):
 		self.estado = "rechazada"
 		self.save()
@@ -262,10 +259,13 @@ class EstadoGasto(models.Model):
 	def __str__(self):
 		return str(self.estado)
 
-def get_current_yearMonth():
-	today = datetime.datetime.now()
+def get_current_yearMonth_obj():
+	today = timezone.now()
 	year_month, creted = YearMonth.objects.get_or_create(year=today.year, month=today.month)
 	return year_month
+
+def get_current_yearMonth():
+	return get_current_yearMonth_obj().id
 
 def get_default_estadoGasto():
 	estado_gasto, created = EstadoGasto.objects.get_or_create(estado="pendiente")

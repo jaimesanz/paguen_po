@@ -77,9 +77,8 @@ def invite(request, invite_id):
 					# user can't have 2 viviendas
 					# TODO show message saying he must leave the current vivienda before joining another
 					return HttpResponseRedirect("/error")
-				new_vivienda_usuario = invite.accept()
+				invite.accept()
 				request.session['user_has_vivienda']=True
-				new_vivienda_usuario.save()
 				return HttpResponseRedirect("/vivienda")
 
 			invite.reject()
