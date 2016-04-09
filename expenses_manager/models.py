@@ -71,7 +71,7 @@ class ViviendaUsuario(models.Model):
 			return self.vivienda.get_gastos()
 		else:
 			# returns empty queryset
-			empty_queryset = ViviendaUsuario.objects.none()
+			empty_queryset = Gasto.objects.none()
 			return (empty_queryset, empty_queryset)
 	def pagar(self, gasto):
 		gasto.usuario = self
@@ -131,6 +131,8 @@ class Item(models.Model):
 
 	def __str__(self):
 		return str(self.nombre) + " (" + str(self.unidad_medida) + ")"
+	def is_in_lista(self, lista):
+		return ItemLista.objects.filter(item=self, lista=lista).exists()
 
 class YearMonth(models.Model):
 	class Meta:
@@ -162,21 +164,19 @@ class ListaCompras(models.Model):
 	def get_item_by_name(self, item_name):
 		return Item.objects.filter(nombre=item_name).first()
 	# creates an instance of ItemLista with the given Item and quantity, where the list is self
-	def add_item(self,item_id, quantity):
-		if item_id>0 and item_id is not None:
-			new_list_item = ItemLista(
-				item=Item.objects.get(id=item_id), 
+	def add_item(self,item, quantity):
+		if item.id>0 and item is not None and not item.is_in_lista(self):
+			new_list_item = ItemLista.objects.create(
+				item=item, 
 				lista=self, 
 				cantidad_solicitada=quantity)
-			new_list_item.save()
 			return new_list_item
 		else:
 			return None
 	# same as add_item, but receives the item's name instead of ID
 	def add_item_by_name(self,item_name, quantity):
 		item = self.get_item_by_name(item_name)
-		if item is not None:
-			self.add_item(item.id,quantity)
+		return self.add_item(item,quantity)
 
 	def get_items(self):
 		return ItemLista.objects.filter(lista=self)

@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.http import HttpRequest
 from django.template.loader import render_to_string
 from expenses_manager.models import *
-
+from django.utils import timezone
 
 ##########################
 # Helper functions
@@ -39,6 +39,15 @@ def get_dummy_lista_with_1_item(user_viv):
 		lista=lista, 
 		cantidad_solicitada=10)
 	return (lista, item, item_lista)
+
+def get_dummy_lista_with_2_items(user_viv):
+	lista, item_1, item_lista_1 = get_dummy_lista_with_1_item(user_viv)
+	item_2 = Item.objects.create(nombre="test_item_2")
+	item_lista_2 = ItemLista.objects.create(
+		item=item_2, 
+		lista=lista, 
+		cantidad_solicitada=20)
+	return lista, item_1, item_lista_1, item_2, item_lista_2
 
 
 ##########################
@@ -358,7 +367,22 @@ class CategoriaModelTest(TestCase):
 	pass
 
 class ItemModelTest(TestCase):
-	pass
+	def test_is_in_lista(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item, item_lista = get_dummy_lista_with_1_item(user1_viv)
+
+		self.assertTrue(item.is_in_lista(lista))
+	def test_is_not_in_lista(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1 = get_dummy_lista_with_1_item(user1_viv)
+		item_2 = Item.objects.create(nombre="test_item_2")
+
+		self.assertFalse(item_2.is_in_lista(lista))
+	def test_is_in_None_lista(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1 = get_dummy_lista_with_1_item(user1_viv)
+
+		self.assertFalse(item_1.is_in_lista(None))
 
 class YearMonthModelTest(TestCase):
 	pass
@@ -368,11 +392,7 @@ class PresupuestoModelTest(TestCase):
 
 class ListaComprasModelTest(TestCase):
 	# TODO test this methods:
-	# get_item_by_name
-	# add_item
-	# add_item_by_name
 	# get_items
-	# count_items
 	# allow_user
 	# is_done
 	# set_done_state
@@ -383,8 +403,78 @@ class ListaComprasModelTest(TestCase):
 	# has_missing_items
 	# rescue_items
 	# discard_items
-	def test_pass(self):
-		pass
+	def test_default_values(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		self.assertEqual(lista.estado, "pendiente")
+		self.assertEqual(lista.usuario_creacion, user1_viv)
+	def test_get_existing_item_by_name(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		self.assertEqual(lista.get_item_by_name(item_1.nombre).nombre, item_1.nombre)
+		self.assertEqual(lista.get_item_by_name(item_2.nombre).nombre, item_2.nombre)
+		self.assertNotEqual(lista.get_item_by_name(item_1.nombre).nombre, item_2.nombre)
+		self.assertNotEqual(lista.get_item_by_name(item_2.nombre).nombre, item_1.nombre)
+	def test_get_non_existing_item_by_name(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		self.assertEqual(lista.get_item_by_name("test_item_3"), None)
+	def test_count_items_with_only_pending(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		self.assertEqual(lista.count_items(), 2)
+	def test_count_items_with_pending_and_paid(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		item_lista_1.buy(1)
+		self.assertEqual(lista.count_items(), 2)
+		item_lista_2.buy(1)
+		self.assertEqual(lista.count_items(), 2)
+	def test_add_new_item(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+		new_item = Item.objects.create(nombre="test_item_3")
+		
+		new_item_lista = lista.add_item(new_item, 30)
+
+		self.assertEqual(lista.count_items(), 3)
+		self.assertTrue(new_item_lista.is_pending())
+	def test_add_existing_item(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+		
+		new_item_lista = lista.add_item(item_1, 30)
+
+		self.assertTrue(item_lista_1.is_pending())
+		self.assertEqual(item_lista_1.cantidad_solicitada, 10)
+		self.assertNotEqual(item_lista_1.cantidad_solicitada, 30)
+		self.assertEqual(lista.count_items(), 2)
+		self.assertEqual(new_item_lista, None)
+	def test_add_new_item_by_name(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+		new_item = Item.objects.create(nombre="test_item_3")
+		
+		new_item_lista = lista.add_item_by_name(new_item.nombre, 30)
+
+		self.assertEqual(lista.count_items(), 3)
+		self.assertTrue(new_item_lista.is_pending())
+	def test_add_existing_item_by_name(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+		
+		new_item_lista = lista.add_item_by_name(item_1.nombre, 30)
+
+		self.assertTrue(item_lista_1.is_pending())
+		self.assertEqual(item_lista_1.cantidad_solicitada, 10)
+		self.assertNotEqual(item_lista_1.cantidad_solicitada, 30)
+		self.assertEqual(lista.count_items(), 2)
+		self.assertEqual(new_item_lista, None)
 
 class ItemListaModelTest(TestCase):
 
