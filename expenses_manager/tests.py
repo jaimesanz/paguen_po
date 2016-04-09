@@ -397,13 +397,28 @@ class EstadoGastoModelTest(TestCase):
 		self.assertFalse(gasto.is_pending())
 		self.assertEqual(gasto.estado.estado, "pagado")
 
-
-
 class GastoModelTest(TestCase):
-	# TODO test this methods
-	# pagar
-	# is_pending
-	# is_paid
-	# allow_user
-	def test_pass(self):
-		pass
+
+	def test_gasto_defaults_to_pendiente(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		gasto, dummy_categoria = get_dummy_gasto_pendiente(user1_viv)
+
+		self.assertTrue(gasto.is_pending())
+		self.assertFalse(gasto.is_paid())
+		self.assertEqual(gasto.estado.estado, "pendiente")
+	def test_pagar_gasto(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		gasto, dummy_categoria = get_dummy_gasto_pendiente(user1_viv)
+
+		gasto.pagar(user1)
+
+		self.assertTrue(gasto.is_paid())
+		self.assertFalse(gasto.is_pending())
+		self.assertEqual(gasto.estado.estado, "pagado")
+	def test_allow_user(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
+		gasto, dummy_categoria = get_dummy_gasto_pendiente(user1_viv)
+
+		self.assertTrue(gasto.allow_user(user1))
+		self.assertFalse(gasto.allow_user(user2))
