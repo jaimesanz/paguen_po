@@ -183,17 +183,21 @@ class ListaCompras(models.Model):
 	def count_items(self):
 		this_list_items = self.get_items()
 		return len(this_list_items)
-	def allow_user(self, vivienda_usuario):
+	def allow_user(self, usuario):
+		vivienda_usuario = usuario.get_vu()
 		return (vivienda_usuario is not None) and self.usuario_creacion.vivienda == vivienda_usuario.vivienda
 	def is_done(self):
 		return self.estado=="pagada"
 	def set_done_state(self):
-		self.estado = "pagada"
-		self.save()
+		if not self.is_done():
+			self.estado = "pagada"
+			self.save()
+			return True
+		return False
 	# mark item as bought
-	def buy_item(self, item_id, quantity):
-		il = ItemLista.objects.get(id=item_id)
-		il.buy(quantity)
+	def buy_item(self, item, quantity):
+		il = ItemLista.objects.get(item=item, lista=self)
+		return il.buy(quantity)
 	def buy_list(self, item_list, monto_total, vivienda_usuario):
 		# mark items as bought
 		for item_id,quantity in item_list:
@@ -240,17 +244,20 @@ class ItemLista(models.Model):
 	estado = models.CharField(max_length=255, default="pendiente")
 
 	def __str__(self):
-		return str(self.item) + "__" + str(self.lista)
+		return str(self.item) + "__" + str(self.estado) + "__" + str(self.lista)
 	def set_done_state(self):
 		self.estado = "comprado"
 		self.save()
 	def is_pending(self):
 		return self.estado == "pendiente"
+	def get_state(self):
+		return self.estado
 	def buy(self, quantity):
 		if quantity>0 and self.is_pending():
 			self.cantidad_comprada=quantity
 			self.set_done_state()
 			self.save()
+		return self
 
 class EstadoGasto(models.Model):
 	estado = models.CharField(max_length=255)
@@ -308,3 +315,5 @@ class Gasto(models.Model):
 	def allow_user(self, user):
 		# check that user is active in the vivienda
 		return  user.has_vivienda() and user.get_vivienda() == self.creado_por.vivienda
+
+
