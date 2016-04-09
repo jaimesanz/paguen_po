@@ -4,6 +4,10 @@ from django.http import HttpRequest
 from django.template.loader import render_to_string
 from expenses_manager.models import *
 
+
+##########################
+# Helper functions
+##########################
 def get_lone_user():
 	return ProxyUser.objects.create(username="us1", email="a@a.com")
 
@@ -27,6 +31,19 @@ def get_dummy_gasto_pendiente(user_viv):
 		categoria=dummy_categoria)
 	return gasto, dummy_categoria
 
+def get_dummy_lista_with_1_item(user_viv):
+	lista = ListaCompras.objects.create(usuario_creacion=user_viv)
+	item = Item.objects.create(nombre="test_item_1")
+	item_lista = ItemLista.objects.create(
+		item=item, 
+		lista=lista, 
+		cantidad_solicitada=10)
+	return (lista, item, item_lista)
+
+
+##########################
+# Model Tests
+##########################
 
 class ProxyUserModelTest(TestCase):
 
@@ -370,12 +387,61 @@ class ListaComprasModelTest(TestCase):
 		pass
 
 class ItemListaModelTest(TestCase):
-	# TODO test this methods
-	# set_done_state
-	# is_pending
-	# buy
-	def test_pass(self):
-		pass
+
+	def test_item_lista_defaults_to_0_bought(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item, item_lista = get_dummy_lista_with_1_item(user1_viv)
+
+		self.assertEqual(item_lista.cantidad_comprada, 0)
+
+	def test_item_lista_defaults_to_pending(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item, item_lista = get_dummy_lista_with_1_item(user1_viv)
+
+		self.assertTrue(item_lista.is_pending())
+		self.assertEqual(item_lista.estado, "pendiente")
+	def test_set_done_state(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item, item_lista = get_dummy_lista_with_1_item(user1_viv)
+
+		item_lista.set_done_state()
+
+		self.assertFalse(item_lista.is_pending())
+		self.assertEqual(item_lista.estado, "comprado")
+	def test_buy_item_lista_with_0_quantity(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item, item_lista = get_dummy_lista_with_1_item(user1_viv)
+
+		item_lista.buy(0)
+		self.assertTrue(item_lista.is_pending())
+		self.assertEqual(item_lista.cantidad_comprada, 0)
+	def test_buy_item_lista_with_negative_quantity(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item, item_lista = get_dummy_lista_with_1_item(user1_viv)
+
+		item_lista.buy(-10)
+		self.assertTrue(item_lista.is_pending())
+		self.assertEqual(item_lista.cantidad_comprada, 0)
+	def test_buy_item_lista_with_positive_quantity(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item, item_lista = get_dummy_lista_with_1_item(user1_viv)
+
+		item_lista.buy(1)
+		self.assertFalse(item_lista.is_pending())
+		self.assertEqual(item_lista.cantidad_comprada, 1)
+	def test_buy_item_lista_that_is_already_paid(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item, item_lista = get_dummy_lista_with_1_item(user1_viv)
+
+		item_lista.buy(1)
+		self.assertFalse(item_lista.is_pending())
+		self.assertEqual(item_lista.cantidad_comprada, 1)
+
+		item_lista.buy(2)
+		self.assertFalse(item_lista.is_pending())
+		self.assertEqual(item_lista.cantidad_comprada, 1)
+		self.assertNotEqual(item_lista.cantidad_comprada, 2)
+		self.assertNotEqual(item_lista.cantidad_comprada, 3)
 
 class EstadoGastoModelTest(TestCase):
 
@@ -422,3 +488,7 @@ class GastoModelTest(TestCase):
 
 		self.assertTrue(gasto.allow_user(user1))
 		self.assertFalse(gasto.allow_user(user2))
+
+##########################
+# View Tests
+##########################

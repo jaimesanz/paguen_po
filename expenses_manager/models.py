@@ -236,7 +236,7 @@ class ItemLista(models.Model):
 	item = models.ForeignKey(Item, on_delete=models.CASCADE)
 	lista = models.ForeignKey(ListaCompras, on_delete=models.CASCADE)
 	cantidad_solicitada = models.IntegerField()
-	cantidad_comprada = models.IntegerField(null=True, blank=True)
+	cantidad_comprada = models.IntegerField(null=True, blank=True, default=0)
 	estado = models.CharField(max_length=255, default="pendiente")
 
 	def __str__(self):
@@ -247,7 +247,7 @@ class ItemLista(models.Model):
 	def is_pending(self):
 		return self.estado == "pendiente"
 	def buy(self, quantity):
-		if quantity>0:
+		if quantity>0 and self.is_pending():
 			self.cantidad_comprada=quantity
 			self.set_done_state()
 			self.save()
