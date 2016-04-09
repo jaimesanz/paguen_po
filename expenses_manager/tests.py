@@ -350,17 +350,60 @@ class PresupuestoModelTest(TestCase):
 	pass
 
 class ListaComprasModelTest(TestCase):
+	# TODO test this methods:
+	# get_item_by_name
+	# add_item
+	# add_item_by_name
+	# get_items
+	# count_items
+	# allow_user
+	# is_done
+	# set_done_state
+	# buy_item
+	# buy_list
+	# get_gasto
+	# get_missing_items
+	# has_missing_items
+	# rescue_items
+	# discard_items
 	def test_pass(self):
 		pass
 
 class ItemListaModelTest(TestCase):
+	# TODO test this methods
+	# set_done_state
+	# is_pending
+	# buy
 	def test_pass(self):
 		pass
 
 class EstadoGastoModelTest(TestCase):
-	def test_pass(self):
-		pass
+
+	def test_gasto_estado_defaults_to_pendiente(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		gasto, dummy_categoria = get_dummy_gasto_pendiente(user1_viv)
+
+		self.assertTrue(gasto.is_pending())
+		self.assertFalse(gasto.is_paid())
+		self.assertEqual(gasto.estado.estado, "pendiente")
+
+	def test_is_paid(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		gasto, dummy_categoria = get_dummy_gasto_pendiente(user1_viv)
+		estado_gasto, created = EstadoGasto.objects.get_or_create(estado="pagado")
+		gasto.estado = estado_gasto
+
+		self.assertTrue(gasto.is_paid())
+		self.assertFalse(gasto.is_pending())
+		self.assertEqual(gasto.estado.estado, "pagado")
+
+
 
 class GastoModelTest(TestCase):
+	# TODO test this methods
+	# pagar
+	# is_pending
+	# is_paid
+	# allow_user
 	def test_pass(self):
 		pass
