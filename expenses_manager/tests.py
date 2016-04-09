@@ -4,6 +4,30 @@ from django.http import HttpRequest
 from django.template.loader import render_to_string
 from expenses_manager.models import *
 
+def get_lone_user():
+	return ProxyUser.objects.create(username="us1", email="a@a.com")
+
+def get_vivienda_with_1_user():
+	user1 = get_lone_user()
+	correct_vivienda = Vivienda.objects.create(alias="viv1")
+	user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
+	return (user1, correct_vivienda, user1_viv)
+
+def get_vivienda_with_2_users():
+	user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+	user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
+	user2_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user2)
+	return (user1, user2, correct_vivienda, user1_viv, user2_viv)
+
+def get_dummy_gasto_pendiente(user_viv):
+	dummy_categoria = Categoria.objects.create(nombre="dummy")
+	gasto = Gasto.objects.create(
+		monto=1000,
+		creado_por=user_viv,
+		categoria=dummy_categoria)
+	return gasto, dummy_categoria
+
+
 class ProxyUserModelTest(TestCase):
 
 	def test_user_ha_no_vivienda(self):
@@ -251,8 +275,52 @@ class ViviendaModelTest(TestCase):
 		self.assertEqual(gastos_pagados_direct.count(), 1)
 
 class ViviendaUsuarioModelTest(TestCase):
-	def test_pass(self):
-		pass
+
+	def test_user_leaves_vivienda(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		self.assertTrue(user1_viv.is_active())
+
+		user1_viv.leave()
+
+		self.assertFalse(user1.has_vivienda())
+		self.assertFalse(user1_viv.is_active())
+
+	def test_user_gets_gastos_of_vivienda_that_has_no_gastos(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+
+		gastos_pendientes, gastos_pagados = user1_viv.get_gastos_vivienda()
+
+		self.assertEqual(gastos_pendientes.count(), 0)
+		self.assertEqual(gastos_pagados.count(), 0)
+
+	def test_user_gets_gastos_of_vivienda_that_has_gastos_pendientes(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		gasto, dummy_categoria = get_dummy_gasto_pendiente(user1_viv)
+
+		gastos_pendientes, gastos_pagados = user1_viv.get_gastos_vivienda()
+
+		self.assertEqual(gastos_pendientes.count(), 1)
+		self.assertEqual(gastos_pagados.count(), 0)
+
+	def test_user_gets_gastos_of_vivienda_that_has_gastos_pagados(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		gasto, dummy_categoria = get_dummy_gasto_pendiente(user1_viv)
+		user1.pagar(gasto)
+
+		gastos_pendientes, gastos_pagados = user1_viv.get_gastos_vivienda()
+
+		self.assertEqual(gastos_pendientes.count(), 0)
+		self.assertEqual(gastos_pagados.count(), 1)
+
+	def test_user_gets_gastos_of_vivienda_that_has_gastos_pendientes_and_pays_them(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		gasto, dummy_categoria = get_dummy_gasto_pendiente(user1_viv)
+		user1_viv.pagar(gasto)
+
+		gastos_pendientes, gastos_pagados = user1_viv.get_gastos_vivienda()
+
+		self.assertEqual(gastos_pendientes.count(), 0)
+		self.assertEqual(gastos_pagados.count(), 1)
 
 class InvitacionModelTest(TestCase):
 	def test_pass(self):

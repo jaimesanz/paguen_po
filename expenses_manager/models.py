@@ -65,7 +65,9 @@ class ViviendaUsuario(models.Model):
 		if self.is_active():
 			return self.vivienda.get_gastos()
 		else:
-			return None
+			# returns empty queryset
+			empty_queryset = ViviendaUsuario.objects.none()
+			return (empty_queryset, empty_queryset)
 	def pagar(self, gasto):
 		gasto.usuario = self
 		gasto.fecha_pago = timezone.now()
