@@ -110,9 +110,12 @@ class ProxyUserModelTest(TestCase):
 		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
 
-		Invitacion.objects.create(invitado=user2, invitado_por=user1_viv, email="b@b.com")
+		invite = Invitacion.objects.create(invitado=user2, invitado_por=user1_viv, email="b@b.com")
 		self.assertEqual(user2.get_invites()[0].count(), 1)
 		self.assertEqual(user1.get_invites()[1].count(), 1)
+		self.assertTrue(user1.sent_invite(invite))
+		self.assertTrue(user1_viv.sent_invite(invite))
+		self.assertFalse(user2.sent_invite(invite))
 
 	def test_user_accepts_invite(self):
 		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
@@ -274,9 +277,62 @@ class ViviendaUsuarioModelTest(TestCase):
 		self.assertEqual(gastos_pendientes.count(), 0)
 		self.assertEqual(gastos_pagados.count(), 1)
 
+	def test_user_invites_another(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
+		invite = Invitacion.objects.create(invitado=user2, invitado_por=user1_viv, email="b@b.com")
+
+		self.assertTrue(user1_viv.sent_invite(invite))
+
 class InvitacionModelTest(TestCase):
-	def test_pass(self):
-		pass
+	# TODO test this methods:
+	# is_invited_user
+	# is_invited_by_user
+	def test_new_invite_has_pending_state(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
+		invite = Invitacion.objects.create(invitado=user2, invitado_por=user1_viv, email="b@b.com")
+
+		self.assertEqual(invite.estado, "pendiente")
+	def test_accept(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
+		invite = Invitacion.objects.create(invitado=user2, invitado_por=user1_viv, email="b@b.com")
+
+		invite.accept()
+
+		self.assertEqual(invite.estado, "aceptada")
+	def test_reject(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
+		invite = Invitacion.objects.create(invitado=user2, invitado_por=user1_viv, email="b@b.com")
+
+		invite.reject()
+
+		self.assertEqual(invite.estado, "rechazada")
+	def test_cancel(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
+		invite = Invitacion.objects.create(invitado=user2, invitado_por=user1_viv, email="b@b.com")
+
+		invite.reject()
+
+		self.assertEqual(invite.estado, "rechazada")
+	def test_is_invited_user(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
+		invite = Invitacion.objects.create(invitado=user2, invitado_por=user1_viv, email="b@b.com")
+
+		self.assertTrue(invite.is_invited_user(user2))
+		self.assertFalse(invite.is_invited_user(user1))
+	def test_is_invited_by_user(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
+		invite = Invitacion.objects.create(invitado=user2, invitado_por=user1_viv, email="b@b.com")
+
+		self.assertTrue(invite.is_invited_by_user(user1))
+		self.assertFalse(invite.is_invited_by_user(user2))
+		self.assertTrue(invite.is_invited_by_user(user1_viv))
 
 class SolicitudAbandonarViviendaModelTest(TestCase):
 	pass

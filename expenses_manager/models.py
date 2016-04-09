@@ -36,6 +36,9 @@ class ProxyUser(User):
 		if self.has_vivienda():
 			self.get_vu().pagar(gasto)
 
+	def sent_invite(self, invite):
+		return invite.invitado_por.user == self
+
 class Vivienda(models.Model):
 	alias = models.CharField(max_length=200)
 
@@ -56,6 +59,8 @@ class ViviendaUsuario(models.Model):
 	estado = models.CharField(max_length=200, default="activo")
 	fecha_creacion = models.DateTimeField(auto_now_add=True)
 
+	def __str__(self):
+		return str(self.vivienda) + "__" + str(self.user)
 	def leave(self):
 		self.estado = "inactivo"
 		self.save()
@@ -75,8 +80,8 @@ class ViviendaUsuario(models.Model):
 		estado_gasto, created = EstadoGasto.objects.get_or_create(estado="pagado")
 		gasto.estado = estado_gasto
 		gasto.save()
-	def __str__(self):
-		return str(self.vivienda) + "__" + str(self.user)
+	def sent_invite(self, invite):
+		return invite.invitado_por.user == self.user
 
 class Invitacion(models.Model):
 	# this key can be null if you invite an account-less user. In this case the invitation is sent to the email.
@@ -98,12 +103,12 @@ class Invitacion(models.Model):
 	def cancel(self):
 		self.estado = "cancelada"
 		self.save()
-	# return True if the given user is the one that's beign invited
+	# return True if the given user is the one that's being invited
 	def is_invited_user(self, user):
 		return self.invitado == user
-	# returns True if the given user is the one sendnf the invitation
+	# returns True if the given user is the one who sent the invitation
 	def is_invited_by_user(self, user):
-		return self.invitado_por.user == user
+		return user.sent_invite(self)
 
 class SolicitudAbandonarVivienda(models.Model):
 	creada_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
@@ -151,6 +156,8 @@ class ListaCompras(models.Model):
 	fecha = models.DateTimeField(auto_now_add=True)
 	estado = models.CharField(max_length=255, default="pendiente")
 
+	def __str__(self):
+		return "".join((str(self.usuario_creacion), "__", str(self.fecha), "__", str(self.estado)))
 	# given an item name, returns the Item instance
 	def get_item_by_name(self, item_name):
 		return Item.objects.filter(nombre=item_name).first()
@@ -222,8 +229,6 @@ class ListaCompras(models.Model):
 	def discard_items(self):
 		for item in self.get_missing_items():
 			item.delete()
-	def __str__(self):
-		return "".join((str(self.usuario_creacion), "__", str(self.fecha), "__", str(self.estado)))
 
 class ItemLista(models.Model):
 	class Meta:
@@ -234,6 +239,8 @@ class ItemLista(models.Model):
 	cantidad_comprada = models.IntegerField(null=True, blank=True)
 	estado = models.CharField(max_length=255, default="pendiente")
 
+	def __str__(self):
+		return str(self.item) + "__" + str(self.lista)
 	def set_done_state(self):
 		self.estado = "comprado"
 		self.save()
@@ -244,18 +251,16 @@ class ItemLista(models.Model):
 			self.cantidad_comprada=quantity
 			self.set_done_state()
 			self.save()
-	def __str__(self):
-		return str(self.item) + "__" + str(self.lista)
 
 class EstadoGasto(models.Model):
 	estado = models.CharField(max_length=255)
 
+	def __str__(self):
+		return str(self.estado)
 	def is_pending(self):
 		return self.estado == "pendiente"
 	def is_paid(self):
 		return self.estado == "pagado"
-	def __str__(self):
-		return str(self.estado)
 
 def get_current_yearMonth_obj():
 	today = timezone.now()
@@ -291,6 +296,8 @@ class Gasto(models.Model):
 	lista_compras = models.ForeignKey(ListaCompras, on_delete=models.CASCADE, blank=True, null=True)
 	estado = models.ForeignKey(EstadoGasto, on_delete=models.CASCADE, default=get_default_estadoGasto, blank=True)
 		
+	def __str__(self):
+		return "".join((str(self.usuario), "__", str(self.categoria), "__", str(self.year_month)))
 	# receives a User or a ViviendaUsuario instance, and makes use of double dispatch to pay it
 	def pagar(self,user):
 		user.pagar(self)
@@ -301,5 +308,3 @@ class Gasto(models.Model):
 	def allow_user(self, user):
 		# check that user is active in the vivienda
 		return  user.has_vivienda() and user.get_vivienda() == self.creado_por.vivienda
-	def __str__(self):
-		return "".join((str(self.usuario), "__", str(self.categoria), "__", str(self.year_month)))
