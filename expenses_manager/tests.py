@@ -825,10 +825,21 @@ class HomePageTest(TestCase):
 		test_the_basics_not_logged_in(self, "/", "general/home.html", home)
 		test_the_basics_logged_in(self, "/", "general/home.html", home)
 
-	def test_basic_home_url(self):
+	def test_basics_home_url(self):
 		test_the_basics_not_logged_in(self, "/home/", "general/home.html", home)
 		test_the_basics_logged_in(self, "/home/", "general/home.html", home)
 
+class AboutPageTest(TestCase):
+
+	def test_basics_about_url(self):
+		test_the_basics_not_logged_in(self, "/about/", "general/about.html", about)
+		test_the_basics_logged_in(self, "/about/", "general/about.html", about)
+
+class ErrorPageTest(TestCase):
+
+	def test_basics_error_url(self):
+		test_the_basics_not_logged_in(self, "/error/", "general/error.html", error)
+		test_the_basics_logged_in(self, "/error/", "general/error.html", error)
 
 # class LiveViewTest(TestCase):
 
