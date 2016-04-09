@@ -188,9 +188,7 @@ class ProxyUserModelTest(TestCase):
 class ViviendaModelTest(TestCase):
 
 	def test_get_gastos_from_vivienda_without_gastos(self):
-		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
-		correct_vivienda = Vivienda.objects.create(alias="viv1")
-		user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 
 		gastos_pendientes_direct = correct_vivienda.get_gastos_pendientes()
 		gastos_pagados_direct = correct_vivienda.get_gastos_pagados()
@@ -202,14 +200,8 @@ class ViviendaModelTest(TestCase):
 		self.assertEqual(gastos_pagados_direct.count(), 0)
 
 	def test_get_gastos_from_vivienda_with_gastos_pendientes(self):
-		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
-		correct_vivienda = Vivienda.objects.create(alias="viv1")
-		user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
-		dummy_categoria = Categoria.objects.create(nombre="dummy")
-		gasto = Gasto.objects.create(
-			monto=1000,
-			creado_por=user1_viv,
-			categoria=dummy_categoria)
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		gasto, dummy_categoria = get_dummy_gasto_pendiente(user1_viv)
 
 		gastos_pendientes_direct = correct_vivienda.get_gastos_pendientes()
 		gastos_pagados_direct = correct_vivienda.get_gastos_pagados()
@@ -221,14 +213,8 @@ class ViviendaModelTest(TestCase):
 		self.assertEqual(gastos_pagados_direct.count(), 0)
 
 	def test_get_gastos_from_vivienda_with_gastos_pagados(self):
-		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
-		correct_vivienda = Vivienda.objects.create(alias="viv1")
-		user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
-		dummy_categoria = Categoria.objects.create(nombre="dummy")
-		gasto = Gasto.objects.create(
-			monto=1000,
-			creado_por=user1_viv,
-			categoria=dummy_categoria)
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		gasto, dummy_categoria = get_dummy_gasto_pendiente(user1_viv)
 		user1.pagar(gasto)
 
 		gastos_pendientes_direct = correct_vivienda.get_gastos_pendientes()
