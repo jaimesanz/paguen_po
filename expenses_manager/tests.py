@@ -31,8 +31,7 @@ def get_dummy_gasto_pendiente(user_viv):
 class ProxyUserModelTest(TestCase):
 
 	def test_user_ha_no_vivienda(self):
-		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
-		correct_vivienda = Vivienda.objects.create(alias="viv1")
+		user1 = get_lone_user()
 
 		# user has no vivienda
 		self.assertFalse(user1.has_vivienda())
@@ -41,11 +40,8 @@ class ProxyUserModelTest(TestCase):
 		self.assertEqual(user1.get_roommates().count(), 0)
 
 	def test_user_joins_vivienda(self):
-		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
-		correct_vivienda = Vivienda.objects.create(alias="viv1")
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 
-		# user joins a vivienda
-		user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
 		self.assertTrue(user1.has_vivienda())
 		self.assertEqual(user1.get_vivienda().alias, "viv1")
 		self.assertNotEqual(user1.get_vivienda().alias, "viv2")
@@ -54,13 +50,7 @@ class ProxyUserModelTest(TestCase):
 		self.assertEqual(user1.get_vu(), user1_viv)
 
 	def test_another_user_joins_vivienda(self):
-		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
-		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
-		correct_vivienda = Vivienda.objects.create(alias="viv1")
-
-		# user joins a vivienda, and then another user also joins
-		user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
-		user2_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user2)
+		user1, user2, correct_vivienda, user1_viv, user2_viv = get_vivienda_with_2_users()
 
 		self.assertEqual(user2.get_vivienda().alias, "viv1")
 		self.assertNotEqual(user2.get_vivienda().alias, "viv2")
@@ -72,11 +62,7 @@ class ProxyUserModelTest(TestCase):
 		self.assertIn(user1.get_vu(), user1.get_roommates())
 
 	def test_user_leaves_vivienda_and_leaves_roommate_alone(self):
-		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
-		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
-		correct_vivienda = Vivienda.objects.create(alias="viv1")
-		user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
-		user2_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user2)
+		user1, user2, correct_vivienda, user1_viv, user2_viv = get_vivienda_with_2_users()
 
 		# first user leaves
 		user1_viv.estado = "inactivo"
@@ -95,12 +81,8 @@ class ProxyUserModelTest(TestCase):
 		self.assertNotEqual(user1.get_roommates().count(), user2.get_roommates().count())
 
 	def test_user_leaves_vivienda_and_joins_a_new_one(self):
-		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
-		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
-		correct_vivienda = Vivienda.objects.create(alias="viv1")
+		user1, user2, correct_vivienda, user1_viv, user2_viv = get_vivienda_with_2_users()
 		other_vivienda = Vivienda.objects.create(alias="viv2")
-		user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
-		user2_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user2)
 
 		# first user leaves and joins another 
 		user1_viv.estado = "inactivo"
@@ -117,7 +99,7 @@ class ProxyUserModelTest(TestCase):
 		self.assertTrue(len(user2.get_roommates()), 1)
 
 	def test_lone_user_has_no_invites(self):
-		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
+		user1 = get_lone_user()
 
 		# user has no invites
 		invites_in, invites_out = user1.get_invites()
@@ -125,20 +107,16 @@ class ProxyUserModelTest(TestCase):
 		self.assertEqual(invites_out.count(), 0)
 
 	def test_user_invites_another(self):
-		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
-		correct_vivienda = Vivienda.objects.create(alias="viv1")
-		user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
 
 		Invitacion.objects.create(invitado=user2, invitado_por=user1_viv, email="b@b.com")
 		self.assertEqual(user2.get_invites()[0].count(), 1)
 		self.assertEqual(user1.get_invites()[1].count(), 1)
 
 	def test_user_accepts_invite(self):
-		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
-		correct_vivienda = Vivienda.objects.create(alias="viv1")
-		user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
 
 		invite = Invitacion.objects.create(invitado=user2, invitado_por=user1_viv, email="b@b.com")
 		invite.accept()
@@ -157,10 +135,8 @@ class ProxyUserModelTest(TestCase):
 		self.assertIn(user1.get_vu(), user1.get_roommates())
 
 	def test_user_rejects_invite(self):
-		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
-		correct_vivienda = Vivienda.objects.create(alias="viv1")
-		user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
 
 		invite = Invitacion.objects.create(invitado=user2, invitado_por=user1_viv, email="b@b.com")
 		invite.reject()
@@ -181,11 +157,7 @@ class ProxyUserModelTest(TestCase):
 		self.assertEqual(user1.get_vu(), user1_viv)
 
 	def test_user_leaves_and_returns(self):
-		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
-		user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
-		correct_vivienda = Vivienda.objects.create(alias="viv1")
-		user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
-		user2_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user2)
+		user1, user2, correct_vivienda, user1_viv, user2_viv = get_vivienda_with_2_users()
 
 		# first user leaves and returns
 		user1_viv.estado = "inactivo"
@@ -202,14 +174,8 @@ class ProxyUserModelTest(TestCase):
 		self.assertIn(user1.get_vu(), user1.get_roommates())
 
 	def test_user_pays_gasto(self):
-		user1 = ProxyUser.objects.create(username="us1", email="a@a.com")
-		correct_vivienda = Vivienda.objects.create(alias="viv1")
-		user1_viv = ViviendaUsuario.objects.create(vivienda=correct_vivienda , user=user1)
-		dummy_categoria = Categoria.objects.create(nombre="dummy")
-		gasto = Gasto.objects.create(
-			monto=1000,
-			creado_por=user1_viv,
-			categoria=dummy_categoria)
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		gasto, dummy_categoria = get_dummy_gasto_pendiente(user1_viv)
 
 		self.assertFalse(gasto.is_paid())
 		self.assertTrue(gasto.is_pending())
