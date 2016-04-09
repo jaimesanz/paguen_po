@@ -200,6 +200,8 @@ class ListaCompras(models.Model):
 		return il.buy(quantity)
 	def buy_list(self, item_list, monto_total, vivienda_usuario):
 		# mark items as bought
+		if item_list is None or len(item_list)<1:
+			return None
 		for item_id,quantity in item_list:
 			self.buy_item(item_id, quantity)
 		self.set_done_state()
@@ -210,7 +212,7 @@ class ListaCompras(models.Model):
 			categoria=Categoria.objects.get_or_create(nombre="Supermercado")[0],
 			lista_compras=self)
 		nuevo_gasto.pagar(vivienda_usuario)
-		return nuevo_gasto.id
+		return nuevo_gasto
 	def get_gasto(self):
 		gastos = Gasto.objects.filter(lista_compras = self)
 		if len(gastos)==0 or len(gastos)>1:
@@ -224,12 +226,12 @@ class ListaCompras(models.Model):
 		return len(self.get_missing_items())>0
 	# creates a new Lista using the pending Items form the current Lista
 	def rescue_items(self, vivienda_usuario):
-		if self.has_missing_items():
-			nueva_lista = ListaCompras(usuario_creacion=vivienda_usuario)
-			nueva_lista.save()
+		if self.has_missing_items() and self.count_items()!=self.get_missing_items().count():
+			nueva_lista = ListaCompras.objects.create(usuario_creacion=vivienda_usuario)
 			for item in self.get_missing_items():
 				item.lista = nueva_lista
 				item.save()
+			return nueva_lista
 	def discard_items(self):
 		for item in self.get_missing_items():
 			item.delete()

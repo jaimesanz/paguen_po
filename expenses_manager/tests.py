@@ -391,18 +391,7 @@ class PresupuestoModelTest(TestCase):
 	pass
 
 class ListaComprasModelTest(TestCase):
-	# TODO test this methods:
-	# get_items
-	# allow_user
-	# is_done
-	# set_done_state
-	# buy_item
-	# buy_list
-	# get_gasto
-	# get_missing_items
-	# has_missing_items
-	# rescue_items
-	# discard_items
+
 	def test_default_values(self):
 		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
@@ -475,7 +464,6 @@ class ListaComprasModelTest(TestCase):
 		self.assertNotEqual(item_lista_1.cantidad_solicitada, 30)
 		self.assertEqual(lista.count_items(), 2)
 		self.assertEqual(new_item_lista, None)
-
 	def test_get_items_gets_nothing_on_new_list(self):
 		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		lista = ListaCompras.objects.create(usuario_creacion=user1_viv)
@@ -546,31 +534,135 @@ class ListaComprasModelTest(TestCase):
 		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
 
 		lista.buy_item(item_1, 10)
-
 		self.assertEqual(lista.count_items(), 2)
+		lista.buy_item(item_2, 10)
+		self.assertEqual(lista.count_items(), 2)
+	def test_buy_list_changes_state_of_items_in_item_list_parameter_in_the_list_only(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
 
-	
-	# buy_list changes state of items in item_list (parameter) in the list
-	# buy_list doesnt change anything if item_list is []
-	# buy_list doesnt change anything if item_list is None
-	# get_gasto returns None if the state is not done
-	# get_gasto returns only 1 gasto if the state is done
-	# get_missing_items returns all items for a new list
-	# get_missing_items is the same as get_items for anew list
-	# get_missing_items returns 1 item for a list with 1 paid and 1 pending
-	# has_missing_items is true for any new list
-	# has_missing_items is true for a list with 1 paid and 1 pending
-	# has_missing_items is false for a list with only 2 paid
-	# has_missing_items is false for an empty Lista
-	# rescue_items returns None is there are no pending items
-	# rescue_items returns the new Lista if there are pending items
-	# get_items on the old list must return the same as get_items on the 
-	# 	updated list plus get_items on the new list
-	# discard_items returns false if there were no pending items
-	# discard_items returns True if there were missing items
+		lista.buy_list([(item_1.id, 10)], 1000, user1_viv)
 
+		self.assertTrue(lista.is_done())
+		self.assertFalse(ItemLista.objects.get(lista=lista, item=item_1).is_pending())
+		self.assertTrue(ItemLista.objects.get(lista=lista, item=item_2).is_pending())
+	def test_buy_list_doesnt_change_anything_if_item_list_is_empty_array(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
 
+		lista.buy_list([], 1000, user1_viv)
 
+		self.assertFalse(lista.is_done())
+		self.assertTrue(ItemLista.objects.get(lista=lista, item=item_1).is_pending())
+		self.assertTrue(ItemLista.objects.get(lista=lista, item=item_2).is_pending())
+	def test_buy_list_doesnt_change_anything_if_item_list_is_None(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		lista.buy_list(None, 1000, user1_viv)
+
+		self.assertFalse(lista.is_done())
+		self.assertTrue(ItemLista.objects.get(lista=lista, item=item_1).is_pending())
+		self.assertTrue(ItemLista.objects.get(lista=lista, item=item_2).is_pending())
+	def test_get_gasto_returns_None_if_the_state_is_not_done(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		self.assertFalse(lista.is_done())
+		self.assertEqual(lista.get_gasto(), None)
+	def test_get_gasto_returns_only_1_gasto_if_the_state_is_done(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		gasto = lista.buy_list([(item_1.id, 10), (item_2.id, 20)], 1000, user1_viv)
+
+		self.assertTrue(lista.is_done())
+		self.assertEqual(gasto, lista.get_gasto())
+		self.assertEqual(gasto.monto, lista.get_gasto().monto)
+	def test_get_missing_items_returns_all_items_for_a_new_list(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista = ListaCompras.objects.create(usuario_creacion=user1_viv)
+
+		self.assertEqual(lista.get_missing_items().count(), lista.get_items().count())
+	def test_get_missing_items_returns_1_item_for_a_list_with_1_paid_and_1_pending(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		lista.buy_item(item_1, 10)
+
+		self.assertEqual(lista.get_missing_items().count(), 1)
+	def test_has_missing_items_empty_list(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista = ListaCompras.objects.create(usuario_creacion=user1_viv)
+
+		self.assertFalse(lista.has_missing_items())
+	def test_has_missing_items_changing_list(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		self.assertTrue(lista.has_missing_items())
+		lista.buy_item(item_1, 10)
+		self.assertTrue(lista.has_missing_items())
+		lista.buy_item(item_2, 20)
+		self.assertFalse(lista.has_missing_items())
+	def test_rescue_items_returns_None_is_there_are_no_pending_items(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		lista.buy_item(item_1, 10)
+		lista.buy_item(item_2, 20)
+
+		self.assertEqual(lista.rescue_items(user1_viv), None)
+	def test_rescue_items_returns_None_is_there_are_ONLY_pending_items(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		self.assertEqual(lista.rescue_items(user1_viv), None)
+	def test_rescue_items_returns_the_new_Lista_if_there_are_pending_items(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		lista.buy_item(item_1, 10)
+		new_lista = lista.rescue_items(user1_viv)
+
+		self.assertEqual(lista.get_items().count(), 1)
+		self.assertEqual(new_lista.get_items().count(), 1)
+		self.assertFalse(lista.get_items().first().is_pending())
+		self.assertTrue(new_lista.get_items().first().is_pending())
+	def test_rescue_items_doesnt_change_number_of_existing_ItemsLista(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		original_item_count = ItemLista.objects.all().count()
+		original_item_count_lista = lista.get_items().count()
+		lista.buy_item(item_1, 10)
+		new_lista = lista.rescue_items(user1_viv)
+
+		self.assertEqual(original_item_count, ItemLista.objects.all().count())
+		self.assertEqual(original_item_count_lista, 
+			new_lista.get_items().count() + lista.get_items().count())
+	def test_discard_items_returns_false_if_there_were_no_pending_items(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		lista.buy_item(item_1, 10)
+		lista.buy_item(item_2, 20)
+
+		self.assertFalse(lista.discard_items())
+	def test_discard_items_returns_True_if_there_were_missing_items(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		lista.buy_item(item_1, 10)
+
+		self.assertFalse(lista.discard_items())
+	def test_count_items_behaves_the_same_as_get_items_count(self):
+		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
+
+		self.assertEqual(lista.get_items().count(), lista.count_items())
+		lista.buy_item(item_1, 10)
+		self.assertEqual(lista.get_items().count(), lista.count_items())
 
 class ItemListaModelTest(TestCase):
 

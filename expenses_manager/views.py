@@ -245,7 +245,7 @@ def detalle_lista(request, lista_id):
 				nueva_lista = lista.rescue_items(vivienda_usuario)
 			elif descartar_items:
 				lista.discard_items()
-			return HttpResponseRedirect("/detalle_gasto/" + str(nuevo_gasto))
+			return HttpResponseRedirect("/detalle_gasto/" + str(nuevo_gasto.id))
 		else:
 			# not post
 			return render(request, "listas/detalle_lista.html", locals())
