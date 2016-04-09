@@ -5,7 +5,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-# proxy user. This is used to add methods to the User class without altering the default django
+# proxy user. This is used to add methods to the default django User class without altering it
 class ProxyUser(User):
 	class Meta:
 		proxy = True
@@ -317,5 +317,4 @@ class Gasto(models.Model):
 	def allow_user(self, user):
 		# check that user is active in the vivienda
 		return  user.has_vivienda() and user.get_vivienda() == self.creado_por.vivienda
-
 

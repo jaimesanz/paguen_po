@@ -4,6 +4,8 @@ from django.http import HttpRequest
 from django.template.loader import render_to_string
 from expenses_manager.models import *
 from django.utils import timezone
+from expenses_manager.views import *
+
 
 ##########################
 # Helper functions
@@ -770,3 +772,85 @@ class GastoModelTest(TestCase):
 ##########################
 # View Tests
 ##########################
+
+def get_test_user():
+	user = ProxyUser.objects.create(username="test_user_1", email="a@a.com")
+	user.set_password("holahola")
+	user.save()
+	return user
+
+def get_test_user_and_login(test):
+	test_user = get_test_user()
+	test.client.login(username=test_user.username, password="holahola")
+	return test_user
+
+# tests template loaded, corect html, resolves to correct view function
+def test_the_basics(test, url, template_name, view_func):
+	found = resolve(url)
+	response = test.client.get(url)
+
+	test.assertTemplateUsed(response, template_name=template_name)
+	test.assertEquals(found.func, view_func)
+
+	return response
+
+# tests the basics and checks navbar is logged out
+def test_the_basics_not_logged_in(test, url, template_name, view_func):
+	
+	response = test_the_basics(test, url, template_name, view_func)
+	test.assertContains(response, "Entrar")
+	test.assertContains(response, "Registrarse")
+	test.assertContains(response, "Inicio")
+
+def test_the_basics_logged_in(test, url, template_name, view_func):
+	user = get_test_user_and_login(test)
+	response = test_the_basics(test, url, template_name, view_func)
+	test.assertNotContains(response, "Entrar")
+	test.assertNotContains(response, "Registrarse")
+	test.assertNotContains(response, "Inicio")
+	test.assertContains(response, user.username)
+	test.assertContains(response, "Salir")
+	if user.has_vivienda():
+		test.assertContains(response, "Gastos")
+		test.assertContains(response, "Listas")
+		test.assertContains(response, "Vivienda")
+	else:
+		test.assertContains(response, "Crear")
+		test.assertContains(response, "Invitaciones")
+
+
+class HomePageTest(TestCase):
+
+	def test_basics_root_url(self):
+		test_the_basics_not_logged_in(self, "/", "general/home.html", home)
+		test_the_basics_logged_in(self, "/", "general/home.html", home)
+
+	def test_basic_home_url(self):
+		test_the_basics_not_logged_in(self, "/home/", "general/home.html", home)
+		test_the_basics_logged_in(self, "/home/", "general/home.html", home)
+
+
+# class LiveViewTest(TestCase):
+
+# 	def test_displays_all_items_for_that_list(self):
+# 		correct_list = List.objects.create()
+# 		Item.objects.create(text="itemy 1", list=correct_list)
+# 		Item.objects.create(text="itemy 2", list=correct_list)
+# 		other_list = List.objects.create()
+# 		Item.objects.create(text="other list item 1", list=other_list)
+# 		Item.objects.create(text="other list item 2", list=other_list)
+
+# 		response = self.client.get("/lists/%d/" % (correct_list.id))
+
+# 		self.assertContains(response, "itemy 1")
+# 		self.assertContains(response, "itemy 2")
+# 		self.assertNotContains(response, "other list item 1")
+# 		self.assertNotContains(response, "other list item 2")
+
+# 	def test_passes_correct_list_to_template(self):
+# 		other_list = List.objects.create()
+# 		correct_list = List.objects.create()
+
+# 		response = self.client.get("/lists/%d/" % (correct_list.id))
+
+# 		self.assertEqual(response.context["list"], correct_list)

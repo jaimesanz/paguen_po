@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-	{% if user.is_authenticated %}
-		<p>Hola {{user.username}}.</p>
-	{% else %}
-		<p>Hola!</p>
-	{% endif %}
+	<p>
+		{% if user.is_authenticated %}
+			¡Hola {{user.username}}! Esta es la página de inicio.
+		{% else %}
+			¡Hola! Esta es la página de inicio.
+		{% endif %}
+	</p>
 {% endblock %}
