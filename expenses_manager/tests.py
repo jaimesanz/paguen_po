@@ -818,6 +818,11 @@ def test_the_basics_logged_in(test, url, template_name, view_func):
 		test.assertContains(response, "Crear")
 		test.assertContains(response, "Invitaciones")
 
+def test_the_basics_not_logged_in_restricted(test, url):
+	# check that i was redirected to login page
+	response = test.client.get(url)
+
+	test.assertRedirects(response, "/accounts/login/?next=" + url)
 
 class HomePageTest(TestCase):
 
@@ -840,3 +845,35 @@ class ErrorPageTest(TestCase):
 	def test_basics_error_url(self):
 		test_the_basics_not_logged_in(self, "/error/", "general/error.html", error)
 		test_the_basics_logged_in(self, "/error/", "general/error.html", error)
+
+class NuevaViviendaViewTest(TestCase):
+
+	def test_basics_nueva_vivienda_url(self):
+		test_the_basics_not_logged_in_restricted(self, "/nueva_vivienda/")
+		test_the_basics_logged_in(self, "/nueva_vivienda/", "vivienda/nueva_vivienda.html", nueva_vivienda)
+
+	def test_create_new_vivienda_not_logged(self):
+		response = self.client.post(
+			"/nueva_vivienda/",
+			data = {"alias":"TestVivienda"}, follow=True)
+
+		self.assertRedirects(response, "/accounts/login/?next=/nueva_vivienda/")
+
+	def test_create_new_vivienda(self):
+		test_user = get_test_user_and_login(self)
+		response = self.client.post(
+			"/nueva_vivienda/",
+			data = {"alias":"TestVivienda"}, follow=True)
+
+		self.assertRedirects(response, "/vivienda/")
+		self.assertTrue(test_user.has_vivienda())
+		self.assertContains(response, "TestVivienda")
+		
+		self.assertContains(response, "Vivienda")
+		self.assertContains(response, "Gastos")
+		self.assertContains(response, "Listas")
+		self.assertContains(response, test_user.username)
+		self.assertContains(response, "Salir")
+		self.assertNotContains(response, "Crear Vivienda")
+		self.assertNotContains(response, "Invitaciones")
+		self.assertNotContains(response, "Entrar")
