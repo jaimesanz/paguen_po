@@ -527,7 +527,7 @@ class ListaComprasModelTest(TestCase):
 		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
 
-		lista.buy_item(item_1, 10)
+		lista.buy_item(item_lista_1.id, 10)
 
 		self.assertEqual(ItemLista.objects.get(lista=lista, item=item_1).get_state(), "comprado")
 		self.assertTrue(item_lista_2.is_pending())
@@ -535,15 +535,15 @@ class ListaComprasModelTest(TestCase):
 		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
 
-		lista.buy_item(item_1, 10)
+		lista.buy_item(item_lista_1.id, 10)
 		self.assertEqual(lista.count_items(), 2)
-		lista.buy_item(item_2, 10)
+		lista.buy_item(item_lista_2.id, 10)
 		self.assertEqual(lista.count_items(), 2)
 	def test_buy_list_changes_state_of_items_in_item_list_parameter_in_the_list_only(self):
 		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
 
-		lista.buy_list([(item_1.id, 10)], 1000, user1_viv)
+		lista.buy_list([(item_lista_1.id, 10)], 1000, user1_viv)
 
 		self.assertTrue(lista.is_done())
 		self.assertFalse(ItemLista.objects.get(lista=lista, item=item_1).is_pending())
@@ -576,7 +576,7 @@ class ListaComprasModelTest(TestCase):
 		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
 
-		gasto = lista.buy_list([(item_1.id, 10), (item_2.id, 20)], 1000, user1_viv)
+		gasto = lista.buy_list([(item_lista_1.id, 10), (item_lista_2.id, 20)], 1000, user1_viv)
 
 		self.assertTrue(lista.is_done())
 		self.assertEqual(gasto, lista.get_gasto())
@@ -590,7 +590,7 @@ class ListaComprasModelTest(TestCase):
 		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
 
-		lista.buy_item(item_1, 10)
+		lista.buy_item(item_lista_1.id, 10)
 
 		self.assertEqual(lista.get_missing_items().count(), 1)
 	def test_has_missing_items_empty_list(self):
@@ -603,16 +603,16 @@ class ListaComprasModelTest(TestCase):
 		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
 
 		self.assertTrue(lista.has_missing_items())
-		lista.buy_item(item_1, 10)
+		lista.buy_item(item_lista_1.id, 10)
 		self.assertTrue(lista.has_missing_items())
-		lista.buy_item(item_2, 20)
+		lista.buy_item(item_lista_2.id, 20)
 		self.assertFalse(lista.has_missing_items())
 	def test_rescue_items_returns_None_is_there_are_no_pending_items(self):
 		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
 
-		lista.buy_item(item_1, 10)
-		lista.buy_item(item_2, 20)
+		lista.buy_item(item_lista_1.id, 10)
+		lista.buy_item(item_lista_2.id, 20)
 
 		self.assertEqual(lista.rescue_items(user1_viv), None)
 	def test_rescue_items_returns_None_is_there_are_ONLY_pending_items(self):
@@ -624,7 +624,7 @@ class ListaComprasModelTest(TestCase):
 		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
 
-		lista.buy_item(item_1, 10)
+		lista.buy_item(item_lista_1.id, 10)
 		new_lista = lista.rescue_items(user1_viv)
 
 		self.assertEqual(lista.get_items().count(), 1)
@@ -637,7 +637,7 @@ class ListaComprasModelTest(TestCase):
 
 		original_item_count = ItemLista.objects.all().count()
 		original_item_count_lista = lista.get_items().count()
-		lista.buy_item(item_1, 10)
+		lista.buy_item(item_lista_1.id, 10)
 		new_lista = lista.rescue_items(user1_viv)
 
 		self.assertEqual(original_item_count, ItemLista.objects.all().count())
@@ -647,15 +647,15 @@ class ListaComprasModelTest(TestCase):
 		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
 
-		lista.buy_item(item_1, 10)
-		lista.buy_item(item_2, 20)
+		lista.buy_item(item_lista_1.id, 10)
+		lista.buy_item(item_lista_2.id, 20)
 
 		self.assertFalse(lista.discard_items())
 	def test_discard_items_returns_True_if_there_were_missing_items(self):
 		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
 
-		lista.buy_item(item_1, 10)
+		lista.buy_item(item_lista_1.id, 10)
 
 		self.assertFalse(lista.discard_items())
 	def test_count_items_behaves_the_same_as_get_items_count(self):
@@ -663,7 +663,7 @@ class ListaComprasModelTest(TestCase):
 		lista, item_1, item_lista_1, item_2, item_lista_2 = get_dummy_lista_with_2_items(user1_viv)
 
 		self.assertEqual(lista.get_items().count(), lista.count_items())
-		lista.buy_item(item_1, 10)
+		lista.buy_item(item_lista_1.id, 10)
 		self.assertEqual(lista.get_items().count(), lista.count_items())
 
 class ItemListaModelTest(TestCase):
@@ -773,6 +773,10 @@ class GastoModelTest(TestCase):
 # View Tests
 ##########################
 
+# view helper functions
+
+# get test users
+##################
 def get_test_user():
 	user = ProxyUser.objects.create(username="test_user_1", email="a@a.com")
 	user.set_password("holahola")
@@ -784,6 +788,14 @@ def get_test_user_and_login(test):
 	test.client.login(username=test_user.username, password="holahola")
 	return test_user
 
+def get_test_user_with_vivienda_and_login(test):
+	test_user = get_test_user_and_login(test)
+	vivienda = Vivienda.objects.create(alias="viv1")
+	test_user_viv = ViviendaUsuario.objects.create(vivienda=vivienda , user=test_user)
+	return test_user
+
+# check navbar
+##################
 def has_navbar_without_vivienda(test, response):
 	test.assertContains(response, "Crear Vivienda")
 	test.assertContains(response, "Invitaciones")
@@ -819,6 +831,8 @@ def has_logged_navbar_with_vivienda(test, response, test_user):
 	# has no vivienda
 	has_navbar_with_vivienda(test, response)
 
+# test basics
+##################
 # tests template loaded, corect html, resolves to correct view function
 def test_the_basics(test, url, template_name, view_func):
 	found = resolve(url)
@@ -857,12 +871,8 @@ def execute_test_the_basics_not_logged_in_restricted(test, url):
 
 	test.assertRedirects(response, "/accounts/login/?next=" + url)
 
-def get_test_user_with_vivienda_and_login(test):
-	test_user = get_test_user_and_login(test)
-	vivienda = Vivienda.objects.create(alias="viv1")
-	test_user_viv = ViviendaUsuario.objects.create(vivienda=vivienda , user=test_user)
-	return test_user
-
+# classes
+##################
 
 class HomePageTest(TestCase):
 
@@ -947,3 +957,4 @@ class AbandonViewTest(TestCase):
 			data = {}, follow=True)
 		self.assertRedirects(response, "/home/")
 		has_logged_navbar_without_vivienda(self, response, test_user)
+

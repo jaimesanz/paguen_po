@@ -221,7 +221,7 @@ def nueva_lista(request):
 def detalle_lista(request, lista_id):
 	vivienda_usuario = request.user.get_vu()
 	lista = get_object_or_404(ListaCompras, id=lista_id)
-	if lista.allow_user(vivienda_usuario):
+	if lista.allow_user(request.user):
 		if request.POST:
 			if lista.is_done():
 				# TODO show message saying that the lista is already paid

@@ -196,7 +196,7 @@ class ListaCompras(models.Model):
 		return False
 	# mark item as bought
 	def buy_item(self, item, quantity):
-		il = ItemLista.objects.get(item=item, lista=self)
+		il = ItemLista.objects.get(id=item)
 		return il.buy(quantity)
 	def buy_list(self, item_list, monto_total, vivienda_usuario):
 		# mark items as bought
