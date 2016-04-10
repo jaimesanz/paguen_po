@@ -958,3 +958,19 @@ class AbandonViewTest(TestCase):
 		self.assertRedirects(response, "/home/")
 		has_logged_navbar_without_vivienda(self, response, test_user)
 
+class InviteListViewTest(TestCase):
+
+	def test_basics_invite_list_url(self):
+		execute_test_the_basics_not_logged_in_restricted(self, "/invites_list/")
+		execute_test_the_basics_logged_in(self, "/invites_list/", "invites/invites_list.html", invites_list)
+
+class InviteUserViewTest(TestCase):
+
+	def test_invite_user_with_user_that_has_no_vivienda(self):
+		test_user = get_test_user_and_login(self)
+		response = self.client.post(
+			"/invite_user/",
+			data = {"email":"test@test.com"}, follow=True)
+		self.assertRedirects(response, "/error/")
+		has_logged_navbar_without_vivienda(self, response, test_user)
+		

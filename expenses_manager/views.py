@@ -41,6 +41,8 @@ def invites_list(request):
 @login_required
 def invite_user(request):
 	vivienda_usuario = request.user.get_vu()
+	if vivienda_usuario is None:
+		return HttpResponseRedirect("/error")
 	if request.POST:
 		post = request.POST.copy()
 		post['invitado_por']=vivienda_usuario
