@@ -792,44 +792,44 @@ def get_test_user_with_vivienda_and_login(test):
 	test_user = get_test_user_and_login(test)
 	vivienda = Vivienda.objects.create(alias="viv1")
 	test_user_viv = ViviendaUsuario.objects.create(vivienda=vivienda , user=test_user)
-	return test_user
+	return test_user, vivienda, test_user_viv
 
 # check navbar
 ##################
-def has_navbar_without_vivienda(test, response):
+def has_navbar_without_vivienda(test, response, status_code=200):
 	test.assertContains(response, "Crear Vivienda")
 	test.assertContains(response, "Invitaciones")
 	test.assertNotContains(response, "Gastos")
 	test.assertNotContains(response, "Listas")
 
-def has_navbar_with_vivienda(test, response):
-	test.assertNotContains(response, "Crear Vivienda")
-	test.assertNotContains(response, "Invitaciones")
-	test.assertContains(response, "Gastos")
-	test.assertContains(response, "Listas")
+def has_navbar_with_vivienda(test, response,status_code=200):
+	test.assertNotContains(response, "Crear Vivienda", status_code=status_code)
+	test.assertNotContains(response, "<li><a href=\"/invites_list\">Invitaciones</a></li>", status_code=status_code)
+	test.assertContains(response, "Gastos", status_code=status_code)
+	test.assertContains(response, "Listas", status_code=status_code)
 
-def has_not_logged_navbar(test, response):
-	test.assertNotContains(response, "Salir")
-	test.assertContains(response, "Entrar")
-	test.assertContains(response, "Registrarse")
+def has_not_logged_navbar(test, response, status_code=200):
+	test.assertNotContains(response, "Salir", status_code=status_code)
+	test.assertContains(response, "Entrar", status_code=status_code)
+	test.assertContains(response, "Registrarse", status_code=status_code)
 
-def has_logged_navbar(test, response, test_user):
-	test.assertContains(response, "Salir")
-	test.assertNotContains(response, "Entrar")
-	test.assertNotContains(response, "Registrarse")
-	test.assertContains(response, test_user.username)
+def has_logged_navbar(test, response, test_user, status_code=200):
+	test.assertContains(response, "Salir", status_code=status_code)
+	test.assertNotContains(response, "Entrar", status_code=status_code)
+	test.assertNotContains(response, "Registrarse", status_code=status_code)
+	test.assertContains(response, test_user.username, status_code=status_code)
 
-def has_logged_navbar_without_vivienda(test, response, test_user):
+def has_logged_navbar_without_vivienda(test, response, test_user, status_code=200):
 	# is logged
-	has_logged_navbar(test, response, test_user)
+	has_logged_navbar(test, response, test_user, status_code)
 	# has no vivienda
-	has_navbar_without_vivienda(test, response)
+	has_navbar_without_vivienda(test, response, status_code)
 
-def has_logged_navbar_with_vivienda(test, response, test_user):
+def has_logged_navbar_with_vivienda(test, response, test_user, status_code=200):
 	# is logged
-	has_logged_navbar(test, response, test_user)
+	has_logged_navbar(test, response, test_user, status_code)
 	# has no vivienda
-	has_navbar_with_vivienda(test, response)
+	has_navbar_with_vivienda(test, response, status_code)
 
 # test basics
 ##################
@@ -944,18 +944,25 @@ class AbandonViewTest(TestCase):
 
 	def test_abandon_vivienda_with_user_that_has_no_vivienda(self):
 		test_user = get_test_user_and_login(self)
+		self.assertFalse(test_user.has_vivienda())
 		response = self.client.post(
 			"/abandon/",
-			data = {}, follow=True)
-		self.assertRedirects(response, "/home/")
-		has_logged_navbar_without_vivienda(self, response, test_user)
+			data = {"submit": "Abandonar vivienda"}, follow=True)
+		self.assertEqual(response.status_code, 404)
+		# has_logged_navbar_without_vivienda(self, response, test_user, 404)
 
 	def test_abandon_vivienda_with_user_that_has_vivienda(self):
-		test_user = get_test_user_with_vivienda_and_login(self)
+		test_user, vivienda, test_user_viv = get_test_user_with_vivienda_and_login(self)
+		self.assertTrue(test_user.has_vivienda())
 		response = self.client.post(
 			"/abandon/",
-			data = {}, follow=True)
+			data = {"submit": "Abandonar vivienda"}, follow=True)
 		self.assertRedirects(response, "/home/")
+		self.assertEqual(test_user.get_vu(), None)
+		self.assertFalse(ViviendaUsuario.objects.filter(estado="activo").exists())
+		self.assertEqual(Vivienda.objects.all().count(), 1)
+		self.assertFalse(test_user.has_vivienda())
+
 		has_logged_navbar_without_vivienda(self, response, test_user)
 
 class InviteListViewTest(TestCase):
@@ -973,4 +980,14 @@ class InviteUserViewTest(TestCase):
 			data = {"email":"test@test.com"}, follow=True)
 		self.assertRedirects(response, "/error/")
 		has_logged_navbar_without_vivienda(self, response, test_user)
-		
+
+	def test_invite_user_with_user_that_has_vivienda(self):
+		test_user, vivienda, test_user_viv = get_test_user_with_vivienda_and_login(self)
+
+		self.assertTrue(test_user.has_vivienda())
+
+		response = self.client.post(
+			"/invite_user/",
+			data = {"email":"test@test.com"}, follow=True)
+		self.assertRedirects(response, "/invites_list/")
+		has_logged_navbar_with_vivienda(self, response, test_user)

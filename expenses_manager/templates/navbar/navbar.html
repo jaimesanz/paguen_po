@@ -6,7 +6,7 @@
         </button>
 
         {% if user.is_authenticated %}
-            {% if request.session.user_has_vivienda %}
+            {% if user.has_vivienda %}
                 <a href="/vivienda" class="navbar-brand">Vivienda</a>
             {% else %}
                 <a href="/nueva_vivienda" class="navbar-brand">Crear Vivienda</a>

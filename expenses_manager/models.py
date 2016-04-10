@@ -15,7 +15,7 @@ class ProxyUser(User):
 		return ViviendaUsuario.objects.filter(user=self, estado="activo").first()
 	# returns a boolean value indicating if the user has an active vivienda
 	def has_vivienda(self):
-		return self.get_vu() is not None
+		return ViviendaUsuario.objects.filter(user=self, estado="activo").exists()
 	# returns the vivienda of the user, or None
 	def get_vivienda(self):
 		vivienda_usuario = self.get_vu()

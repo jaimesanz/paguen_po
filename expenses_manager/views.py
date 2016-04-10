@@ -60,7 +60,7 @@ def invite_user(request):
 				invite = Invitacion(email=post['email'], invitado_por=vivienda_usuario)
 				# TODO send email with link accept/decline
 			invite.save()
-			return HttpResponseRedirect("/home")
+			return HttpResponseRedirect("/invites_list")
 		else:
 			return HttpResponseRedirect("/about")
 	invite_form = InvitacionForm()
@@ -133,7 +133,8 @@ def manage_users(request):
 @login_required
 def abandon(request):
 	if request.POST:
-		get_object_or_404(ViviendaUsuario, user=request.user, estado="activo").leave()
+		vu = get_object_or_404(ViviendaUsuario, user=request.user, estado="activo")
+		vu.leave()
 		request.session['user_has_vivienda']=False
 	return HttpResponseRedirect("/home")
 
