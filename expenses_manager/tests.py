@@ -784,6 +784,41 @@ def get_test_user_and_login(test):
 	test.client.login(username=test_user.username, password="holahola")
 	return test_user
 
+def has_navbar_without_vivienda(test, response):
+	test.assertContains(response, "Crear Vivienda")
+	test.assertContains(response, "Invitaciones")
+	test.assertNotContains(response, "Gastos")
+	test.assertNotContains(response, "Listas")
+
+def has_navbar_with_vivienda(test, response):
+	test.assertNotContains(response, "Crear Vivienda")
+	test.assertNotContains(response, "Invitaciones")
+	test.assertContains(response, "Gastos")
+	test.assertContains(response, "Listas")
+
+def has_not_logged_navbar(test, response):
+	test.assertNotContains(response, "Salir")
+	test.assertContains(response, "Entrar")
+	test.assertContains(response, "Registrarse")
+
+def has_logged_navbar(test, response, test_user):
+	test.assertContains(response, "Salir")
+	test.assertNotContains(response, "Entrar")
+	test.assertNotContains(response, "Registrarse")
+	test.assertContains(response, test_user.username)
+
+def has_logged_navbar_without_vivienda(test, response, test_user):
+	# is logged
+	has_logged_navbar(test, response, test_user)
+	# has no vivienda
+	has_navbar_without_vivienda(test, response)
+
+def has_logged_navbar_with_vivienda(test, response, test_user):
+	# is logged
+	has_logged_navbar(test, response, test_user)
+	# has no vivienda
+	has_navbar_with_vivienda(test, response)
+
 # tests template loaded, corect html, resolves to correct view function
 def test_the_basics(test, url, template_name, view_func):
 	found = resolve(url)
@@ -798,11 +833,9 @@ def test_the_basics(test, url, template_name, view_func):
 def test_the_basics_not_logged_in(test, url, template_name, view_func):
 	
 	response = test_the_basics(test, url, template_name, view_func)
-	test.assertContains(response, "Entrar")
-	test.assertContains(response, "Registrarse")
-	test.assertContains(response, "Inicio")
+	has_not_logged_navbar(test, response)
 
-def test_the_basics_logged_in(test, url, template_name, view_func):
+def execute_test_the_basics_logged_in(test, url, template_name, view_func):
 	user = get_test_user_and_login(test)
 	response = test_the_basics(test, url, template_name, view_func)
 	test.assertNotContains(response, "Entrar")
@@ -818,39 +851,46 @@ def test_the_basics_logged_in(test, url, template_name, view_func):
 		test.assertContains(response, "Crear")
 		test.assertContains(response, "Invitaciones")
 
-def test_the_basics_not_logged_in_restricted(test, url):
+def execute_test_the_basics_not_logged_in_restricted(test, url):
 	# check that i was redirected to login page
 	response = test.client.get(url)
 
 	test.assertRedirects(response, "/accounts/login/?next=" + url)
 
+def get_test_user_with_vivienda_and_login(test):
+	test_user = get_test_user_and_login(test)
+	vivienda = Vivienda.objects.create(alias="viv1")
+	test_user_viv = ViviendaUsuario.objects.create(vivienda=vivienda , user=test_user)
+	return test_user
+
+
 class HomePageTest(TestCase):
 
 	def test_basics_root_url(self):
 		test_the_basics_not_logged_in(self, "/", "general/home.html", home)
-		test_the_basics_logged_in(self, "/", "general/home.html", home)
+		execute_test_the_basics_logged_in(self, "/", "general/home.html", home)
 
 	def test_basics_home_url(self):
 		test_the_basics_not_logged_in(self, "/home/", "general/home.html", home)
-		test_the_basics_logged_in(self, "/home/", "general/home.html", home)
+		execute_test_the_basics_logged_in(self, "/home/", "general/home.html", home)
 
 class AboutPageTest(TestCase):
 
 	def test_basics_about_url(self):
 		test_the_basics_not_logged_in(self, "/about/", "general/about.html", about)
-		test_the_basics_logged_in(self, "/about/", "general/about.html", about)
+		execute_test_the_basics_logged_in(self, "/about/", "general/about.html", about)
 
 class ErrorPageTest(TestCase):
 
 	def test_basics_error_url(self):
 		test_the_basics_not_logged_in(self, "/error/", "general/error.html", error)
-		test_the_basics_logged_in(self, "/error/", "general/error.html", error)
+		execute_test_the_basics_logged_in(self, "/error/", "general/error.html", error)
 
 class NuevaViviendaViewTest(TestCase):
 
 	def test_basics_nueva_vivienda_url(self):
-		test_the_basics_not_logged_in_restricted(self, "/nueva_vivienda/")
-		test_the_basics_logged_in(self, "/nueva_vivienda/", "vivienda/nueva_vivienda.html", nueva_vivienda)
+		execute_test_the_basics_not_logged_in_restricted(self, "/nueva_vivienda/")
+		execute_test_the_basics_logged_in(self, "/nueva_vivienda/", "vivienda/nueva_vivienda.html", nueva_vivienda)
 
 	def test_create_new_vivienda_not_logged(self):
 		response = self.client.post(
@@ -858,6 +898,12 @@ class NuevaViviendaViewTest(TestCase):
 			data = {"alias":"TestVivienda"}, follow=True)
 
 		self.assertRedirects(response, "/accounts/login/?next=/nueva_vivienda/")
+
+	def test_nueva_vivienda_has_form(self):
+		test_user = get_test_user_and_login(self)
+		response = self.client.get("/nueva_vivienda/")
+
+		self.assertContains(response, "form")
 
 	def test_create_new_vivienda(self):
 		test_user = get_test_user_and_login(self)
@@ -877,3 +923,27 @@ class NuevaViviendaViewTest(TestCase):
 		self.assertNotContains(response, "Crear Vivienda")
 		self.assertNotContains(response, "Invitaciones")
 		self.assertNotContains(response, "Entrar")
+
+class ManageUsersViewTest(TestCase):
+
+	def test_basics_manage_users_url(self):
+		execute_test_the_basics_not_logged_in_restricted(self, "/manage_users/")
+		execute_test_the_basics_logged_in(self, "/manage_users/", "vivienda/manage_users.html", manage_users)
+
+class AbandonViewTest(TestCase):	
+
+	def test_abandon_vivienda_with_user_that_has_no_vivienda(self):
+		test_user = get_test_user_and_login(self)
+		response = self.client.post(
+			"/abandon/",
+			data = {}, follow=True)
+		self.assertRedirects(response, "/home/")
+		has_logged_navbar_without_vivienda(self, response, test_user)
+
+	def test_abandon_vivienda_with_user_that_has_vivienda(self):
+		test_user = get_test_user_with_vivienda_and_login(self)
+		response = self.client.post(
+			"/abandon/",
+			data = {}, follow=True)
+		self.assertRedirects(response, "/home/")
+		has_logged_navbar_without_vivienda(self, response, test_user)
