@@ -826,17 +826,37 @@ def get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(test):
 		categoria=dummy_categoria)
 
 	test.assertEqual(Gasto.objects.filter(estado__estado="pendiente").count(), 3)
-	test.assertEquals(Gasto.objects.filter(
+	test.assertEqual(Gasto.objects.filter(
 		creado_por__vivienda=test_user_1.get_vivienda()).count(), 
 		2)
-	test.assertEquals(Gasto.objects.filter(
+	test.assertEqual(Gasto.objects.filter(
 		creado_por__vivienda=test_user_2.get_vivienda()).count(), 
 		2)
-	test.assertEquals(Gasto.objects.filter(
+	test.assertEqual(Gasto.objects.filter(
 		creado_por__vivienda=test_user_3.get_vivienda()).count(), 
 		1)
 
 	return (test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3)
+
+# the same as get_setup_viv_2_users_viv_1_user_cat_1_gastos_3 plus 3 dummy items
+# and a 2 dummy lista: one for the logged user's vivienda with items A and B,
+# and one for the other vivienda with item A.
+# returns the user that's logged in
+def get_setup_with_gastos_items_and_listas(test):
+	test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(test)
+	item_1 = Item.objects.create(nombre="d1")
+	item_2 = Item.objects.create(nombre="d2")
+	item_3 = Item.objects.create(nombre="d3")
+
+	lista_1 = ListaCompras.objects.create(usuario_creacion=test_user_1.get_vu())
+	lista_2 = ListaCompras.objects.create(usuario_creacion=test_user_3.get_vu())
+
+	il_1 = ItemLista.objects.create(item=item_1, lista=lista_1, cantidad_solicitada=1)
+	il_2 = ItemLista.objects.create(item=item_2, lista=lista_1, cantidad_solicitada=2)
+	
+	il_3 = ItemLista.objects.create(item=item_1, lista=lista_2, cantidad_solicitada=3)
+	
+	return test_user_1
 
 # check navbar
 ##################
@@ -883,7 +903,7 @@ def test_the_basics(test, url, template_name, view_func):
 	response = test.client.get(url)
 
 	test.assertTemplateUsed(response, template_name=template_name)
-	test.assertEquals(found.func, view_func)
+	test.assertEqual(found.func, view_func)
 
 	return response
 
@@ -1261,7 +1281,6 @@ class GastoViviendaPendingListViewTest(TestCase):
 		self.assertNotContains(response, gasto_3.monto)
 		self.assertNotContains(response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
 
-
 class GastoViviendaPaidListViewTest(TestCase):
 
 	def test_basics_paid_gasto_list_url(self):
@@ -1344,40 +1363,527 @@ class GastoViviendaPayViewTest(TestCase):
 		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)		
 		response = self.client.post(
 			"/detalle_gasto/%d/" % (gasto_1.id),
-			data={"csrfmiddlewaretoken":"rubbish"},
+			data={"submit":"submit"},
 			follow=True)
-		self.assertRedirects(response, "/gastos/", status_code=200)
-		self.assertContains(response, "href=\"/detalle_gasto/%d\"" % gasto_1.id, status_code=200)
+		self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto_1.id))
 		self.assertEqual(
 			Gasto.objects.filter(
 				creado_por__vivienda=test_user_1.get_vivienda(), 
 				estado__estado="pendiente")
 				.count(),
-			2)
+			1)
 		self.assertEqual(
 			Gasto.objects.filter(
 				creado_por__vivienda=test_user_1.get_vivienda(), 
 				estado__estado="pagado")
 				.count(),
 			1)
+		self.assertNotContains(response, "<a href=\"/detalle_lista/")
+		self.assertNotContains(response, "<td><b>Lista compras:</b></td>")
 	def test_user_cannot_pay_paid_gasto(self):
-		self.fail()
+		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)		
+		gasto_1.pagar(test_user_1)
+		self.assertTrue(gasto_1.is_paid())
+		response = self.client.post(
+			"/detalle_gasto/%d/" % (gasto_1.id),
+			data={"submit":"submit"},
+			follow=True)
+		self.assertRedirects(response, "/error/")
+		self.assertEqual(
+			Gasto.objects.filter(
+				creado_por__vivienda=test_user_1.get_vivienda(), 
+				estado__estado="pendiente")
+				.count(),
+			1)
+		self.assertEqual(
+			Gasto.objects.filter(
+				creado_por__vivienda=test_user_1.get_vivienda(), 
+				estado__estado="pagado")
+				.count(),
+			1)
 	def test_roommate_can_pay_pending_gasto(self):
-		self.fail()
+		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)		
+		response = self.client.post(
+			"/detalle_gasto/%d/" % (gasto_2.id),
+			data={"submit":"submit"},
+			follow=True)
+		self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto_2.id))
+		self.assertEqual(
+			Gasto.objects.filter(
+				creado_por__vivienda=test_user_1.get_vivienda(), 
+				estado__estado="pendiente")
+				.count(),
+			1)
+		self.assertEqual(
+			Gasto.objects.filter(
+				creado_por__vivienda=test_user_1.get_vivienda(), 
+				estado__estado="pagado")
+				.count(),
+			1)
+		self.assertNotContains(response, "<a href=\"/detalle_lista/")
+		self.assertNotContains(response, "<td><b>Lista compras:</b></td>")
 	def test_roommate_cannot_pay_paid_gasto(self):
-		self.fail()
+		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)		
+		gasto_2.pagar(test_user_2)
+		self.assertTrue(gasto_2.is_paid())
+		response = self.client.post(
+			"/detalle_gasto/%d/" % (gasto_2.id),
+			data={"submit":"submit"},
+			follow=True)
+		self.assertRedirects(response, "/error/")
+		self.assertEqual(
+			Gasto.objects.filter(
+				creado_por__vivienda=test_user_1.get_vivienda(), 
+				estado__estado="pendiente")
+				.count(),
+			1)
+		self.assertEqual(
+			Gasto.objects.filter(
+				creado_por__vivienda=test_user_1.get_vivienda(), 
+				estado__estado="pagado")
+				.count(),
+			1)
 
-	# def test_user_can_pay_pending_gasto(self):
-		# test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)		
-	# 	response = self.client.post(
-	# 		"/nuevo_gasto/",
-	# 		data={"categoria": dummy_categoria, "monto":2323 , "is_paid": ""},
-	# 		follow=True)
+class ListaPendingViewTest(TestCase):
 
-	# 	self.assertRedirects(response, "/gastos/")
-	# 	for gasto in Gasto.objects.filter(creado_por__vivienda=test_user_1.get_vivienda(), estado__estado="pagado"):
-	# 		self.assertContains(response, gasto.monto)
-	# 		self.assertContains(response, "href=\"/detalle_gasto/%d\"" % gasto.id)
-	# 	self.assertNotContains(response, gasto_3.monto)
-	# 	self.assertNotContains(response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
-	# 	pass
+	def test_basic_setup(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+
+		self.assertEqual(
+			ListaCompras.objects.filter(
+				usuario_creacion__vivienda=test_user.get_vivienda()).count(),
+			1)
+		self.assertEqual(
+			ListaCompras.objects.count(),
+			2)
+		self.assertEqual(
+			ItemLista.objects.filter(
+				lista=ListaCompras.objects.get(
+					usuario_creacion__vivienda=test_user.get_vivienda()))
+			.count(),
+			2)
+		self.assertEqual(
+			ItemLista.objects.filter(
+				lista=ListaCompras.objects.exclude(
+					usuario_creacion__vivienda=test_user.get_vivienda()).first())
+			.count(),
+			1)
+		self.assertEqual(Item.objects.count(),3)
+	def test_not_logged_user_cant_see_lista(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		self.client.logout()
+		lista = ListaCompras.objects.get(usuario_creacion__vivienda=test_user.get_vivienda())
+		response = self.client.get(
+			"/lists/",
+			follow=True)
+		self.assertRedirects(response, "/accounts/login/?next=/lists/")
+		self.assertNotContains(response, "<td>%d</td>" % (lista.count_items()))
+		self.assertNotContains(response, "<td>%s</td>" % (lista.usuario_creacion.user))
+	def test_outsider_user_cant_see_lista(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		lista = ListaCompras.objects.exclude(usuario_creacion__vivienda=test_user.get_vivienda()).first()
+		response = self.client.get(
+			"/lists/",
+			follow=True)
+		self.assertNotContains(response, "<td>%d</td>" % (lista.count_items()))
+		self.assertNotContains(response, "<td>%s</td>" % (lista.usuario_creacion.user))
+	def test_logged_user_with_no_vivienda_cant_see_any_lista(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		lista = ListaCompras.objects.get(usuario_creacion__vivienda=test_user.get_vivienda())
+		test_user.get_vu().leave()
+		response = self.client.get(
+			"/lists/",
+			follow=True)
+		self.assertRedirects(response, "/error/")
+		self.assertNotContains(response, "<td>%d</td>" % (lista.count_items()))
+		self.assertNotContains(response, "<td>%s</td>" % (lista.usuario_creacion.user))
+	def test_logged_user_can_see_pending_listas_of_his_vivienda(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		lista = ListaCompras.objects.get(usuario_creacion__vivienda=test_user.get_vivienda())
+		response = self.client.get(
+			"/lists/",
+			follow=True)
+		self.assertContains(response, "<td>%d</td>" % (lista.count_items()))
+		self.assertContains(response, "<td>%s</td>" % (lista.usuario_creacion.user))
+	def test_logged_user_cant_see_pending_listas_of_other_viviendas(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		lista = ListaCompras.objects.exclude(usuario_creacion__vivienda=test_user.get_vivienda()).first()
+		response = self.client.get(
+			"/lists/",
+			follow=True)
+		self.assertNotContains(response, "<td>%d</td>" % (lista.count_items()))
+		self.assertNotContains(response, "<td>%s</td>" % (lista.usuario_creacion.user))
+	def test_logged_user_cant_see_pending_listas_of_past_viviendas(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		original_vivienda_lista = ListaCompras.objects.get(
+			usuario_creacion__vivienda=test_user.get_vivienda())
+		new_vivienda_lista = ListaCompras.objects.exclude(
+			usuario_creacion__vivienda=test_user.get_vivienda()).first()
+		# user leaves
+		test_user.get_vu().leave()
+		self.assertFalse(test_user.has_vivienda())
+		# user joins other vivienda
+		test_user_new_viv = ViviendaUsuario.objects.create(
+			user=test_user, 
+			vivienda=new_vivienda_lista.usuario_creacion.vivienda)
+		self.assertTrue(test_user.has_vivienda())
+
+		# user goes to /lists/
+		response = self.client.get(
+			"/lists/",
+			follow=True)
+
+		# user can see list of vivienda 2
+		self.assertContains(response, "<td>%d</td>" % (new_vivienda_lista.count_items()))
+		self.assertContains(response, "<td>%s</td>" % (new_vivienda_lista.usuario_creacion.user))
+		# user cant see list of vivienda 1
+		self.assertNotContains(response, "<td>%d</td>" % (original_vivienda_lista.count_items()))
+		self.assertNotContains(response, "<td>%s</td>" % (original_vivienda_lista.usuario_creacion.user))
+
+class NewListaViewTest(TestCase):
+
+	def test_not_logged_user_cant_create_lista(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		self.client.logout()
+		response = self.client.post(
+			"/nueva_lista/",
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"max_item_index": 2,
+				"item_1":"d1",
+				"quantity_1":10,
+				"item_2":"d2",
+				"quantity_2":20
+				},
+			follow=True)
+		self.assertRedirects(response, "/accounts/login/?next=/nueva_lista/")
+	def test_logged_user_with_no_vivienda_cant_create_lista(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		test_user.get_vu().leave()
+		response = self.client.post(
+			"/nueva_lista/",
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"max_item_index": 2,
+				"item_1":"d1",
+				"quantity_1":10,
+				"item_2":"d2",
+				"quantity_2":20
+				},
+			follow=True)
+		self.assertRedirects(response, "/error/")
+	def test_user_cant_create_empty_lista(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		response = self.client.post(
+			"/nueva_lista/",
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"max_item_index": 0
+				},
+			follow=True)
+		self.assertRedirects(response, "/error/")
+
+		response = self.client.post(
+			"/nueva_lista/",
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"max_item_index": 2
+				},
+			follow=True)
+		self.assertRedirects(response, "/error/")
+	def test_user_can_create_lista_simple(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		response = self.client.post(
+			"/nueva_lista/",
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"max_item_index": 3,
+				"item_1":"d1",
+				"quantity_1":10,
+				"item_2":"d2",
+				"quantity_2":20,
+				"item_3":"d3",
+				"quantity_3":30
+				},
+			follow=True)
+
+		self.assertEqual(
+			ListaCompras.objects.filter(
+				usuario_creacion__vivienda=test_user.get_vivienda()).count(),
+			2)
+		self.assertEqual(
+			ListaCompras.objects.count(),
+			3)
+		lista = ListaCompras.objects.latest("fecha")
+		self.assertRedirects(response, "/detalle_lista/%d/" % (lista.id))
+		for item_lista in ItemLista.objects.filter(lista=lista):
+			self.assertContains(
+				response, 
+				"<td class=\"cantidad_solicitada\">%d (%s)</td>" % (item_lista.cantidad_solicitada, item_lista.item.unidad_medida))
+	def test_user_can_create_lista_with_unordered_items_that_skip_index_numbers(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		response = self.client.post(
+			"/nueva_lista/",
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"max_item_index": 3,
+				"item_1":"d1",
+				"quantity_1":10,
+				"item_3":"d3",
+				"quantity_3":30
+				},
+			follow=True)
+
+		lista = ListaCompras.objects.latest("fecha")
+		self.assertEqual(
+			lista.count_items(),
+			2)
+		self.assertRedirects(response, "/detalle_lista/%d/" % (lista.id))
+		for item_lista in ItemLista.objects.filter(lista=lista):
+			self.assertContains(
+				response, 
+				"<td class=\"cantidad_solicitada\">%d (%s)</td>" % (item_lista.cantidad_solicitada, item_lista.item.unidad_medida))
+	def test_user_can_create_lista_with_unordered_items_that_skip_index_numbers_with_empty_input_fields(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		response = self.client.post(
+			"/nueva_lista/",
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"max_item_index": 3,
+				"item_1":"d1",
+				"quantity_1":10,
+				"item_2":"",
+				"quantity_2": 2,
+				"item_3":"d3",
+				"quantity_3":30
+				},
+			follow=True)
+
+		lista = ListaCompras.objects.latest("fecha")
+		self.assertEqual(
+			lista.count_items(),
+			2)
+		self.assertRedirects(response, "/detalle_lista/%d/" % (lista.id))
+		for item_lista in ItemLista.objects.filter(lista=lista):
+			self.assertContains(
+				response, 
+				"<td class=\"cantidad_solicitada\">%d (%s)</td>" % (item_lista.cantidad_solicitada, item_lista.item.unidad_medida))
+	def test_user_cant_create_lista_with_repeated_items(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		response = self.client.post(
+			"/nueva_lista/",
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"max_item_index": 3,
+				"item_1":"d1",
+				"quantity_1":10,
+				"item_2":"d2",
+				"quantity_2":20,
+				"item_3":"d1",
+				"quantity_3":30
+				},
+			follow=True)
+		self.assertRedirects(response, "/lists/")
+		# TODO the following tests
+		# self.assertContains(response, "La lista no puede contener varias veces el mismo item!")
+
+class PayListaViewTest(TestCase):
+
+	# basics
+	def test_not_logged_user_cant_pay_lista(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		lista = ListaCompras.objects.filter(usuario_creacion__vivienda=test_user.get_vivienda()).first()
+		self.client.logout()
+		# tries to pay whole lista
+		response = self.client.post(
+			"/detalle_lista/%d/" % (lista.id),
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"max_item_index": 2,
+				"item_1":"d1",
+				"quantity_1":10,
+				"item_2":"d2",
+				"quantity_2":20
+				},
+			follow=True)
+		self.assertRedirects(response, "/accounts/login/?next=/detalle_lista/%d/" % (lista.id))
+	def test_outsider_user_cant_pay_lista(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		not_my_lista = ListaCompras.objects.exclude(usuario_creacion__vivienda=test_user.get_vivienda()).first()
+		# tries to pay whole lista
+		response = self.client.post(
+			"/detalle_lista/%d/" % (not_my_lista.id),
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"max_item_index": 2,
+				"item_1":"d1",
+				"quantity_1":10,
+				"item_2":"d2",
+				"quantity_2":20
+				},
+			follow=True)
+		self.assertRedirects(response, "/error/")
+	def test_past_user_cant_pay_lista(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		lista = ListaCompras.objects.filter(usuario_creacion__vivienda=test_user.get_vivienda()).first()
+		test_user.get_vu().leave()
+		# tries to pay whole lista
+		response = self.client.post(
+			"/detalle_lista/%d/" % (lista.id),
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"max_item_index": 2,
+				"item_1":"d1",
+				"quantity_1":10,
+				"item_2":"d2",
+				"quantity_2":20
+				},
+			follow=True)
+		self.assertRedirects(response, "/error/")
+
+	# paying no recicle
+	def test_user_can_pay_lista_no_recicle(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		lista = ListaCompras.objects.filter(usuario_creacion__vivienda=test_user.get_vivienda()).first()
+		[item_lista_1, item_lista_2] = lista.get_items()
+		# pays half lista no recicle
+		response = self.client.post(
+			"/detalle_lista/%d/" % (lista.id),
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"descartar_items":"checked",
+				"monto_total":1000,
+				str(item_lista_1.id) : 1,
+				str(item_lista_2.id) : 2
+				},
+			follow=True)
+		gasto = Gasto.objects.latest("fecha_creacion")
+		self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto.id))
+	def test_user_cant_pay_lista_without_monto_no_recicle(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		lista = ListaCompras.objects.filter(usuario_creacion__vivienda=test_user.get_vivienda()).first()
+		[item_lista_1, item_lista_2] = lista.get_items()
+		# pays half lista no recicle
+		response = self.client.post(
+			"/detalle_lista/%d/" % (lista.id),
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"descartar_items":"checked",
+				str(item_lista_1.id) : 1,
+				str(item_lista_2.id) : 2
+				},
+			follow=True)
+		self.assertRedirects(response, "/error/")
+	def test_user_cant_pay_lista_without_items_selected_no_recicle(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		lista = ListaCompras.objects.filter(usuario_creacion__vivienda=test_user.get_vivienda()).first()
+		# pays half lista no recicle
+		response = self.client.post(
+			"/detalle_lista/%d/" % (lista.id),
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"descartar_items":"checked",
+				"monto_total":1000
+				},
+			follow=True)
+		self.assertRedirects(response, "/error/")
+
+	# paying with recicle
+	def test_user_can_pay_lista_with_recicle(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		lista = ListaCompras.objects.filter(usuario_creacion__vivienda=test_user.get_vivienda()).first()
+		[item_lista_1, item_lista_2] = lista.get_items()
+		# pays half lista no recicle
+		response = self.client.post(
+			"/detalle_lista/%d/" % (lista.id),
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"rescatar_items":"checked",
+				"monto_total":1000,
+				str(item_lista_2.id) : 2
+				},
+			follow=True)
+		gasto = Gasto.objects.latest("fecha_creacion")
+		self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto.id))
+
+		# old lista only has item_2, and is paid
+		self.assertEqual(lista.get_items().count(), 1)
+		self.assertEqual(
+			lista.get_items().first().item.nombre,
+			item_lista_2.item.nombre)
+		self.assertTrue(ListaCompras.objects.get(id=lista.id).is_done())
+		# created new lista with item_1
+		new_lista = ListaCompras.objects.latest("fecha")
+		self.assertEqual(new_lista.get_items().count(),1)
+		self.assertEqual(
+			new_lista.get_items().first().item.nombre,
+			item_lista_1.item.nombre)
+		self.assertFalse(new_lista.is_done())
+	def test_user_paying_full_lista_doesnt_create_a_Lista_with_recicle(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		lista = ListaCompras.objects.filter(usuario_creacion__vivienda=test_user.get_vivienda()).first()
+		[item_lista_1, item_lista_2] = lista.get_items()
+		original_lista_count = ListaCompras.objects.count()
+		original_gasto_count = Gasto.objects.count()
+		# pays half lista no recicle
+		response = self.client.post(
+			"/detalle_lista/%d/" % (lista.id),
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"rescatar_items":"checked",
+				"monto_total":1000,
+				str(item_lista_1.id) : 1,
+				str(item_lista_2.id) : 2
+				},
+			follow=True)
+		self.assertEqual(
+			Gasto.objects.count(), 
+			original_gasto_count + 1)
+		gasto = Gasto.objects.latest("fecha_creacion")
+		self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto.id))
+
+		# created new lista with item_2
+		self.assertEqual(original_lista_count, ListaCompras.objects.count())
+		# old lista only has both items, and is paid
+		self.assertEqual(lista.get_items().count(), 2)
+		self.assertTrue(ListaCompras.objects.get(id=lista.id).is_done())
+	def test_user_cant_pay_lista_without_monto_with_recicle(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		lista = ListaCompras.objects.filter(usuario_creacion__vivienda=test_user.get_vivienda()).first()
+		[item_lista_1, item_lista_2] = lista.get_items()
+		original_lista_count = ListaCompras.objects.count()
+		original_gasto_count = Gasto.objects.count()
+		# pays half lista no recicle
+		response = self.client.post(
+			"/detalle_lista/%d/" % (lista.id),
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"rescatar_items":"checked",
+				str(item_lista_1.id) : 1,
+				str(item_lista_2.id) : 2
+				},
+			follow=True)
+		self.assertRedirects(response, "/error/")
+		self.assertEqual(ListaCompras.objects.count(), original_lista_count)
+		self.assertEqual(Gasto.objects.count(), original_gasto_count)
+		self.assertFalse(ListaCompras.objects.get(id=lista.id).is_done())
+	def test_user_cant_pay_lista_without_items_selected_with_recicle(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		lista = ListaCompras.objects.filter(usuario_creacion__vivienda=test_user.get_vivienda()).first()
+		[item_lista_1, item_lista_2] = lista.get_items()
+		original_lista_count = ListaCompras.objects.count()
+		original_gasto_count = Gasto.objects.count()
+		# pays half lista no recicle
+		response = self.client.post(
+			"/detalle_lista/%d/" % (lista.id),
+			data={
+				"csrfmiddlewaretoken":"rubbish",
+				"rescatar_items":"checked",
+				"monto_total":1000
+				},
+			follow=True)
+		self.assertRedirects(response, "/error/")
+		self.assertEqual(ListaCompras.objects.count(), original_lista_count)
+		self.assertEqual(Gasto.objects.count(), original_gasto_count)
+		self.assertFalse(ListaCompras.objects.get(id=lista.id).is_done())
+

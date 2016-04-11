@@ -195,12 +195,18 @@ def detalle_gasto(request, gasto_id):
 		return HttpResponseRedirect("/error")
 	gasto_form = GastoForm(model_to_dict(gasto))
 	if request.POST:
+		if gasto.is_paid():
+			# TODO show error message
+			return HttpResponseRedirect("/error")
 		gasto.pagar(request.user)
+		return HttpResponseRedirect("/detalle_gasto/%d/" % (gasto.id))
 	return render(request, "gastos/detalle_gasto.html", locals())
 
 @login_required
 def lists(request):
 	vivienda_usuario = request.user.get_vu()
+	if vivienda_usuario is None:
+		return HttpResponseRedirect("/error")
 	items = Item.objects.all().values("nombre", "unidad_medida")
 	listas_pendientes = ListaCompras.objects.filter(
 							usuario_creacion__vivienda=request.user.get_vivienda(),
@@ -210,20 +216,45 @@ def lists(request):
 @login_required
 def nueva_lista(request):
 	if request.POST:
-		post = request.POST.copy()
-		post.pop("csrfmiddlewaretoken", None)
+		if not request.user.has_vivienda():
+			# TODO show error message
+			return HttpResponseRedirect("/error")
+		max_item_index = int(request.POST.get("max_item_index", None))
 
 		# get the number of items in the list. The post contains 2 inputs for each item
-		number_of_items = int(len(post)/2)
-		if number_of_items>0:
-			# create list
-			nueva_lista = ListaCompras(usuario_creacion=request.user.get_vu())
-			nueva_lista.save()
-			for item_index in range(1,number_of_items+1):
+		# create array of pairs (item_name, quantity)
+		if max_item_index>0:
+			item_quantity_dict = dict()
+			for item_index in range(1,max_item_index+1):
 				# add items to list
-				item_name = request.POST.get("item_"+str(item_index))
-				quantity = request.POST.get("quantity_"+str(item_index))
-				nueva_lista.add_item_by_name(item_name, quantity)
+				item_name = request.POST.get("item_"+str(item_index), None)
+				quantity = request.POST.get("quantity_"+str(item_index), None)
+				if item_name is not None and quantity is not None:
+					if item_quantity_dict.get(item_name, None) is not None:
+						# the item is already in the dict. this is an error!
+						# TODO show error message
+						return HttpResponseRedirect("/lists/")
+					item_quantity_dict[item_name] = quantity
+			# the list is OK
+			if len(item_quantity_dict)==0:
+				# TODO show error message "List must not be empty!"
+				return HttpResponseRedirect("/error/")
+			nueva_lista = ListaCompras.objects.create(usuario_creacion=request.user.get_vu())
+			for i,q in item_quantity_dict.items():
+				nueva_lista.add_item_by_name(i, q)
+			return HttpResponseRedirect("/detalle_lista/%d" % (nueva_lista.id))
+		# esto tenía antes
+		# number_of_items = int(len(post)/2)
+		# if number_of_items>0:
+		# 	# create list
+		# 	nueva_lista = ListaCompras(usuario_creacion=request.user.get_vu())
+		# 	nueva_lista.save()
+		# 	for item_index in range(1,number_of_items+1):
+		# 		# add items to list
+		# 		item_name = request.POST.get("item_"+str(item_index))
+		# 		quantity = request.POST.get("quantity_"+str(item_index))
+		# 		nueva_lista.add_item_by_name(item_name, quantity)
+		# 	return HttpResponseRedirect("/detalle_lista/%d" % (nueva_lista.id))
 		else:
 			# TODO show error message
 			return HttpResponseRedirect("/error")
@@ -241,6 +272,8 @@ def detalle_lista(request, lista_id):
 			rescatar_items = request.POST.get("rescatar_items", None)
 			descartar_items = request.POST.get("descartar_items", None)
 			monto_total = request.POST.get("monto_total", None)
+			if monto_total is None:
+				return HttpResponseRedirect("/error")
 			# TODO handle None case
 			# filter request.POST to get only the ids and values of the items in the list
 			item_list = []
@@ -253,10 +286,16 @@ def detalle_lista(request, lista_id):
 					# TODO ???
 					pass
 			nuevo_gasto = lista.buy_list(item_list, monto_total, vivienda_usuario)
+			if nuevo_gasto is None:
+				# TODO shwo message "no items selected"
+				return HttpResponseRedirect("/error")
 			if rescatar_items:
 				nueva_lista = lista.rescue_items(vivienda_usuario)
 			elif descartar_items:
 				lista.discard_items()
+			else:
+				# TODO broken post
+				return HttpResponseRedirect("/error")
 			return HttpResponseRedirect("/detalle_gasto/" + str(nuevo_gasto.id))
 		else:
 			# not post

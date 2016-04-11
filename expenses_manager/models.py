@@ -167,7 +167,7 @@ class ListaCompras(models.Model):
 		return Item.objects.filter(nombre=item_name).first()
 	# creates an instance of ItemLista with the given Item and quantity, where the list is self
 	def add_item(self,item, quantity):
-		if item.id>0 and item is not None and not item.is_in_lista(self):
+		if item is not None and item.id>0 and not item.is_in_lista(self):
 			new_list_item = ItemLista.objects.create(
 				item=item, 
 				lista=self, 
@@ -208,7 +208,7 @@ class ListaCompras(models.Model):
 			self.buy_item(item_id, quantity)
 		self.set_done_state()
 		# create new Gasto
-		nuevo_gasto = Gasto(
+		nuevo_gasto = Gasto.objects.create(
 			monto=monto_total,
 			creado_por=vivienda_usuario,
 			categoria=Categoria.objects.get_or_create(nombre="Supermercado")[0],

@@ -21,6 +21,7 @@
 		<!-- nueva lista -->
 		<div role="tabpanel" class="tab-pane active" id="nueva_lista">
 			<form action="/nueva_lista/" method="POST" id="nueva_lista_form">
+				<input type="hidden" name="max_item_index" id="max_item_index"></input>
 				{% csrf_token %}
 				<button type="button" id="add_item" class="btn btn-warning">
 					{% bootstrap_icon "plus" %} Agregar ítem
@@ -90,6 +91,7 @@
 			});
 			$('#add_item').click(function(){
 				this_item_number = input_number++;
+				$("#max_item_index").val(this_item_number);
 				this_item_input_id = "item_"+ this_item_number
 				// create inputs
 				item = $("<input>")
