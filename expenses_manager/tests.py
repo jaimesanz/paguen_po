@@ -790,9 +790,53 @@ def get_test_user_and_login(test):
 
 def get_test_user_with_vivienda_and_login(test):
 	test_user = get_test_user_and_login(test)
-	vivienda = Vivienda.objects.create(alias="viv1")
+	vivienda = Vivienda.objects.create(alias="vivA")
 	test_user_viv = ViviendaUsuario.objects.create(vivienda=vivienda , user=test_user)
 	return test_user, vivienda, test_user_viv
+
+# creates a vivienda with 2 users (and logs in 1 of them), and another vivienda with 1 user
+# returns the user that is logged in, his roommate and the third one
+def get_basic_setup_and_login_user_1(test):
+	# get first user
+	test_user_1, vivienda_A, test_user_1_viv_A = get_test_user_with_vivienda_and_login(test)
+	# get roommate for rist user
+	test_user_2 = ProxyUser.objects.create(username="test_user_2", email="b@b.com")
+	test_user_2_viv_A = ViviendaUsuario.objects.create(vivienda=vivienda_A, user=test_user_2)
+	# get another vivienda with another user
+	test_user_3 = ProxyUser.objects.create(username="test_user_3", email="c@c.com")
+	vivienda_B = Vivienda.objects.create(alias="vivB")
+	test_user_3_viv_B = ViviendaUsuario.objects.create(vivienda=vivienda_B, user=test_user_3)
+	return test_user_1, test_user_2, test_user_3
+
+def get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(test):
+	test_user_1, test_user_2, test_user_3 = get_basic_setup_and_login_user_1(test)
+
+	dummy_categoria = Categoria.objects.create(nombre="dummy1")
+	gasto_1 = Gasto.objects.create(
+		monto=111,
+		creado_por=test_user_1.get_vu(),
+		categoria=dummy_categoria)
+	gasto_2 = Gasto.objects.create(
+		monto=222,
+		creado_por=test_user_2.get_vu(),
+		categoria=dummy_categoria)
+	gasto_3 = Gasto.objects.create(
+		monto=333,
+		creado_por=test_user_3.get_vu(),
+		categoria=dummy_categoria)
+
+	test.assertEqual(Gasto.objects.filter(estado__estado="pendiente").count(), 3)
+	test.assertEquals(Gasto.objects.filter(
+		creado_por__vivienda=test_user_1.get_vivienda()).count(), 
+		2)
+	test.assertEquals(Gasto.objects.filter(
+		creado_por__vivienda=test_user_2.get_vivienda()).count(), 
+		2)
+	test.assertEquals(Gasto.objects.filter(
+		creado_por__vivienda=test_user_3.get_vivienda()).count(), 
+		1)
+
+	return (test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3)
 
 # check navbar
 ##################
@@ -851,6 +895,22 @@ def test_the_basics_not_logged_in(test, url, template_name, view_func):
 
 def execute_test_the_basics_logged_in(test, url, template_name, view_func):
 	user = get_test_user_and_login(test)
+	response = test_the_basics(test, url, template_name, view_func)
+	test.assertNotContains(response, "Entrar")
+	test.assertNotContains(response, "Registrarse")
+	test.assertNotContains(response, "Inicio")
+	test.assertContains(response, user.username)
+	test.assertContains(response, "Salir")
+	if user.has_vivienda():
+		test.assertContains(response, "Gastos")
+		test.assertContains(response, "Listas")
+		test.assertContains(response, "Vivienda")
+	else:
+		test.assertContains(response, "Crear")
+		test.assertContains(response, "Invitaciones")
+
+def execute_test_the_basics_logged_in_with_vivienda(test, url, template_name, view_func):
+	user, vivienda, user_viv = get_test_user_with_vivienda_and_login(test)
 	response = test_the_basics(test, url, template_name, view_func)
 	test.assertNotContains(response, "Entrar")
 	test.assertNotContains(response, "Registrarse")
@@ -980,7 +1040,6 @@ class InviteUserViewTest(TestCase):
 			data = {"email":"test@test.com"}, follow=True)
 		self.assertRedirects(response, "/error/")
 		has_logged_navbar_without_vivienda(self, response, test_user)
-
 	def test_invite_user_with_user_that_has_vivienda(self):
 		test_user, vivienda, test_user_viv = get_test_user_with_vivienda_and_login(self)
 
@@ -988,6 +1047,337 @@ class InviteUserViewTest(TestCase):
 
 		response = self.client.post(
 			"/invite_user/",
-			data = {"email":"test@test.com"}, follow=True)
+			data = {"email":"test@test.com"},
+			follow=True)
 		self.assertRedirects(response, "/invites_list/")
 		has_logged_navbar_with_vivienda(self, response, test_user)
+
+		self.assertContains(response, "test@test.com")
+	def test_user_accepts_invite_and_joins_vivienda(self):
+		# user1 with vivienda
+		test_user_1, vivienda, test_user_1_viv = get_vivienda_with_1_user()
+		# user2 without vivienda logged in
+		test_user_2 = get_test_user_and_login(self)
+		# user1 invites user2
+		invite = Invitacion.objects.create(
+			invitado=test_user_2,
+			invitado_por=test_user_1_viv,
+			email=test_user_2.email)
+		invites_in_1, invites_out_1 = test_user_1.get_invites()
+		invites_in_2, invites_out_2 = test_user_2.get_invites()
+		self.assertEqual(invites_in_1.count(), 0)
+		self.assertEqual(invites_out_1.count(), 1)
+		self.assertEqual(invites_in_2.count(), 1)
+		self.assertEqual(invites_out_2.count(), 0)
+		# user2 accepts
+		response = self.client.post(
+			"/invite/%d/" % (invite.id),
+			data={"SubmitButton": "Aceptar"},
+			follow=True)
+		self.assertRedirects(response, "/vivienda/")
+		self.assertContains(response, vivienda.alias)
+		self.assertTrue(test_user_2.has_vivienda())
+		self.assertTrue(test_user_1.has_vivienda())
+		has_logged_navbar_with_vivienda(self, response, test_user_2)
+	def test_user_rejects_invite_and_doesnt_join_vivienda(self):
+		# user1 with vivienda
+		test_user_1, vivienda, test_user_1_viv = get_vivienda_with_1_user()
+		# user2 without vivienda logged in
+		test_user_2 = get_test_user_and_login(self)
+		# user1 invites user2
+		invite = Invitacion.objects.create(
+			invitado=test_user_2,
+			invitado_por=test_user_1_viv,
+			email=test_user_2.email)
+		# user2 rejects
+		response = self.client.post(
+			"/invite/%d/" % (invite.id),
+			data={"SubmitButton": "Declinar"},
+			follow=True)
+		self.assertRedirects(response, "/home/")
+		self.assertNotContains(response, vivienda.alias)
+		self.assertFalse(test_user_2.has_vivienda())
+		self.assertTrue(test_user_1.has_vivienda())
+		has_logged_navbar_without_vivienda(self, response, test_user_2)
+	def test_user_sends_malitious_POST_response_to_invite_and_doesnt_join_vivienda(self):
+		# user1 with vivienda
+		test_user_1, vivienda, test_user_1_viv = get_vivienda_with_1_user()
+		# user2 without vivienda logged in
+		test_user_2 = get_test_user_and_login(self)
+		# user1 invites user2
+		invite = Invitacion.objects.create(
+			invitado=test_user_2,
+			invitado_por=test_user_1_viv,
+			email=test_user_2.email)
+		# user2 sends malitious post
+		response = self.client.post(
+			"/invite/%d/" % (invite.id),
+			data={"SubmitButton": "SQLI"},
+			follow=True)
+		self.assertRedirects(response, "/error/")
+
+		invites_in_1, invites_out_1 = test_user_1.get_invites()
+		invites_in_2, invites_out_2 = test_user_2.get_invites()
+		self.assertEqual(invites_in_1.count(), 0)
+		self.assertEqual(invites_out_1.count(), 1)
+		self.assertEqual(invites_in_2.count(), 1)
+		self.assertEqual(invites_out_2.count(), 0)
+
+		self.assertNotContains(response, vivienda.alias)
+		self.assertFalse(test_user_2.has_vivienda())
+		self.assertTrue(test_user_1.has_vivienda())
+		has_logged_navbar_without_vivienda(self, response, test_user_2)
+	def test_user_accepts_invite_but_already_has_vivienda_and_doesnt_join_new_vivienda(self):
+		# user1 with vivienda
+		test_user_1, vivienda_1, test_user_1_viv = get_vivienda_with_1_user()
+		# user2 without vivienda logged in
+		test_user_2, vivienda_2, test_user_2_viv = get_test_user_with_vivienda_and_login(self)
+		# user1 invites user2
+		invite = Invitacion.objects.create(
+			invitado=test_user_2,
+			invitado_por=test_user_1_viv,
+			email=test_user_2.email)
+		invites_in_1, invites_out_1 = test_user_1.get_invites()
+		invites_in_2, invites_out_2 = test_user_2.get_invites()
+		self.assertEqual(invites_in_1.count(), 0)
+		self.assertEqual(invites_out_1.count(), 1)
+		self.assertEqual(invites_in_2.count(), 1)
+		self.assertEqual(invites_out_2.count(), 0)
+		# user2 accepts
+		response = self.client.post(
+			"/invite/%d/" % (invite.id),
+			data={"SubmitButton": "Aceptar"},
+			follow=True)
+		self.assertRedirects(response, "/error/")
+		self.assertTrue(test_user_1.has_vivienda())
+		self.assertEqual(test_user_1.get_vivienda().alias, vivienda_1.alias)
+		self.assertTrue(test_user_2.has_vivienda())
+		self.assertEqual(test_user_2.get_vivienda().alias, vivienda_2.alias)
+		has_logged_navbar_with_vivienda(self, response, test_user_2)
+	def test_user_accepts_invite_that_is_canceled_and_doesnt_join_vivienda(self):
+		# user1 with vivienda
+		test_user_1, vivienda, test_user_1_viv = get_vivienda_with_1_user()
+		# user2 without vivienda logged in
+		test_user_2 = get_test_user_and_login(self)
+		# user1 invites user2
+		invite = Invitacion.objects.create(
+			invitado=test_user_2,
+			invitado_por=test_user_1_viv,
+			email=test_user_2.email,
+			estado="cancelada")
+		invites_in_1, invites_out_1 = test_user_1.get_invites()
+		invites_in_2, invites_out_2 = test_user_2.get_invites()
+		self.assertEqual(invites_in_1.count(), 0)
+		self.assertEqual(invites_out_1.count(), 0)
+		self.assertEqual(invites_in_2.count(), 0)
+		self.assertEqual(invites_out_2.count(), 0)
+		# user2 accepts
+		response = self.client.post(
+			"/invite/%d/" % (invite.id),
+			data={"SubmitButton": "Aceptar"},
+			follow=True)
+		self.assertRedirects(response, "/error/")
+		self.assertNotContains(response, vivienda.alias)
+		self.assertFalse(test_user_2.has_vivienda())
+		self.assertTrue(test_user_1.has_vivienda())
+		has_logged_navbar_without_vivienda(self, response, test_user_2)
+	def test_user_cancels_invite_and_other_users_cant_see_it_anymore(self):
+		# user1 with vivienda logged in
+		test_user_1, vivienda, test_user_1_viv = get_test_user_with_vivienda_and_login(self)
+		# user2 without vivienda
+		test_user_2 = get_lone_user()
+		# user1 invites user2
+		invite = Invitacion.objects.create(
+			invitado=test_user_2,
+			invitado_por=test_user_1_viv,
+			email=test_user_2.email)
+		# user2 cancels
+		response = self.client.post(
+			"/invite/%d/" % (invite.id),
+			data={"SubmitButton": "Cancelar"},
+			follow=True)
+		# noone can see the invite anymore
+		invites_in_1, invites_out_1 = test_user_1.get_invites()
+		invites_in_2, invites_out_2 = test_user_2.get_invites()
+		self.assertEqual(invites_in_1.count(), 0)
+		self.assertEqual(invites_out_1.count(), 0)
+		self.assertEqual(invites_in_2.count(), 0)
+		self.assertEqual(invites_out_2.count(), 0)
+
+		self.assertRedirects(response, "/invites_list/")
+		self.assertFalse(test_user_2.has_vivienda())
+		self.assertTrue(test_user_1.has_vivienda())
+		has_logged_navbar_with_vivienda(self, response, test_user_1)
+
+class GastoViviendaPendingListViewTest(TestCase):
+
+	def test_basics_pending_gasto_list_url(self):
+		execute_test_the_basics_not_logged_in_restricted(self, "/gastos/")
+	def test_basics_with_vivienda(self):
+		execute_test_the_basics_logged_in_with_vivienda(self, "/gastos/", "gastos/gastos.html", gastos)
+	def test_user_must_have_vivienda(self):
+		test_user = get_test_user_and_login(self)
+		response = self.client.get("/gastos/", follow=True)
+
+		self.assertRedirects(response, "/error/")
+		has_logged_navbar_without_vivienda(self, response, test_user)
+	def test_user_can_see_pending_gastos_only_of_his_vivienda(self):
+		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+
+		response = self.client.get("/gastos/", follow=True)
+		# check that logged user can see both gastos
+		self.assertContains(response, dummy_categoria.nombre)
+		self.assertContains(response, gasto_1.monto)
+		self.assertContains(response, "href=\"/detalle_gasto/%d\"" % gasto_1.id)
+		self.assertContains(response, gasto_2.monto)
+		self.assertContains(response, "href=\"/detalle_gasto/%d\"" % gasto_2.id)
+		# check that logged user can't see the gasto from the other vivienda
+		self.assertNotContains(response, gasto_3.monto)
+		self.assertNotContains(response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+	def test_user_tries_to_create_new_gasto_with_incomplete_POST_request(self):
+		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+		
+		response = self.client.post(
+			"/nuevo_gasto/",
+			data={"categoria": dummy_categoria, "monto":2323 },
+			follow=True)
+
+		self.assertRedirects(response, "/error/")
+		self.assertEqual(
+			Gasto.objects.filter(creado_por__vivienda=test_user_1.get_vivienda()).count(),
+			3)
+	def test_user_can_create_pending_gasto(self):
+		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+
+		response = self.client.post(
+			"/nuevo_gasto/",
+			data={"categoria": dummy_categoria, "monto":2323 , "is_not_paid": ""},
+			follow=True)
+
+		self.assertRedirects(response, "/gastos/")
+		for gasto in Gasto.objects.filter(creado_por__vivienda=test_user_1.get_vivienda(), estado__estado="pendiente"):
+			self.assertContains(response, gasto.monto)
+			self.assertContains(response, "href=\"/detalle_gasto/%d\"" % gasto.id)
+		self.assertNotContains(response, gasto_3.monto)
+		self.assertNotContains(response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+
+
+class GastoViviendaPaidListViewTest(TestCase):
+
+	def test_basics_paid_gasto_list_url(self):
+		execute_test_the_basics_not_logged_in_restricted(self, "/gastos/")
+	def test_basics__paid_gasto_list_with_vivienda(self):
+		execute_test_the_basics_logged_in_with_vivienda(self, "/gastos/", "gastos/gastos.html", gastos)
+	def test_user_must_have_vivienda_for_paid_gasto_list(self):
+		test_user = get_test_user_and_login(self)
+		response = self.client.get("/gastos/", follow=True)
+
+		self.assertRedirects(response, "/error/")
+		has_logged_navbar_without_vivienda(self, response, test_user)
+
+	def test_user_can_see_paid_gastos_only_of_his_vivienda(self):
+		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+		gasto_1.pagar(test_user_1)
+		gasto_2.pagar(test_user_2)
+		gasto_3.pagar(test_user_3)
+
+		response = self.client.get("/gastos/", follow=True)
+		# check that logged user can see both gastos
+		self.assertContains(response, dummy_categoria.nombre)
+		self.assertContains(response, gasto_1.monto)
+		self.assertContains(response, "href=\"/detalle_gasto/%d\"" % gasto_1.id)
+		self.assertContains(response, gasto_2.monto)
+		self.assertContains(response, "href=\"/detalle_gasto/%d\"" % gasto_2.id)
+		# check that logged user can't see the gasto from the other vivienda
+		self.assertNotContains(response, gasto_3.monto)
+		self.assertNotContains(response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+
+	def test_user_can_create_paid_gasto(self):
+		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)		
+		response = self.client.post(
+			"/nuevo_gasto/",
+			data={"categoria": dummy_categoria, "monto":2323 , "is_paid": ""},
+			follow=True)
+
+		self.assertRedirects(response, "/gastos/")
+		for gasto in Gasto.objects.filter(creado_por__vivienda=test_user_1.get_vivienda(), estado__estado="pagado"):
+			self.assertContains(response, gasto.monto)
+			self.assertContains(response, "href=\"/detalle_gasto/%d\"" % gasto.id)
+		self.assertNotContains(response, gasto_3.monto)
+		self.assertNotContains(response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+
+class GastoViviendaPayViewTest(TestCase):
+
+	def test_not_logged_user_cant_see_gasto(self):
+		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)		
+		self.client.logout()
+		response = self.client.get(
+			"/detalle_gasto/%d/" % (gasto_1.id),
+			follow=True)
+		self.assertRedirects(response, "/accounts/login/?next=/detalle_gasto/%d/" % (gasto_1.id))
+		has_not_logged_navbar(self, response)
+	def test_not_logged_user_cant_pay_gasto(self):
+		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)		
+		self.client.logout()
+		response = self.client.post(
+			"/detalle_gasto/%d/" % (gasto_1.id),
+			data={"csrfmiddlewaretoken":"rubbish"},
+			follow=True)
+		self.assertRedirects(response, "/accounts/login/?next=/detalle_gasto/%d/" % (gasto_1.id))
+		has_not_logged_navbar(self, response)
+	def test_outside_user_cant_see_gasto(self):
+		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)		
+		response = self.client.get(
+			"/detalle_gasto/%d/" % (gasto_3.id),
+			follow=True)
+		self.assertRedirects(response, "/error/")
+		self.assertNotContains(response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+	def test_outside_user_cant_pay_gasto(self):
+		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)		
+		response = self.client.post(
+			"/detalle_gasto/%d/" % (gasto_3.id),
+			data={"csrfmiddlewaretoken":"rubbish"},
+			follow=True)
+		self.assertRedirects(response, "/error/")
+		self.assertNotContains(response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+	def test_user_can_pay_pending_gasto(self):
+		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)		
+		response = self.client.post(
+			"/detalle_gasto/%d/" % (gasto_1.id),
+			data={"csrfmiddlewaretoken":"rubbish"},
+			follow=True)
+		self.assertRedirects(response, "/gastos/", status_code=200)
+		self.assertContains(response, "href=\"/detalle_gasto/%d\"" % gasto_1.id, status_code=200)
+		self.assertEqual(
+			Gasto.objects.filter(
+				creado_por__vivienda=test_user_1.get_vivienda(), 
+				estado__estado="pendiente")
+				.count(),
+			2)
+		self.assertEqual(
+			Gasto.objects.filter(
+				creado_por__vivienda=test_user_1.get_vivienda(), 
+				estado__estado="pagado")
+				.count(),
+			1)
+	def test_user_cannot_pay_paid_gasto(self):
+		self.fail()
+	def test_roommate_can_pay_pending_gasto(self):
+		self.fail()
+	def test_roommate_cannot_pay_paid_gasto(self):
+		self.fail()
+
+	# def test_user_can_pay_pending_gasto(self):
+		# test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)		
+	# 	response = self.client.post(
+	# 		"/nuevo_gasto/",
+	# 		data={"categoria": dummy_categoria, "monto":2323 , "is_paid": ""},
+	# 		follow=True)
+
+	# 	self.assertRedirects(response, "/gastos/")
+	# 	for gasto in Gasto.objects.filter(creado_por__vivienda=test_user_1.get_vivienda(), estado__estado="pagado"):
+	# 		self.assertContains(response, gasto.monto)
+	# 		self.assertContains(response, "href=\"/detalle_gasto/%d\"" % gasto.id)
+	# 	self.assertNotContains(response, gasto_3.monto)
+	# 	self.assertNotContains(response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+	# 	pass

@@ -100,6 +100,8 @@ class Invitacion(models.Model):
 	def reject(self):
 		self.estado = "rechazada"
 		self.save()
+	def is_cancelled(self):
+		return self.estado == "cancelada"
 	def cancel(self):
 		self.estado = "cancelada"
 		self.save()

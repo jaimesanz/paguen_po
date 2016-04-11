@@ -72,20 +72,23 @@ def invite(request, invite_id):
 	invite = get_object_or_404(Invitacion, id=invite_id)
 	invite_in = invite.is_invited_user(request.user)
 	if invite_in:
+		if invite.is_cancelled():
+			return HttpResponseRedirect("/error")
 		if request.POST:
 			ans = request.POST['SubmitButton']
 			if ans == "Aceptar":
-				if request.session['user_has_vivienda']:
+				if request.user.has_vivienda():
 					# user can't have 2 viviendas
 					# TODO show message saying he must leave the current vivienda before joining another
 					return HttpResponseRedirect("/error")
 				invite.accept()
 				request.session['user_has_vivienda']=True
 				return HttpResponseRedirect("/vivienda")
-
-			invite.reject()
+			elif ans == "Declinar":
+				invite.reject()
+				return HttpResponseRedirect("/home")
 			# TODO show message saying the invite was accepted or rejected
-			return HttpResponseRedirect("/home")
+			return HttpResponseRedirect("/error")
 
 		return render(request, "invites/invite.html", locals())
 	elif invite.is_invited_by_user(request.user):
@@ -149,10 +152,14 @@ def nuevo_gasto(request):
 			nuevo_gasto.creado_por = request.user.get_vu()
 			nuevo_gasto.save()
 			# check if it's paid
-			if request.POST.get("is_paid", None):
-				nuevo_gasto.pagar(request.user)
 			# TODO poner mensaje explicando que se agregó con éxito
-			return HttpResponseRedirect("/gastos")
+			if request.POST.get("is_paid", None) is not None:
+				nuevo_gasto.pagar(request.user)
+				return HttpResponseRedirect("/gastos")
+			elif request.POST.get("is_not_paid", None) is not None:
+				return HttpResponseRedirect("/gastos")
+			else:
+				return HttpResponseRedirect("/error")
 		else:
 			# TODO redirect to error
 			pass
@@ -171,6 +178,8 @@ def visualizations(request):
 @login_required
 def gastos(request):
 	vivienda_usuario = request.user.get_vu()
+	if vivienda_usuario is None:
+		return HttpResponseRedirect("/error")
 	# get list of gastos
 	gastos_pendientes_list, gastos_pagados_list = vivienda_usuario.get_gastos_vivienda()
 	gasto_form = GastoForm()
