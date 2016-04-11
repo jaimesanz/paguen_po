@@ -243,18 +243,6 @@ def nueva_lista(request):
 			for i,q in item_quantity_dict.items():
 				nueva_lista.add_item_by_name(i, q)
 			return HttpResponseRedirect("/detalle_lista/%d" % (nueva_lista.id))
-		# esto tenía antes
-		# number_of_items = int(len(post)/2)
-		# if number_of_items>0:
-		# 	# create list
-		# 	nueva_lista = ListaCompras(usuario_creacion=request.user.get_vu())
-		# 	nueva_lista.save()
-		# 	for item_index in range(1,number_of_items+1):
-		# 		# add items to list
-		# 		item_name = request.POST.get("item_"+str(item_index))
-		# 		quantity = request.POST.get("quantity_"+str(item_index))
-		# 		nueva_lista.add_item_by_name(item_name, quantity)
-		# 	return HttpResponseRedirect("/detalle_lista/%d" % (nueva_lista.id))
 		else:
 			# TODO show error message
 			return HttpResponseRedirect("/error")
