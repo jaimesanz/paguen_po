@@ -36,6 +36,7 @@
 						<tr>
 							<th>Ítem</th>
 							<th>Cantidad</th>
+							<th></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -113,10 +114,24 @@
 				first_col_input_group = $("<div>").attr("class","input-group").append(item);
 				second_col_input_group = $("<div>").attr("class","input-group").append(quantity);
 
+				// delete button for the row
+				var delete_button = $("<button>")
+										.attr("type", "button")
+										.attr("class", "btn btn-danger")
+										.attr("id", this_item_input_id + "_delete")
+										.append($("<span>")
+													.attr("class", "glyphicon glyphicon-trash")
+													.attr("aria-hidden", "true"));
+
 				// update table
 				var first_content = $("<div>").append(first_col_input_group).html();
 				var second_content = $("<div>").append(second_col_input_group).html();
-				items_lista.row.add([first_content,second_content]).draw();
+				var delete_button_content = $("<div>").append(delete_button).html()
+				items_lista.row.add([first_content,second_content,delete_button_content]).draw();
+				// make the button functional
+				$("#" + this_item_input_id + "_delete").click(function(){
+					items_lista.row($(this).parent().parent("tr")).remove().draw();
+				})
 
 				$("#"+this_item_input_id).autocomplete({
 					source: items,
