@@ -1293,7 +1293,6 @@ class GastoViviendaPaidListViewTest(TestCase):
 
 		self.assertRedirects(response, "/error/")
 		has_logged_navbar_without_vivienda(self, response, test_user)
-
 	def test_user_can_see_paid_gastos_only_of_his_vivienda(self):
 		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
 		gasto_1.pagar(test_user_1)
@@ -1310,7 +1309,6 @@ class GastoViviendaPaidListViewTest(TestCase):
 		# check that logged user can't see the gasto from the other vivienda
 		self.assertNotContains(response, gasto_3.monto)
 		self.assertNotContains(response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
-
 	def test_user_can_create_paid_gasto(self):
 		test_user_1, test_user_2, test_user_3, dummy_categoria, gasto_1, gasto_2, gasto_3 = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)		
 		response = self.client.post(
