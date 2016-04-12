@@ -74,12 +74,7 @@
 
 	<script type="text/javascript">
 		var input_number = 1
-		var items = [];
 		var items_measure = {};
-		{% for i in items %}
-			items.push("{{i.nombre}}");
-			items_measure["{{i.nombre}}"] = "{{i.unidad_medida}}"
-		{% endfor %}
 		$(document).ready(function(){
 			// TODO customize tables. Currently using the default parameter-less dataTable
 			$('#tabla_listas_pendientes').DataTable({
@@ -134,7 +129,22 @@
 				})
 
 				$("#"+this_item_input_id).autocomplete({
-					source: items,
+					source: function(request, response){
+						$.ajax({
+							url:"/get_items_autocomplete/",
+							data: {term: request.term},
+							dataType: "json",
+							success: function( data ) {
+								response( $.map( data, function( item ) {
+									items_measure[item[0]] = item[1]
+									return {
+										label: item[0],
+										value: item[0]
+									}
+								}));
+							}
+						});
+					},
 					select: function(){
 						qty_id = "#" + $(this).attr("id") + "_qty";
 						unidad_medida = items_measure[$(this).val()];

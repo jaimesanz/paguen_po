@@ -6,7 +6,7 @@ from expenses_manager.forms import *
 from django.contrib.auth.decorators import login_required
 from expenses_manager.models import *
 from django.forms.models import model_to_dict
-
+import json
 
 def home(request):
 	# locals() creates a dict() object with all the variables from the local scope. We are passing it to the template
@@ -207,7 +207,6 @@ def lists(request):
 	vivienda_usuario = request.user.get_vu()
 	if vivienda_usuario is None:
 		return HttpResponseRedirect("/error")
-	items = Item.objects.all().values("nombre", "unidad_medida")
 	listas_pendientes = ListaCompras.objects.filter(
 							usuario_creacion__vivienda=request.user.get_vivienda(),
 							estado="pendiente")
@@ -291,6 +290,12 @@ def detalle_lista(request, lista_id):
 	else:
 		# user is not allowed
 		return HttpResponseRedirect("/error")
+
+def get_items_autocomplete(request):
+	if 'term' in request.GET:
+		items = Item.objects.filter(nombre__istartswith=request.GET['term'])
+		return HttpResponse( json.dumps( [(item.nombre, item.unidad_medida) for item in items] ) )
+
 
 @login_required
 def presupuestos(request):

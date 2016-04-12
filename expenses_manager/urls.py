@@ -28,5 +28,8 @@ urlpatterns = [
 	url(r'^detalle_gasto/(?P<gasto_id>.*)/$', views.detalle_gasto, name='detalle_gasto'),
 	url(r'^lists/$', views.lists, name='lists'),
 	url(r'^detalle_lista/(?P<lista_id>.*)/$', views.detalle_lista, name='detalle_lista'),
+
+	url(r'^get_items_autocomplete/$', views.get_items_autocomplete, name='get_items_autocomplete'),
+
 	url(r'^$', views.home, name='home')
 ]
