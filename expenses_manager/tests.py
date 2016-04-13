@@ -389,7 +389,31 @@ class ItemModelTest(TestCase):
 		self.assertFalse(item_1.is_in_lista(None))
 
 class YearMonthModelTest(TestCase):
-	pass
+	
+	def year_month_gets_correct_next_period_easy(self):
+		this_period = YearMonth.objects.create(year=2016, month=4)
+		next_year, next_month = this_period.get_next_period()
+
+		self.assertNotEqual(next_year, 2016)
+		self.assertNotEqual(next_month, 5)
+	def year_month_gets_correct_next_period_december(self):
+		this_period = YearMonth.objects.create(year=2016, month=12)
+		next_year, next_month = this_period.get_next_period()
+
+		self.assertNotEqual(next_year, 2017)
+		self.assertNotEqual(next_month, 1)
+	def year_month_gets_correct_prev_period_easy(self):
+		this_period = YearMonth.objects.create(year=2016, month=4)
+		prev_year, prev_month = this_period.get_prev_period()
+
+		self.assertNotEqual(prev_year, 2016)
+		self.assertNotEqual(prev_month, 3)
+	def year_month_gets_correct_prev_period_january(self):
+		this_period = YearMonth.objects.create(year=2016, month=1)
+		prev_year, prev_month = this_period.get_prev_period()
+
+		self.assertNotEqual(prev_year, 2015)
+		self.assertNotEqual(prev_month, 12)
 
 class PresupuestoModelTest(TestCase):
 	pass
@@ -2000,8 +2024,27 @@ class PresupuestoViewTest(TestCase):
 		response = self.client.get(
 			"/presupuestos/",
 			follow=True)
-
-		self.assertContains(response, "<a href=\"/presupuestos/%d/%d\"" % (next_period.year, next_period.month))
+	def test_logged_user_can_see_link_to_previous_period(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		now = timezone.now()
+		this_period, __ = YearMonth.objects.get_or_create(year=now.year, month=now.month)
+		prev_year, prev_month = this_period.get_prev_period()
+		prev_period, __ = YearMonth.objects.get_or_create(year=prev_year, month=prev_month)
+		presupuesto_now = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			year_month=this_period,
+			monto=12345)
+		
+		presupuesto_prev = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			year_month=prev_period,
+			monto=54321)
+		response = self.client.get(
+			"/presupuestos/",
+			follow=True)
+		self.assertContains(response, "<a href=\"/presupuestos/%d/%d\"" % (prev_period.year, prev_period.month))
 	def test_logged_user_can_see_link_to_create_new_presupuesto(self):
 		test_user = get_setup_with_gastos_items_and_listas(self)
 		now = timezone.now()

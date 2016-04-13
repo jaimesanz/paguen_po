@@ -23,6 +23,8 @@ urlpatterns = [
 	url(r'^abandon/$', views.abandon, name='abandon'),
 	url(r'^gastos/$', views.gastos, name='gastos'),
 	url(r'^presupuestos/$', views.presupuestos, name='presupuestos'),
+	url(r'^presupuestos/(\d+)/(\d+)$', views.presupuestos_period, name='presupuestos_period'),
+
 	url(r'^nuevo_gasto/$', views.nuevo_gasto, name='nuevo_gasto'),
 	url(r'^nueva_lista/$', views.nueva_lista, name='nueva_lista'),
 	url(r'^detalle_gasto/(?P<gasto_id>.*)/$', views.detalle_gasto, name='detalle_gasto'),

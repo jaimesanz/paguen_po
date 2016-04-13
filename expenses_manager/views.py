@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from expenses_manager.models import *
 from django.forms.models import model_to_dict
 import json
+from django.utils import timezone
 
 def home(request):
 	# locals() creates a dict() object with all the variables from the local scope. We are passing it to the template
@@ -302,6 +303,21 @@ def presupuestos(request):
 	vivienda_usuario = request.user.get_vu()
 	if vivienda_usuario is None:
 		return HttpResponseRedirect("/error")
-	this_period = get_current_yearMonth_obj()
-	presupuestos = Presupuesto.objects.filter(vivienda=request.user.get_vivienda(), year_month=this_period.id)
+	today = timezone.now()
+	return HttpResponseRedirect("/presupuestos/%d/%d" % (today.year, today.month))
+
+@login_required
+def presupuestos_period(request, year, month):
+	vivienda_usuario = request.user.get_vu()
+	if vivienda_usuario is None:
+		return HttpResponseRedirect("/error")
+	this_period = get_object_or_404(
+		YearMonth,
+		year=year, 
+		month=month)
+	presupuestos = Presupuesto.objects.filter(
+		vivienda=request.user.get_vivienda(), 
+		year_month=this_period.id)
+	next_year, next_month = this_period.get_next_period()
+	prev_year, prev_month = this_period.get_prev_period()
 	return render(request, "vivienda/presupuestos.html", locals())
