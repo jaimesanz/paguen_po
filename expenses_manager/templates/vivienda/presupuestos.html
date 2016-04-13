@@ -7,7 +7,7 @@
 
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
 {% block content %}
-	<h3>Presupuestos</h3>
+	<h3>Presupuestos {{year}}-{{month}}</h3>
 	<a href="/presupuestos/new/" class="btn btn-warning" role="button">
 		{% bootstrap_icon "plus" %} Nuevo Presupuesto
 	</a>

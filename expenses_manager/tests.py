@@ -2574,6 +2574,28 @@ class PresupuestoViewTest(TestCase):
                                (presupuesto_old.monto))
         self.assertContains(response, "<td>%d</td>" % (presupuesto_new.monto))
 
+    def test_url_without_period_redirects_to_current_period(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        now = timezone.now()
+        this_period, __ = YearMonth.objects.get_or_create(
+            year=now.year, month=now.month)
+        next_year, next_month = this_period.get_next_period()
+        next_period, __ = YearMonth.objects.get_or_create(
+            year=next_year, month=next_month)
+        presupuesto_now = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=test_user.get_vivienda(),
+            year_month=this_period,
+            monto=12345)
+
+        response = self.client.get(
+            "/presupuestos/",
+            follow=True)
+
+        self.assertRedirects(
+            response, 
+            "/presupuestos/%d/%d" % (this_period.year, this_period.month))
+
     def test_logged_user_can_see_presupuestos_for_current_period_only(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
         now = timezone.now()
