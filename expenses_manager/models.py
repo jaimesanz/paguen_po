@@ -164,6 +164,14 @@ class YearMonth(models.Model):
 	year = models.IntegerField()
 	month = models.IntegerField()
 
+	# returns a tuple with the next year-month period
+	def get_next_period(self):
+		new_month = (self.month + 1) % 12
+		new_year = self.year
+		if new_month<self.month:
+			new_year+=1
+		return (new_year, new_month)
+
 	def __str__(self):
 		return str(self.year) + "__" + str(self.month)
 

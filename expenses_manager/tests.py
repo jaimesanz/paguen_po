@@ -1960,9 +1960,9 @@ class PresupuestoViewTest(TestCase):
 	def test_logged_user_can_see_presupuestos_for_current_period_only(self):
 		test_user = get_setup_with_gastos_items_and_listas(self)
 		now = timezone.now()
-		this_period, created_now = YearMonth.objects.get_or_create(year=now.year, month=now.month)
-		next_month = now + timezone.timedelta(days=31)
-		next_period, created_next = YearMonth.objects.get_or_create(year=next_month.year, month=next_month.month)
+		this_period, __ = YearMonth.objects.get_or_create(year=now.year, month=now.month)
+		next_year, next_month = this_period.get_next_period()
+		next_period, __ = YearMonth.objects.get_or_create(year=next_year, month=next_month)
 		presupuesto_now = Presupuesto.objects.create(
 			categoria=Categoria.objects.all().first(),
 			vivienda=test_user.get_vivienda(),
@@ -1981,12 +1981,96 @@ class PresupuestoViewTest(TestCase):
 		self.assertNotContains(response, "<td>%d</td>" % (presupuesto_next.monto))
 		self.assertContains(response, "<td>%d</td>" % (presupuesto_now.monto))
 	def test_logged_user_can_see_link_to_next_period(self):
-		self.fail()
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		now = timezone.now()
+		this_period, __ = YearMonth.objects.get_or_create(year=now.year, month=now.month)
+		next_year, next_month = this_period.get_next_period()
+		next_period, __ = YearMonth.objects.get_or_create(year=next_year, month=next_month)
+		presupuesto_now = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			year_month=this_period,
+			monto=12345)
+		
+		presupuesto_next = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			year_month=next_period,
+			monto=54321)
+		response = self.client.get(
+			"/presupuestos/",
+			follow=True)
+
+		self.assertContains(response, "<a href=\"/presupuestos/%d/%d\"" % (next_period.year, next_period.month))
 	def test_logged_user_can_see_link_to_create_new_presupuesto(self):
-		self.fail()
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		now = timezone.now()
+		this_period, __ = YearMonth.objects.get_or_create(year=now.year, month=now.month)
+		next_year, next_month = this_period.get_next_period()
+		next_period, __ = YearMonth.objects.get_or_create(year=next_year, month=next_month)
+		presupuesto_now = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			year_month=this_period,
+			monto=12345)
+		
+		presupuesto_next = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			year_month=next_period,
+			monto=54321)
+		response = self.client.get(
+			"/presupuestos/",
+			follow=True)
+
+		self.assertContains(response, "href=\"/presupuestos/new/\"")
 	def test_logged_user_can_see_link_to_modify_presupuesto(self):
-		self.fail()
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		now = timezone.now()
+		this_period, __ = YearMonth.objects.get_or_create(year=now.year, month=now.month)
+		next_year, next_month = this_period.get_next_period()
+		next_period, __ = YearMonth.objects.get_or_create(year=next_year, month=next_month)
+		presupuesto_now = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			year_month=this_period,
+			monto=12345)
+		
+		presupuesto_next = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			year_month=next_period,
+			monto=54321)
+		response = self.client.get(
+			"/presupuestos/",
+			follow=True)
+
+		self.assertContains(
+			response, 
+			"href=\"/presupuestos/%d/%d/%s\">" % (
+				presupuesto_now.year_month.year, 
+				presupuesto_now.year_month.month, 
+				presupuesto_now.categoria))
 	def test_logged_user_can_see_presupuestos_for_any_categoria_in_this_period(self):
-		self.fail()
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		now = timezone.now()
+		this_period, __ = YearMonth.objects.get_or_create(year=now.year, month=now.month)
+		next_year, next_month = this_period.get_next_period()
+		next_period, __ = YearMonth.objects.get_or_create(year=next_year, month=next_month)
+		presupuesto_cat1 = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			year_month=this_period,
+			monto=12345)
 
+		presupuesto_cat2 = Presupuesto.objects.create(
+			categoria=Categoria.objects.create(nombre="dummy2"),
+			vivienda=test_user.get_vivienda(),
+			year_month=this_period,
+			monto=54321)
+		response = self.client.get(
+			"/presupuestos/",
+			follow=True)
 
+		self.assertContains(response, "<td>%s</td>" % (presupuesto_cat1.categoria))
+		self.assertContains(response, "<td>%s</td>" % (presupuesto_cat2.categoria))

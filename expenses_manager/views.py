@@ -302,4 +302,6 @@ def presupuestos(request):
 	vivienda_usuario = request.user.get_vu()
 	if vivienda_usuario is None:
 		return HttpResponseRedirect("/error")
+	this_period = get_current_yearMonth_obj()
+	presupuestos = Presupuesto.objects.filter(vivienda=request.user.get_vivienda(), year_month=this_period.id)
 	return render(request, "vivienda/presupuestos.html", locals())

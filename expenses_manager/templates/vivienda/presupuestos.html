@@ -1,8 +1,43 @@
 {% extends "base.html" %}
+{% load bootstrap3 %}
+
 
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
 {% block content %}
 	<h3>Presupuestos</h3>
-	<p>¿Qué desea hacer?</p>
-	<p>sacar presupuestos I guess</p>
+	<a href="/presupuestos/new/" class="btn btn-warning" role="button">
+		{% bootstrap_icon "plus" %} Nuevo Presupuesto
+	</a>
+	<a href="/presupuestos/{{this_period.get_next_period.0}}/{{this_period.get_next_period.1}}" class="btn btn-info" role="button">
+		{% bootstrap_icon "plus" %} Próximo período
+	</a>
+	<br>
+	<br>
+	<table id="tabla_presupuestos" class="table table-striped table-bordered" cellspacing="0" width="100%">
+		<thead>
+			<tr>
+				<th>Categoría</th>
+				<th>Presupuesto</th>
+				<!-- <th>Real</th> -->
+			</tr>
+		</thead>
+		<tbody>
+			{% for p in presupuestos %}
+			<tr>
+				<a href="/presupuestos/{{p.year_month.year}}/{{p.year_month.month}}/{{p.categoria}}"><td>{{p.categoria}}</td></a>
+				<td>{{p.monto}}</td>
+				<!-- <td>{{p.get}}</td> -->
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	<script type="text/javascript">
+		$(document).ready(function(){
+			$('#tabla_presupuestos').DataTable({
+				paging: false,
+				filter: false
+			});
+		});
+	</script>
 {% endblock %}
