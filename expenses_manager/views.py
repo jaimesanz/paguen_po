@@ -300,4 +300,6 @@ def get_items_autocomplete(request):
 @login_required
 def presupuestos(request):
 	vivienda_usuario = request.user.get_vu()
-	return render(request, "presupuestos.html", locals())
+	if vivienda_usuario is None:
+		return HttpResponseRedirect("/error")
+	return render(request, "vivienda/presupuestos.html", locals())

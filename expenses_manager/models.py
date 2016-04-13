@@ -5,6 +5,26 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+# helper functions
+def get_current_yearMonth_obj():
+	today = timezone.now()
+	year_month, creted = YearMonth.objects.get_or_create(year=today.year, month=today.month)
+	return year_month
+
+def get_current_yearMonth():
+	return get_current_yearMonth_obj().id
+
+def get_default_estadoGasto():
+	estado_gasto, created = EstadoGasto.objects.get_or_create(estado="pendiente")
+	return estado_gasto.id
+
+def get_done_estadoGato():
+	return EstadoGasto.objects.get_or_create(estado="pagado")[0]
+
+def get_pending_estadoGasto():
+	return EstadoGasto.objects.get_or_create(estado="pendiente")[0]
+
+
 # proxy user. This is used to add methods to the default django User class without altering it
 class ProxyUser(User):
 	class Meta:
@@ -58,11 +78,13 @@ class ViviendaUsuario(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	estado = models.CharField(max_length=200, default="activo")
 	fecha_creacion = models.DateTimeField(auto_now_add=True)
+	fecha_abandono = models.DateTimeField(null=True, blank=True, default=None)
 
 	def __str__(self):
 		return str(self.vivienda) + "__" + str(self.user)
 	def leave(self):
 		self.estado = "inactivo"
+		self.fecha_abandono = timezone.now()
 		self.save()
 	def is_active(self):
 		return self.estado == "activo"
@@ -150,7 +172,8 @@ class Presupuesto(models.Model):
 		unique_together = (('categoria', 'vivienda', 'year_month'),)
 	categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
 	vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE)
-	year_month = models.ForeignKey(YearMonth, on_delete=models.CASCADE)
+	year_month = models.ForeignKey(YearMonth, on_delete=models.CASCADE, default=get_current_yearMonth)
+	monto = models.IntegerField()
 
 	def __str__(self):
 		return "".join((str(self.vivienda), "__", str(self.categoria), "__", str(self.year_month)))
@@ -272,25 +295,6 @@ class EstadoGasto(models.Model):
 		return self.estado == "pendiente"
 	def is_paid(self):
 		return self.estado == "pagado"
-
-def get_current_yearMonth_obj():
-	today = timezone.now()
-	year_month, creted = YearMonth.objects.get_or_create(year=today.year, month=today.month)
-	return year_month
-
-def get_current_yearMonth():
-	return get_current_yearMonth_obj().id
-
-def get_default_estadoGasto():
-	estado_gasto, created = EstadoGasto.objects.get_or_create(estado="pendiente")
-	return estado_gasto.id
-
-def get_done_estadoGato():
-	return EstadoGasto.objects.get_or_create(estado="pagado")[0]
-
-def get_pending_estadoGasto():
-	return EstadoGasto.objects.get_or_create(estado="pendiente")[0]
-
 
 class Gasto(models.Model):
 	monto = models.IntegerField()

@@ -262,11 +262,13 @@ class ViviendaUsuarioModelTest(TestCase):
 	def test_user_leaves_vivienda(self):
 		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
 		self.assertTrue(user1_viv.is_active())
+		self.assertEqual(user1_viv.fecha_abandono, None)
 
 		user1_viv.leave()
 
 		self.assertFalse(user1.has_vivienda())
 		self.assertFalse(user1_viv.is_active())
+		self.assertNotEqual(ViviendaUsuario.objects.get(id=user1_viv.id).fecha_abandono, None)
 
 	def test_user_gets_gastos_of_vivienda_that_has_no_gastos(self):
 		user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
@@ -900,7 +902,7 @@ def has_logged_navbar_with_vivienda(test, response, test_user, status_code=200):
 # tests template loaded, corect html, resolves to correct view function
 def test_the_basics(test, url, template_name, view_func):
 	found = resolve(url)
-	response = test.client.get(url)
+	response = test.client.get(url, follow=True)
 
 	test.assertTemplateUsed(response, template_name=template_name)
 	test.assertEqual(found.func, view_func)
@@ -1034,6 +1036,7 @@ class AbandonViewTest(TestCase):
 	def test_abandon_vivienda_with_user_that_has_vivienda(self):
 		test_user, vivienda, test_user_viv = get_test_user_with_vivienda_and_login(self)
 		self.assertTrue(test_user.has_vivienda())
+		self.assertEqual(test_user.get_vu().fecha_abandono, None)
 		response = self.client.post(
 			"/abandon/",
 			data = {"submit": "Abandonar vivienda"}, follow=True)
@@ -1042,6 +1045,7 @@ class AbandonViewTest(TestCase):
 		self.assertFalse(ViviendaUsuario.objects.filter(estado="activo").exists())
 		self.assertEqual(Vivienda.objects.all().count(), 1)
 		self.assertFalse(test_user.has_vivienda())
+		self.assertNotEqual(ViviendaUsuario.objects.get(id=test_user_viv.id).fecha_abandono, None)
 
 		has_logged_navbar_without_vivienda(self, response, test_user)
 
@@ -1884,4 +1888,105 @@ class PayListaViewTest(TestCase):
 		self.assertEqual(ListaCompras.objects.count(), original_lista_count)
 		self.assertEqual(Gasto.objects.count(), original_gasto_count)
 		self.assertFalse(ListaCompras.objects.get(id=lista.id).is_done())
+
+class PresupuestoViewTest(TestCase):
+
+	def test_basics_presupuesto_list_url(self):
+		execute_test_the_basics_not_logged_in_restricted(self, "/presupuestos/")
+		execute_test_the_basics_logged_in_with_vivienda(self, "/presupuestos/", "vivienda/presupuestos.html", presupuestos)
+	def test_not_logged_user_cant_see_presupuestos(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		presupuesto = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			monto=12345)
+
+		self.client.logout()
+		response = self.client.get(
+			"/presupuestos/",
+			follow=True)
+
+		self.assertRedirects(response, "/accounts/login/?next=/presupuestos/")
+		self.assertNotContains(response, "<td>%d</td>" % (presupuesto.monto))		
+	def test_homeless_user_cant_see_presupuestos(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		presupuesto = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			monto=12345)
+		test_user.get_vu().leave()
+		response = self.client.get(
+			"/presupuestos/",
+			follow=True)
+		self.assertRedirects(response, "/error/")
+		self.assertNotContains(response, "<td>%d</td>" % (presupuesto.monto))
+	def test_outsider_cant_see_presupuestos_of_vivienda(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		other_vivienda = Vivienda.objects.exclude(id=test_user.get_vivienda().id).first()
+		my_presupuesto = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			monto=12345)
+		
+		other_presupuesto = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=other_vivienda,
+			monto=54321)
+		response = self.client.get(
+			"/presupuestos/",
+			follow=True)
+
+		self.assertNotContains(response, "<td>%d</td>" % (other_presupuesto.monto))
+		self.assertContains(response, "<td>%d</td>" % (my_presupuesto.monto))
+	def test_past_user_cant_see_presupuestos_of_old_vivienda(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		presupuesto_old = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			monto=12345)
+		test_user.get_vu().leave()
+		new_vivienda = Vivienda.objects.create(alias="my_new_viv")
+		new_viv_usuario = ViviendaUsuario.objects.create(user=test_user, vivienda=new_vivienda)
+		presupuesto_new = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			monto=54321)
+		response = self.client.get(
+			"/presupuestos/",
+			follow=True)
+
+		self.assertNotContains(response, "<td>%d</td>" % (presupuesto_old.monto))
+		self.assertContains(response, "<td>%d</td>" % (presupuesto_new.monto))
+	def test_logged_user_can_see_presupuestos_for_current_period_only(self):
+		test_user = get_setup_with_gastos_items_and_listas(self)
+		now = timezone.now()
+		this_period, created_now = YearMonth.objects.get_or_create(year=now.year, month=now.month)
+		next_month = now + timezone.timedelta(days=31)
+		next_period, created_next = YearMonth.objects.get_or_create(year=next_month.year, month=next_month.month)
+		presupuesto_now = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			year_month=this_period,
+			monto=12345)
+		
+		presupuesto_next = Presupuesto.objects.create(
+			categoria=Categoria.objects.all().first(),
+			vivienda=test_user.get_vivienda(),
+			year_month=next_period,
+			monto=54321)
+		response = self.client.get(
+			"/presupuestos/",
+			follow=True)
+
+		self.assertNotContains(response, "<td>%d</td>" % (presupuesto_next.monto))
+		self.assertContains(response, "<td>%d</td>" % (presupuesto_now.monto))
+	def test_logged_user_can_see_link_to_next_period(self):
+		self.fail()
+	def test_logged_user_can_see_link_to_create_new_presupuesto(self):
+		self.fail()
+	def test_logged_user_can_see_link_to_modify_presupuesto(self):
+		self.fail()
+	def test_logged_user_can_see_presupuestos_for_any_categoria_in_this_period(self):
+		self.fail()
+
 
