@@ -489,3 +489,20 @@ def graphs_presupuestos_period(request, year, month):
     next_year, next_month = this_period.get_next_period()
     prev_year, prev_month = this_period.get_prev_period()
     return render(request, "vivienda/graphs/presupuestos.html", locals())
+
+
+@login_required
+def edit_presupuesto(request, year, month, categoria):
+    if not request.user.has_vivienda():
+        messages.error(
+            request,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+        return HttpResponseRedirect("/error")
+    year_month = get_object_or_404(YearMonth, year=year, month=month)
+    presupuesto = get_object_or_404(
+        Presupuesto,
+        year_month=year_month,
+        categoria=categoria,
+        vivienda=request.user.get_vivienda())
+    form = PresupuestoEditForm(initial=presupuesto.__dict__)
+    return render(request, "vivienda/edit_presupuesto.html", locals())

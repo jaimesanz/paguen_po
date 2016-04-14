@@ -38,3 +38,9 @@ class PresupuestoForm(forms.ModelForm):
     class Meta:
         model = Presupuesto
         fields = ("categoria", "year_month", "monto")
+
+class PresupuestoEditForm(forms.ModelForm):
+
+    class Meta:
+        model = Presupuesto
+        fields = ("monto",)

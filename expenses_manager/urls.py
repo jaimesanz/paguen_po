@@ -25,6 +25,9 @@ urlpatterns = [
     url(r'^gastos/$', views.gastos, name='gastos'),
 
     url(r'^presupuestos/$', views.presupuestos, name='presupuestos'),
+    url(r'^presupuestos/(\d+)/(\d+)/(.+)/$',
+        views.edit_presupuesto, 
+        name='edit_presupuesto'),
     url(r'^presupuestos/(\d+)/(\d+)$',
         views.presupuestos_period, 
         name='presupuestos_period'),

@@ -3339,3 +3339,132 @@ class NuevoPresupuestoViewTest(TestCase):
         self.assertContains(
             response,
             "Ya existe un presupuesto para el período seleccionado")
+
+
+class EditPresupuestoTest(TestCase):
+
+    def test_not_logged_user_cant_see_presupuestos_edit_form(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        presupuesto = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=test_user.get_vivienda(),
+            monto=12345)
+        url = "/presupuestos/%d/%d/%s/" % (
+            presupuesto.year_month.year,
+            presupuesto.year_month.month,
+            presupuesto.categoria)
+
+        self.client.logout()
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=%s" % (url))
+
+    def test_homeless_user_cant_see_presupuestos_graph(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        presupuesto = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=test_user.get_vivienda(),
+            monto=12345)
+        url = "/presupuestos/%d/%d/%s/" % (
+            presupuesto.year_month.year,
+            presupuesto.year_month.month,
+            presupuesto.categoria)
+
+        test_user.get_vu().leave()
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertRedirects(response, "/error/")
+        self.assertNotContains(
+            response,
+            presupuesto.categoria)
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+
+    def test_outsider_cant_see_presupuesto_of_vivienda(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        other_vivienda = Vivienda.objects.exclude(
+            id=test_user.get_vivienda().id).first()
+        my_presupuesto = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=test_user.get_vivienda(),
+            monto=12345)
+        url = "/presupuestos/%d/%d/%s/" % (
+            my_presupuesto.year_month.year,
+            my_presupuesto.year_month.month,
+            my_presupuesto.categoria)
+
+        other_presupuesto = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=other_vivienda,
+            monto=54321)
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertNotContains(response, other_presupuesto.monto)
+        self.assertContains(response, my_presupuesto.monto)
+
+    def test_past_user_cant_see_presupuesto_of_old_vivienda(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        presupuesto_old = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=test_user.get_vivienda(),
+            monto=12345)
+        test_user.get_vu().leave()
+        new_vivienda = Vivienda.objects.create(alias="my_new_viv")
+        new_viv_usuario = ViviendaUsuario.objects.create(
+            user=test_user, vivienda=new_vivienda)
+        presupuesto_new = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=test_user.get_vivienda(),
+            monto=54321)
+        url = "/presupuestos/%d/%d/%s/" % (
+            presupuesto_old.year_month.year,
+            presupuesto_old.year_month.month,
+            presupuesto_old.categoria)
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertNotContains(response, presupuesto_old.monto)
+        self.assertContains(response, presupuesto_new.monto)
+
+    def test_non_existant_presupuesto_raises_404(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        presupuesto = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=test_user.get_vivienda(),
+            monto=12345)
+        url = "/presupuestos/%d/%d/%s/" % (
+            presupuesto.year_month.year + 1,
+            presupuesto.year_month.month,
+            presupuesto.categoria)
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_user_can_see_edit_presupuesto_form(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        presupuesto = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=test_user.get_vivienda(),
+            monto=12345)
+        url = "/presupuestos/%d/%d/%s/" % (
+            presupuesto.year_month.year,
+            presupuesto.year_month.month,
+            presupuesto.categoria)
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertContains(response, "<form")
+        self.assertContains(response, "%d" % (presupuesto.monto))
