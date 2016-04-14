@@ -130,16 +130,31 @@ class Vivienda(models.Model):
     alias = models.CharField(max_length=200)
 
     def get_gastos_pendientes(self):
+        """
+        Returns a QuerySet with the Gastos associated with the Vivienda,
+        and with a pending state
+        """
         return Gasto.objects.filter(
             creado_por__vivienda=self,
             estado=get_pending_estadoGasto())
 
     def get_gastos_pagados(self):
+        """
+        Returns a QuerySet with the Gastos associated with the Vivienda,
+        and with a paid state.
+        """
         return Gasto.objects.filter(
             creado_por__vivienda=self,
             estado=get_done_estadoGato())
 
     def get_gastos(self):
+        """
+        Returns a Tuple with:
+        - QuerySet with the Gastos associated with the Vivienda,
+        and with a pending state
+        - QuerySet with the Gastos associated with the Vivienda,
+        and with a paid state
+        """
         return self.get_gastos_pendientes(), self.get_gastos_pagados()
 
     def __str__(self):
@@ -160,14 +175,32 @@ class ViviendaUsuario(models.Model):
         return str(self.vivienda) + "__" + str(self.user)
 
     def leave(self):
-        self.estado = "inactivo"
-        self.fecha_abandono = timezone.now()
-        self.save()
+        """
+        Changes the state of the ViviendaUsuario to "inactivo", and sets the
+        "fecha_abandono" as the current datetime.
+        """
+        if self.is_active():
+            self.estado = "inactivo"
+            self.fecha_abandono = timezone.now()
+            self.save()
 
     def is_active(self):
+        """
+        Returns True if the ViviendaUsuario's state is active, or 
+        False otherwise
+        """
         return self.estado == "activo"
 
     def get_gastos_vivienda(self):
+        """
+        If the user is active, returns a Tuple with:
+        - QuerySet with the Gastos associated with the Vivienda,
+        and with a pending state
+        - QuerySet with the Gastos associated with the Vivienda,
+        and with a paid state
+
+        If the user is not active, returns a Tuple of empty QuerySets
+        """
         if self.is_active():
             return self.vivienda.get_gastos()
         else:
@@ -176,6 +209,10 @@ class ViviendaUsuario(models.Model):
             return (empty_queryset, empty_queryset)
 
     def pagar(self, gasto):
+        """
+        Sets the state of the given Gasto as "pagado", and it's usuario field
+        as the ViviendaUsuario.
+        """
         gasto.usuario = self
         gasto.fecha_pago = timezone.now()
         gasto.year_month = get_current_yearMonth_obj()
@@ -185,6 +222,10 @@ class ViviendaUsuario(models.Model):
         gasto.save()
 
     def sent_invite(self, invite):
+        """
+        Returns True if the given Invite was sent by the ViviendaUsuario's 
+        User, or False otherwise.
+        """
         return invite.invitado_por.user == self.user
 
 
