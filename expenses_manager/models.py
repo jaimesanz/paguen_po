@@ -312,6 +312,10 @@ class Item(models.Model):
         return str(self.nombre) + " (" + str(self.unidad_medida) + ")"
 
     def is_in_lista(self, lista):
+        """
+        Returns True if the Item is in the given ListaCompras, or
+        False otherwise
+        """
         return ItemLista.objects.filter(item=self, lista=lista).exists()
 
 
