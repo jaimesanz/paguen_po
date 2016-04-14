@@ -642,19 +642,30 @@ class Gasto(models.Model):
                         str(self.categoria),
                         "__",
                         str(self.year_month)))
-    # receives a User or a ViviendaUsuario instance, and makes use of double
-    # dispatch to pay it
 
     def pagar(self, user):
+        """
+        It receives a User or a ViviendaUsuario object and changes the
+        state of the Gasto to "pagado" by the given User/ViviendaUsuario.
+        """
         user.pagar(self)
 
     def is_pending(self):
+        """
+        Returns True if the state is "pendiente"
+        """
         return self.estado.is_pending()
 
     def is_paid(self):
+        """
+        Returns True if the state is "pagado"
+        """
         return self.estado.is_paid()
 
     def allow_user(self, user):
-        # check that user is active in the vivienda
+        """
+        Returns True if the User is active in the Vivienda linked
+        to the Gasto
+        """
         return (user.has_vivienda() and
                 user.get_vivienda() == self.creado_por.vivienda)
