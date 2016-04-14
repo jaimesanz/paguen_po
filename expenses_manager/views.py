@@ -450,12 +450,42 @@ def nuevo_presupuesto(request):
             return HttpResponseRedirect("/presupuestos/new")
         presupuesto.monto = monto
         presupuesto.save()
-        messages.error(request,
-                       """
-            El presupuesto fue creado exitósamente
-            """)
+        messages.success(request,
+                         """
+                        El presupuesto fue creado exitósamente
+                        """)
         return HttpResponseRedirect(
             "/presupuestos/%d/%d" % (year_month.year,
                                      year_month.month))
     form = PresupuestoForm()
     return render(request, "vivienda/nuevo_presupuesto.html", locals())
+
+
+@login_required
+def graphs_presupuestos(request):
+    if not request.user.has_vivienda():
+        messages.error(
+            request,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+        return HttpResponseRedirect("/error")
+    today = timezone.now()
+    return HttpResponseRedirect(
+        "/graphs/presupuestos/%d/%d" % (today.year, today.month))
+
+
+def graphs_presupuestos_period(request, year, month):
+    if not request.user.has_vivienda():
+        messages.error(
+            request,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+        return HttpResponseRedirect("/error")
+    this_period = get_object_or_404(
+        YearMonth,
+        year=year,
+        month=month)
+    presupuestos = Presupuesto.objects.filter(
+        vivienda=request.user.get_vivienda(),
+        year_month=this_period.id)
+    next_year, next_month = this_period.get_next_period()
+    prev_year, prev_month = this_period.get_prev_period()
+    return render(request, "vivienda/graphs/presupuestos.html", locals())

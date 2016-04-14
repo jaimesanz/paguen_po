@@ -6,6 +6,8 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 # helper functions
+
+
 def get_current_yearMonth_obj():
     """
     Returns the current YearMonth period.
@@ -27,8 +29,8 @@ def get_current_yearMonth():
 
 def get_default_estadoGasto():
     """
-    Returns the "id" field of an instance of EstadoGasto with value "pendiente".
-    If it doesn't exist, it creates it first.
+    Returns the "id" field of an instance of EstadoGasto with value
+    "pendiente". If it doesn't exist, it creates it first.
     """
     estado_gasto, created = EstadoGasto.objects.get_or_create(
         estado="pendiente")
@@ -186,7 +188,7 @@ class ViviendaUsuario(models.Model):
 
     def is_active(self):
         """
-        Returns True if the ViviendaUsuario's state is active, or 
+        Returns True if the ViviendaUsuario's state is active, or
         False otherwise
         """
         return self.estado == "activo"
@@ -223,7 +225,7 @@ class ViviendaUsuario(models.Model):
 
     def sent_invite(self, invite):
         """
-        Returns True if the given Invite was sent by the ViviendaUsuario's 
+        Returns True if the given Invite was sent by the ViviendaUsuario's
         User, or False otherwise.
         """
         return invite.invitado_por.user == self.user
@@ -366,12 +368,27 @@ class Presupuesto(models.Model):
     monto = models.IntegerField(default=0)
 
     def __str__(self):
-        return "".join(
-            str(self.vivienda,
-                "__",
-                str(self.categoria),
-                "__",
-                str(self.year_month)))
+        return "".join((
+            str(self.vivienda),
+            "__",
+            str(self.categoria),
+            "__",
+            str(self.year_month)))
+
+    def get_total_expenses(self):
+        """
+        Returns the sum of all paid Gastos of the Presupuesto's Categoria in
+        the Presupuesto's YearMonth for the Presupuesto's Vivienda
+        """
+        montos = Gasto.objects.filter(
+            creado_por__vivienda=self.vivienda,
+            year_month=self.year_month,
+            categoria=self.categoria,
+            estado__estado="pagado").values("monto")
+        total = 0
+        for d in montos:
+            total += d["monto"]
+        return total
 
 
 class ListaCompras(models.Model):
@@ -396,9 +413,9 @@ class ListaCompras(models.Model):
 
     def add_item(self, item, quantity):
         """
-        Creates and returns an instance of ItemLista with the given Item and 
+        Creates and returns an instance of ItemLista with the given Item and
         quantity, and links it to the ListaCompras.
-        If the Item is already in the ListaCompras, it doesn't do anything, 
+        If the Item is already in the ListaCompras, it doesn't do anything,
         and returns None.
         """
         if item is not None and item.id > 0 and not item.is_in_lista(self):
@@ -419,7 +436,7 @@ class ListaCompras(models.Model):
 
     def get_items(self):
         """
-        Returns a QuerySet with all ItemLista objects linked to this 
+        Returns a QuerySet with all ItemLista objects linked to this
         ListaCompras.
         """
         return ItemLista.objects.filter(lista=self)
@@ -433,7 +450,7 @@ class ListaCompras(models.Model):
 
     def allow_user(self, usuario):
         """
-        Returns True if the user is active in the Vivienda of the 
+        Returns True if the user is active in the Vivienda of the
         Viviendausuario that created the ListaCompras. Otherwise, it returns
         False.
         """
@@ -524,7 +541,7 @@ class ListaCompras(models.Model):
 
     def rescue_items(self, vivienda_usuario):
         """
-        Creates and returns a new ListaComrpas using the pending Items 
+        Creates and returns a new ListaComrpas using the pending Items
         form the current ListaCompras. If there are no pending Itemista
         objects, it returns None
         """
