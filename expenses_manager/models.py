@@ -326,16 +326,24 @@ class YearMonth(models.Model):
     year = models.IntegerField()
     month = models.IntegerField()
 
-    # returns a tuple with the next year-month period
     def get_next_period(self):
+        """
+        Returns a Tuple of Integers with:
+        - the year of the period following this YearMonth
+        - the month of the period following this YearMonth
+        """
         next_month = (self.month + 1) % 12
         next_year = self.year
         if next_month < self.month:
             next_year += 1
         return (next_year, next_month)
 
-    # returns a tuple with the previous year-month period
     def get_prev_period(self):
+        """
+        Returns a Tuple of Integers with:
+        - the year of the period previous to this YearMonth
+        - the month of the period previous to this YearMonth
+        """
         prev_month = self.month - 1
         prev_year = self.year
         if prev_month == 0:
