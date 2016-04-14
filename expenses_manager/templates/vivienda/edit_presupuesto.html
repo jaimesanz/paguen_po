@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+
+{% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
+{% block content %}
+	<h3>Presupuesto {{categoria}} período {{year}} - {{month}}</h3>
+	<form method="post" action=".">
+		{% csrf_token %}
+		{% bootstrap_form form %}
+		{% bootstrap_button "Actualizar monto" button_type="submit" button_class="btn-primary" %}
+	</form>
+{% endblock %}
