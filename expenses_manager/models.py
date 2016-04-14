@@ -602,9 +602,15 @@ class EstadoGasto(models.Model):
         return str(self.estado)
 
     def is_pending(self):
+        """
+        Returns True is the state is "pendiente"
+        """
         return self.estado == "pendiente"
 
     def is_paid(self):
+        """
+        Returns True is the state is "pagado"
+        """
         return self.estado == "pagado"
 
 
