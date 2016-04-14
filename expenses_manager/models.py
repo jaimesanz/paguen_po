@@ -565,16 +565,29 @@ class ItemLista(models.Model):
                         str(self.lista)))
 
     def set_done_state(self):
+        """
+        Changes the state to "comprado"
+        """
         self.estado = "comprado"
         self.save()
 
     def is_pending(self):
+        """
+        Returns True if the state is "pendiente"
+        """
         return self.estado == "pendiente"
 
     def get_state(self):
+        """
+        Returns the state
+        """
         return self.estado
 
     def buy(self, quantity):
+        """
+        Changes the state to "comprado" and sets the cantidad_comprada
+        to the given quantity
+        """
         if quantity > 0 and self.is_pending():
             self.cantidad_comprada = quantity
             self.set_done_state()
