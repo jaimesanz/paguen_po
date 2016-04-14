@@ -6,9 +6,11 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 # helper functions
-
-
 def get_current_yearMonth_obj():
+    """
+    Returns the current YearMonth period.
+    If the YarMonth doesn't exist, it creates it.
+    """
     today = timezone.now()
     year_month, creted = YearMonth.objects.get_or_create(
         year=today.year, month=today.month)
@@ -16,20 +18,36 @@ def get_current_yearMonth_obj():
 
 
 def get_current_yearMonth():
+    """
+    Returns the current YearMonth period's ID field.
+    If it doesn't exist, it creates it.
+    """
     return get_current_yearMonth_obj().id
 
 
 def get_default_estadoGasto():
+    """
+    Returns the "id" field of an instance of EstadoGasto with value "pendiente".
+    If it doesn't exist, it creates it first.
+    """
     estado_gasto, created = EstadoGasto.objects.get_or_create(
         estado="pendiente")
     return estado_gasto.id
 
 
 def get_done_estadoGato():
+    """
+    Returns an instance of EstadoGasto with value "pagado".
+    If it doesn't exist, it creates it first.
+    """
     return EstadoGasto.objects.get_or_create(estado="pagado")[0]
 
 
 def get_pending_estadoGasto():
+    """
+    Returns an instance of EstadoGasto with value "pendiente".
+    If it doesn't exist, it creates it first.
+    """
     return EstadoGasto.objects.get_or_create(estado="pendiente")[0]
 
 
