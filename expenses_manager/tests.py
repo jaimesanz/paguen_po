@@ -474,7 +474,84 @@ class YearMonthModelTest(TestCase):
 
 
 class PresupuestoModelTest(TestCase):
-    pass
+
+    def test_get_total_expenses_returns_0_if_there_are_no_Gastos(self):
+        user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+        presupuesto = Presupuesto.objects.create(
+            categoria=Categoria.objects.create(nombre="dummy"),
+            vivienda=correct_vivienda,
+            monto=10000)
+
+        self.assertEqual(presupuesto.get_total_expenses(), 0)
+
+    def test_get_total_expenses_returns_0_if_there_are_no_paid_Gastos(self):
+        user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+        dummy_categoria = Categoria.objects.create(nombre="dummy")
+        presupuesto = Presupuesto.objects.create(
+            categoria=dummy_categoria,
+            vivienda=correct_vivienda,
+            monto=10000)
+        gasto_1 = Gasto.objects.create(
+            monto=1000,
+            creado_por=user1_viv,
+            categoria=dummy_categoria)
+        gasto_2 = Gasto.objects.create(
+            monto=2000,
+            creado_por=user1_viv,
+            categoria=dummy_categoria)
+
+        self.assertTrue(gasto_1.is_pending())
+        self.assertTrue(gasto_2.is_pending())
+        self.assertEqual(presupuesto.get_total_expenses(), 0)
+
+    def test_get_total_expenses_works_with_mix_of_pending_and_paid(self):
+        user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+        dummy_categoria = Categoria.objects.create(nombre="dummy")
+        presupuesto = Presupuesto.objects.create(
+            categoria=dummy_categoria,
+            vivienda=correct_vivienda,
+            monto=10000)
+        gasto_1 = Gasto.objects.create(
+            monto=1000,
+            creado_por=user1_viv,
+            categoria=dummy_categoria)
+        gasto_2 = Gasto.objects.create(
+            monto=2000,
+            creado_por=user1_viv,
+            categoria=dummy_categoria)
+        gasto_2.pagar(user1)
+
+        self.assertTrue(gasto_1.is_pending())
+        self.assertFalse(gasto_2.is_pending())
+        self.assertEqual(presupuesto.get_total_expenses(), 2000)
+
+    def test_get_total_expenses_works_with_mix_of_categorias(self):
+        user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+        dummy_categoria_1 = Categoria.objects.create(nombre="dummy1")
+        dummy_categoria_2 = Categoria.objects.create(nombre="dummy2")
+        presupuesto = Presupuesto.objects.create(
+            categoria=dummy_categoria_1,
+            vivienda=correct_vivienda,
+            monto=10000)
+        gasto_1 = Gasto.objects.create(
+            monto=1000,
+            creado_por=user1_viv,
+            categoria=dummy_categoria_1)
+        gasto_2 = Gasto.objects.create(
+            monto=2000,
+            creado_por=user1_viv,
+            categoria=dummy_categoria_1)
+        gasto_3 = Gasto.objects.create(
+            monto=9000,
+            creado_por=user1_viv,
+            categoria=dummy_categoria_2)
+        gasto_1.pagar(user1)
+        gasto_2.pagar(user1)
+
+        self.assertFalse(gasto_1.is_pending())
+        self.assertFalse(gasto_2.is_pending())
+        self.assertTrue(gasto_3.is_pending())
+        self.assertEqual(presupuesto.get_total_expenses(), 3000)
 
 
 class ListaComprasModelTest(TestCase):
