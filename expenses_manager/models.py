@@ -58,38 +58,51 @@ class ProxyUser(User):
     class Meta:
         proxy = True
 
-    # returns the user's current active vivienda, or None
     def get_vu(self):
+        """
+        Returns the user's current active vivienda, or None if it doens't have
+        one.
+        """
         return ViviendaUsuario.objects.filter(
             user=self,
             estado="activo").first()
-    # returns a boolean value indicating
-    # if the user has an active vivienda
 
     def has_vivienda(self):
+        """
+        Returns True if the user has an active Vivienda.
+        Otherwise, it returns False.
+        """
         return ViviendaUsuario.objects.filter(
             user=self,
             estado="activo").exists()
-    # returns the vivienda of the user, or None
 
     def get_vivienda(self):
+        """
+        Returns the active vivienda of the user, or None if it doesn't
+        have any.
+        """
         vivienda_usuario = self.get_vu()
         if vivienda_usuario is not None:
             return vivienda_usuario.vivienda
         else:
             return None
-    # return a list of all active members of the Vivienda,
-    # including the User that calls the method
-    # if there's no active vivienda, returns None
 
     def get_roommates(self):
+        """
+        Returns a list of all active members of the Vivienda,
+        including the User that calls the method.
+        If there's no active vivienda, returns None
+        """
         return ViviendaUsuario.objects.filter(
             vivienda=self.get_vivienda(),
             estado="activo")
-    # returns pending invites related to the user
-    # (received and sent invites)
 
     def get_invites(self):
+        """
+        Returns a Tuple consisting of:
+        - QuerySet with pending invites the user has received, or None
+        - QuerySet with pending invites the user has sent, or None
+        """
         invites_in = Invitacion.objects.filter(
             invitado=self, estado="pendiente")
         invites_out = Invitacion.objects.filter(
@@ -97,10 +110,19 @@ class ProxyUser(User):
         return invites_in, invites_out
 
     def pagar(self, gasto):
+        """
+        Sets the state of the given Gasto as "pagado", and it's usuario field
+        as the User's active ViviendaUsuario.
+        If the user has no active Vivienda, returns None and does nothing.
+        """
         if self.has_vivienda():
             self.get_vu().pagar(gasto)
 
     def sent_invite(self, invite):
+        """
+        Returns True if the given Invite was sent by the User, or False
+        otherwise.
+        """
         return invite.invitado_por.user == self
 
 
