@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+
+{% block custom_head %}
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+	<style type="text/css">
+		.canvas_label {
+			width: 50%;
+			margin: 0 auto;
+		}
+	</style>
+{% endblock %}
+
+{% block content_title %}{{request.user.get_vivienda}}{% endblock %}
+{% block content %}
+	<h3>Presupuestos {{year}}-{{month}}</h3>
+	<a href="/presupuestos/new/" class="btn btn-warning" role="button">
+		{% bootstrap_icon "plus" %} Nuevo Presupuesto
+	</a>
+	<a href="/graphs/presupuestos/{{prev_year}}/{{prev_month}}" class="btn btn-primary" role="button">
+		{% bootstrap_icon "chevron-left" %} Período Anterior
+	</a>
+	<a href="/graphs/presupuestos/{{next_year}}/{{next_month}}" class="btn btn-primary" role="button">
+		Próximo período {% bootstrap_icon "chevron-right" %}
+	</a>
+	<br>
+	<br>
+	<div class="row">
+		{% for p in presupuestos %}
+			<div class="col-sm-4">
+				<h4 class="canvas_label"><a href="/presupuestos/{{p.year_month.year}}/{{p.year_month.month}}/{{p.categoria}}">{{p.categoria}}</a></h4>
+				<canvas id="{{p.id}}_Chart"></canvas>
+			</div>
+			{% if forloop.counter|divisibleby:3 %}
+				<!-- add new row -->
+				</div>
+				<div class="row">
+			{% endif %}
+		{% empty %}
+			<p>No hay presupuestos definidos para este período</p>
+		{% endfor %}
+	</div>
+
+
+	<script type="text/javascript">
+		$(document).ready(function(){
+			Chart.defaults.global.responsive = true;
+			{% for p in presupuestos %}
+				var ctx = $("#{{p.id}}_Chart").get(0).getContext("2d");
+				presupuesto = parseInt("{{p.monto}}");
+				invertido = parseInt("{{p.get_total_expenses}}")
+				restante = presupuesto - invertido;
+				if(restante<0){
+					restante=0;
+				}
+				var data = [
+				    {
+				        value: invertido,
+				        color:"#FF5A5E",
+				        highlight: "#F7464A",
+				        label: "Monto invertido"
+				    },
+				    {
+				        value: restante,
+				        // color: "#46BFBD",
+				        color: "#66FF66",
+				        // highlight: "#5AD3D1",
+				        highlight: "#50DC50",
+				        label: "Monto Restante"
+				    }
+				];
+				// TODO this is awesome but completely unneccesary and should never
+				// get to production. Looks good on PC, but not terrible on mobile
+				options = {
+					animateRotate : true,
+					animateScale : true,
+				}
+
+				var myDoughnutChart = new Chart(ctx).Doughnut(data, options);
+			{% endfor %}
+		});
+	</script>
+
+{% endblock %}
