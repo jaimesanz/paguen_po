@@ -251,7 +251,7 @@ class Presupuesto(models.Model):
     vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE)
     year_month = models.ForeignKey(
         YearMonth, on_delete=models.CASCADE, default=get_current_yearMonth)
-    monto = models.IntegerField()
+    monto = models.IntegerField(default=0)
 
     def __str__(self):
         return "".join(

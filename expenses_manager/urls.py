@@ -23,9 +23,11 @@ urlpatterns = [
     url(r'^visualizations/$', views.visualizations, name='visualizations'),
     url(r'^abandon/$', views.abandon, name='abandon'),
     url(r'^gastos/$', views.gastos, name='gastos'),
+
     url(r'^presupuestos/$', views.presupuestos, name='presupuestos'),
     url(r'^presupuestos/(\d+)/(\d+)$',
         views.presupuestos_period, name='presupuestos_period'),
+    url(r'^presupuestos/new/$', views.nuevo_presupuesto, name='nuevo_presupuesto'),
 
     url(r'^nuevo_gasto/$', views.nuevo_gasto, name='nuevo_gasto'),
     url(r'^nueva_lista/$', views.nueva_lista, name='nueva_lista'),

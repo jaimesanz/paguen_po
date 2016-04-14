@@ -2593,7 +2593,7 @@ class PresupuestoViewTest(TestCase):
             follow=True)
 
         self.assertRedirects(
-            response, 
+            response,
             "/presupuestos/%d/%d" % (this_period.year, this_period.month))
 
     def test_logged_user_can_see_presupuestos_for_current_period_only(self):
@@ -2753,3 +2753,224 @@ class PresupuestoViewTest(TestCase):
                             (presupuesto_cat1.categoria))
         self.assertContains(response, "<td>%s</td>" %
                             (presupuesto_cat2.categoria))
+
+
+class NuevoPresupuestoViewTest(TestCase):
+
+    def test_not_logged_user_cant_create_presupuesto(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        categoria = Categoria.objects.all().first()
+        now = timezone.now()
+        this_period, __ = YearMonth.objects.get_or_create(
+            year=now.year, month=now.month)
+
+        self.client.logout()
+
+        response = self.client.post(
+            "/presupuestos/new/",
+            data={
+                "categoria": categoria.nombre,
+                "year_month": this_period.id,
+                "monto": 10000
+            },
+            follow=True)
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=/presupuestos/new/")
+
+    def test_homeless_user_cant_create_presupuesto(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        categoria = Categoria.objects.all().first()
+        now = timezone.now()
+        this_period, __ = YearMonth.objects.get_or_create(
+            year=now.year, month=now.month)
+
+        test_user.get_vu().leave()
+
+        response = self.client.post(
+            "/presupuestos/new/",
+            data={
+                "categoria": categoria.nombre,
+                "year_month": this_period.id,
+                "monto": 10000
+            },
+            follow=True)
+        self.assertRedirects(
+            response,
+            "/error/")
+
+    def test_user_can_see_form(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        response = self.client.get(
+            "/presupuestos/new/",
+            follow=True)
+
+        self.assertContains(response, "form")
+        self.assertContains(response, "action=\"\"")
+
+    def test_user_cant_create_new_presupuesto_if_POST_is_broken(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        categoria = Categoria.objects.all().first()
+        now = timezone.now()
+        this_period, __ = YearMonth.objects.get_or_create(
+            year=now.year, month=now.month)
+
+        self.assertEqual(Presupuesto.objects.count(), 0)
+
+        response = self.client.post(
+            "/presupuestos/new/",
+            data={
+                "categoria": categoria.nombre,
+                "year_month": this_period.id
+            },
+            follow=True)
+        self.assertRedirects(
+            response,
+            "/presupuestos/new/")
+        self.assertContains(response, "Debe ingresar un monto")
+
+        response = self.client.post(
+            "/presupuestos/new/",
+            data={
+                "categoria": categoria.nombre,
+                "monto": 10000
+            },
+            follow=True)
+        self.assertRedirects(
+            response,
+            "/presupuestos/new/")
+        self.assertEqual(Presupuesto.objects.count(), 0)
+        self.assertContains(response, "Debe ingresar un período")
+
+        response = self.client.post(
+            "/presupuestos/new/",
+            data={
+                "year_month": this_period.id,
+                "monto": 10000
+            },
+            follow=True)
+        self.assertRedirects(
+            response,
+            "/presupuestos/new/")
+        self.assertEqual(Presupuesto.objects.count(), 0)
+        self.assertContains(response, "Debe ingresar una categoría")
+
+    def test_user_can_create_new_presupuesto_for_current_period(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        categoria = Categoria.objects.all().first()
+        now = timezone.now()
+        this_period, __ = YearMonth.objects.get_or_create(
+            year=now.year, month=now.month)
+
+        self.assertEqual(Presupuesto.objects.count(), 0)
+
+        response = self.client.post(
+            "/presupuestos/new/",
+            data={
+                "categoria": categoria.nombre,
+                "year_month": this_period.id,
+                "monto": 10000
+            },
+            follow=True)
+        self.assertRedirects(
+            response,
+            "/presupuestos/%d/%d" % (this_period.year, this_period.month))
+        self.assertEqual(Presupuesto.objects.count(), 1)
+        self.assertEqual(
+            Presupuesto.objects.all().first().categoria,
+            categoria)
+        self.assertEqual(
+            Presupuesto.objects.all().first().monto,
+            10000)
+        self.assertEqual(
+            Presupuesto.objects.all().first().year_month,
+            this_period)
+
+    def test_user_can_create_new_presupuesto_for_other_period(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        categoria = Categoria.objects.all().first()
+        now = timezone.now()
+        this_period, __ = YearMonth.objects.get_or_create(
+            year=now.year, month=now.month)
+        other_year, other_month = this_period.get_next_period()
+        other_period, __ = YearMonth.objects.get_or_create(
+            year=other_year, month=other_month)
+
+        self.assertEqual(Presupuesto.objects.count(), 0)
+
+        response = self.client.post(
+            "/presupuestos/new/",
+            data={
+                "categoria": categoria.nombre,
+                "year_month": other_period.id,
+                "monto": 10000
+            },
+            follow=True)
+        self.assertRedirects(
+            response,
+            "/presupuestos/%d/%d" % (other_period.year, other_period.month))
+        self.assertEqual(Presupuesto.objects.count(), 1)
+        self.assertEqual(
+            Presupuesto.objects.all().first().categoria,
+            categoria)
+        self.assertEqual(
+            Presupuesto.objects.all().first().monto,
+            10000)
+        self.assertEqual(
+            Presupuesto.objects.all().first().year_month,
+            other_period)
+
+    def test_user_cant_create_presupuesto_if_it_already_exists(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        categoria = Categoria.objects.all().first()
+        now = timezone.now()
+        this_period, __ = YearMonth.objects.get_or_create(
+            year=now.year, month=now.month)
+
+        self.assertEqual(Presupuesto.objects.count(), 0)
+
+        response = self.client.post(
+            "/presupuestos/new/",
+            data={
+                "categoria": categoria.nombre,
+                "year_month": this_period.id,
+                "monto": 10000
+            },
+            follow=True)
+        self.assertRedirects(
+            response,
+            "/presupuestos/%d/%d" % (this_period.year, this_period.month))
+        self.assertEqual(Presupuesto.objects.count(), 1)
+        self.assertEqual(
+            Presupuesto.objects.all().first().categoria,
+            categoria)
+        self.assertEqual(
+            Presupuesto.objects.all().first().monto,
+            10000)
+        self.assertEqual(
+            Presupuesto.objects.all().first().year_month,
+            this_period)
+
+        # user tries to create it again
+        response = self.client.post(
+            "/presupuestos/new/",
+            data={
+                "categoria": categoria.nombre,
+                "year_month": this_period.id,
+                "monto": 20000
+            },
+            follow=True)
+        self.assertRedirects(
+            response,
+            "/presupuestos/new/")
+        self.assertEqual(Presupuesto.objects.count(), 1)
+        self.assertEqual(
+            Presupuesto.objects.all().first().categoria,
+            categoria)
+        self.assertEqual(
+            Presupuesto.objects.all().first().monto,
+            10000)
+        self.assertEqual(
+            Presupuesto.objects.all().first().year_month,
+            this_period)

@@ -31,3 +31,10 @@ class GastoForm(forms.ModelForm):
     class Meta:
         model = Gasto
         fields = ('monto', 'categoria')
+
+
+class PresupuestoForm(forms.ModelForm):
+
+    class Meta:
+        model = Presupuesto
+        fields = ("categoria", "year_month", "monto")

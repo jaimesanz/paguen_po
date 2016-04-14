@@ -8,6 +8,7 @@ from expenses_manager.models import *
 from django.forms.models import model_to_dict
 import json
 from django.utils import timezone
+from django.contrib import messages
 
 
 def home(request):
@@ -362,3 +363,42 @@ def presupuestos_period(request, year, month):
     next_year, next_month = this_period.get_next_period()
     prev_year, prev_month = this_period.get_prev_period()
     return render(request, "vivienda/presupuestos.html", locals())
+
+
+@login_required
+def nuevo_presupuesto(request):
+    vivienda_usuario = request.user.get_vu()
+    if vivienda_usuario is None:
+        return HttpResponseRedirect("/error")
+    if request.POST:
+        categoria_nombre = request.POST.get("categoria", None)
+        if categoria_nombre is None:
+            messages.error(request, 'Debe ingresar una categoría')
+        period = request.POST.get("year_month", None)
+        if period is None:
+            messages.error(request, 'Debe ingresar un período')
+        monto = request.POST.get("monto", None)
+        if monto is None:
+            messages.error(request, 'Debe ingresar un monto')
+        if any(val is None for val in [categoria_nombre,
+                                       period,
+                                       monto]):
+            return HttpResponseRedirect("/presupuestos/new")
+
+        year_month = YearMonth.objects.get(
+            id=request.POST.get("year_month", None))
+        categoria = Categoria.objects.get(nombre=categoria_nombre)
+
+        presupuesto, created = Presupuesto.objects.get_or_create(
+            vivienda=request.user.get_vivienda(),
+            categoria=categoria,
+            year_month=year_month)
+        if not created:
+            return HttpResponseRedirect("/presupuestos/new")
+        presupuesto.monto = monto
+        presupuesto.save()
+        return HttpResponseRedirect(
+            "/presupuestos/%d/%d" % (year_month.year,
+                                     year_month.month))
+    form = PresupuestoForm()
+    return render(request, "vivienda/nuevo_presupuesto.html", locals())

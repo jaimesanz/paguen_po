@@ -24,6 +24,7 @@
 		<div id="content">
 			{% include "navbar/navbar.html" %}
 			<hr>
+			{% bootstrap_messages %}
 			<h1 id="content_title">{% block content_title %}{% endblock %}</h1>
 			<div id="content_body">
 				{% block content %}
