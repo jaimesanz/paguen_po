@@ -387,14 +387,20 @@ class ListaCompras(models.Model):
                 str(self.fecha),
                 "__",
                 str(self.estado)))
-    # given an item name, returns the Item instance
 
     def get_item_by_name(self, item_name):
+        """
+        Given an item name, returns the Item instance
+        """
         return Item.objects.filter(nombre=item_name).first()
-    # creates an instance of ItemLista with the given Item and quantity, where
-    # the list is self
 
     def add_item(self, item, quantity):
+        """
+        Creates and returns an instance of ItemLista with the given Item and 
+        quantity, and links it to the ListaCompras.
+        If the Item is already in the ListaCompras, it doesn't do anything, 
+        and returns None.
+        """
         if item is not None and item.id > 0 and not item.is_in_lista(self):
             new_list_item = ItemLista.objects.create(
                 item=item,
@@ -403,40 +409,77 @@ class ListaCompras(models.Model):
             return new_list_item
         else:
             return None
-    # same as add_item, but receives the item's name instead of ID
 
     def add_item_by_name(self, item_name, quantity):
+        """
+        Same as add_item, but receives the Item's name instead of it's id
+        """
         item = self.get_item_by_name(item_name)
         return self.add_item(item, quantity)
 
     def get_items(self):
+        """
+        Returns a QuerySet with all ItemLista objects linked to this 
+        ListaCompras.
+        """
         return ItemLista.objects.filter(lista=self)
 
     def count_items(self):
+        """
+        Returns the number of ItemLista objects linked to this ListaCompras.
+        """
         this_list_items = self.get_items()
         return len(this_list_items)
 
     def allow_user(self, usuario):
+        """
+        Returns True if the user is active in the Vivienda of the 
+        Viviendausuario that created the ListaCompras. Otherwise, it returns
+        False.
+        """
         vivienda_usuario = usuario.get_vu()
         return (vivienda_usuario is not None and
                 self.usuario_creacion.vivienda == vivienda_usuario.vivienda)
 
     def is_done(self):
+        """
+        Returns True if the state is "pagada", or False otherwise.
+        """
         return self.estado == "pagada"
 
     def set_done_state(self):
+        """
+        If the state is not "pagada", it changes the state to "pagada" and
+        returns True. If the state is already "pagada", doesn't do anything
+        and returns False.
+        """
         if not self.is_done():
             self.estado = "pagada"
             self.save()
             return True
         return False
-    # mark item as bought
 
     def buy_item(self, item, quantity):
+        """
+        Changes the state of the ItemLista linked to the given Item and the
+        current ListaCompras to "comprado", and sets it's "cantidad_comprada"
+        field to the given quantity
+        """
         il = ItemLista.objects.get(id=item)
         return il.buy(quantity)
 
     def buy_list(self, item_list, monto_total, vivienda_usuario):
+        """
+        Receives a list of tuples (item_id, quantity), and changes
+        the state of the ItemLista linked to each item_id to "comprado", and
+        sets the "cantidad comprada" field to thr given quantity.
+        Then, changes the state of the ListaCompras to "pagada", and creates
+        a new Gasto object linked to this ListaCompras.
+        It sets the usuario field of the Gasto with the given
+        vivienda_usuario. The Categoria of the Gasto is set to
+        "Supermercado".
+        Returns the newly created Gasto object.
+        """
         # mark items as bought
         if item_list is None or len(item_list) < 1:
             return None
@@ -454,6 +497,10 @@ class ListaCompras(models.Model):
         return nuevo_gasto
 
     def get_gasto(self):
+        """
+        Returns the Gasto object linked to the ListaCompras.
+        If there's no Gasto linked to it, returns None.
+        """
         gastos = Gasto.objects.filter(lista_compras=self)
         if len(gastos) == 0 or len(gastos) > 1:
             # TODO raise error
@@ -462,13 +509,25 @@ class ListaCompras(models.Model):
             return gastos.first()
 
     def get_missing_items(self):
+        """
+        Returns a QuerySet with all ItemLista objects linked to the
+        ListaCompras that have a pending state
+        """
         return ItemLista.objects.filter(lista=self, estado="pendiente")
 
     def has_missing_items(self):
+        """
+        Returns True if there's at least 1 ItemLista object with a
+        pending state linked to the ListaCompras.
+        """
         return len(self.get_missing_items()) > 0
 
-    # creates a new Lista using the pending Items form the current Lista
     def rescue_items(self, vivienda_usuario):
+        """
+        Creates and returns a new ListaComrpas using the pending Items 
+        form the current ListaCompras. If there are no pending Itemista
+        objects, it returns None
+        """
         cond1 = self.has_missing_items()
         cond2 = self.count_items() != self.get_missing_items().count()
         if (cond1 and cond2):
@@ -480,6 +539,10 @@ class ListaCompras(models.Model):
             return nueva_lista
 
     def discard_items(self):
+        """
+        Deletes all ItemLista with a pending stateobjects linked
+        to the ListaCompras
+        """
         for item in self.get_missing_items():
             item.delete()
 
