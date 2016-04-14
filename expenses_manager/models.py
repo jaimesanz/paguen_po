@@ -243,28 +243,47 @@ class Invitacion(models.Model):
         return str(self.invitado_por) + "__invited__" + str(self.invitado)
 
     def accept(self):
+        """
+        Changes the state of the Invitacion to "aceptada" and creates an
+        instance of ViviendaUsuario using the Vivienda of the "invitado_por"
+        field, and the "invitado" field as the User
+        """
         self.estado = "aceptada"
         self.save()
         ViviendaUsuario.objects.create(
             user=self.invitado, vivienda=self.invitado_por.vivienda)
 
     def reject(self):
+        """
+        Changes the state of the Invitacion to "rechazada"
+        """
         self.estado = "rechazada"
         self.save()
 
     def is_cancelled(self):
+        """
+        Returns True if the state of the Invitacion is "cancelada", or
+        False otherwise
+        """
         return self.estado == "cancelada"
 
     def cancel(self):
+        """
+        Changes the state of the Invitacion to "cancelada"
+        """
         self.estado = "cancelada"
         self.save()
-    # return True if the given user is the one that's being invited
 
     def is_invited_user(self, user):
+        """
+        Returns True if the given User is the one that's being invited
+        """
         return self.invitado == user
-    # returns True if the given user is the one who sent the invitation
 
     def is_invited_by_user(self, user):
+        """
+        Returns True if the given user is the one who sent the Invitacion
+        """
         return user.sent_invite(self)
 
 
