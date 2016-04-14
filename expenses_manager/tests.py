@@ -2530,6 +2530,9 @@ class PresupuestoViewTest(TestCase):
             follow=True)
         self.assertRedirects(response, "/error/")
         self.assertNotContains(response, "<td>%d</td>" % (presupuesto.monto))
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
 
     def test_outsider_cant_see_presupuestos_of_vivienda(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -2798,6 +2801,9 @@ class NuevoPresupuestoViewTest(TestCase):
         self.assertRedirects(
             response,
             "/error/")
+        self.assertContains(
+            response,
+            "Para ver esta página debe pertenecer a una vivienda")
 
     def test_user_can_see_form(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -2886,6 +2892,9 @@ class NuevoPresupuestoViewTest(TestCase):
         self.assertEqual(
             Presupuesto.objects.all().first().year_month,
             this_period)
+        self.assertContains(
+            response,
+            "El presupuesto fue creado exitósamente")
 
     def test_user_can_create_new_presupuesto_for_other_period(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -2920,6 +2929,9 @@ class NuevoPresupuestoViewTest(TestCase):
         self.assertEqual(
             Presupuesto.objects.all().first().year_month,
             other_period)
+        self.assertContains(
+            response,
+            "El presupuesto fue creado exitósamente")
 
     def test_user_cant_create_presupuesto_if_it_already_exists(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -2974,3 +2986,6 @@ class NuevoPresupuestoViewTest(TestCase):
         self.assertEqual(
             Presupuesto.objects.all().first().year_month,
             this_period)
+        self.assertContains(
+            response,
+            "Ya existe un presupuesto para el período seleccionado")
