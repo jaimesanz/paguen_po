@@ -237,6 +237,9 @@ def detalle_gasto(request, gasto_id):
                 request,
                 "El gasto ya se encuentra pagado")
             return HttpResponseRedirect("/error")
+        messages.success(
+            request,
+            "El gasto fue pagado con éxito")
         gasto.pagar(request.user)
         return HttpResponseRedirect("/detalle_gasto/%d/" % (gasto.id))
     return render(request, "gastos/detalle_gasto.html", locals())
@@ -264,9 +267,14 @@ def nueva_lista(request):
                 request,
                 "Debe pertenecer a una vivienda para ver esta página")
             return HttpResponseRedirect("/error")
-        max_item_index = int(request.POST.get("max_item_index", None))
+        max_item_index_post = request.POST.get("max_item_index", None)
+        if max_item_index_post is None or max_item_index_post == "":
+            messages.error(
+                request,
+                "La lista no puede estar vacía")
+            return HttpResponseRedirect("/lists")
+        max_item_index = int(max_item_index_post)
 
-        # get the number of items in the list.
         # The post contains 2 inputs for each item
         # create array of pairs (item_name, quantity)
         if max_item_index > 0:
@@ -276,7 +284,10 @@ def nueva_lista(request):
                 item_name = request.POST.get("item_" + str(item_index), None)
                 quantity = request.POST.get(
                     "quantity_" + str(item_index), None)
-                if item_name is not None and quantity is not None:
+                if (item_name is not None and
+                        item_name != "" and
+                        quantity is not None and
+                        quantity != ""):
                     if item_quantity_dict.get(item_name, None) is not None:
                         # the item is already in the dict. this is an error!
                         messages.error(
@@ -292,7 +303,7 @@ def nueva_lista(request):
                 messages.error(
                     request,
                     "La lista no puede estar vacía")
-                return HttpResponseRedirect("/error/")
+                return HttpResponseRedirect("/lists")
             nueva_lista = ListaCompras.objects.create(
                 usuario_creacion=request.user.get_vu())
             for i, q in item_quantity_dict.items():

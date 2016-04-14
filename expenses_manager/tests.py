@@ -2167,7 +2167,7 @@ class NewListaViewTest(TestCase):
                 "max_item_index": 2
             },
             follow=True)
-        self.assertRedirects(response, "/error/")
+        self.assertRedirects(response, "/lists/")
 
     def test_user_can_create_lista_simple(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
