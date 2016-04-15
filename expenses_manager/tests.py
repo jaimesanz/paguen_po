@@ -1777,7 +1777,7 @@ class GastoViviendaPendingListViewTest(TestCase):
 
         response = self.client.post(
             "/nuevo_gasto/",
-            data={"categoria": dummy_categoria, "monto": 2323},
+            data={"categoria": dummy_categoria, "monto": 232},
             follow=True)
 
         self.assertRedirects(response, "/error/")
@@ -1799,7 +1799,7 @@ class GastoViviendaPendingListViewTest(TestCase):
         response = self.client.post(
             "/nuevo_gasto/",
             data={"categoria": dummy_categoria,
-                  "monto": 2323, "is_not_paid": ""},
+                  "monto": 232, "is_not_paid": ""},
             follow=True)
 
         self.assertRedirects(response, "/gastos/")
@@ -1869,7 +1869,7 @@ class GastoViviendaPaidListViewTest(TestCase):
             self)
         response = self.client.post(
             "/nuevo_gasto/",
-            data={"categoria": dummy_categoria, "monto": 2323, "is_paid": ""},
+            data={"categoria": dummy_categoria, "monto": 232, "is_paid": ""},
             follow=True)
 
         self.assertRedirects(response, "/gastos/")
@@ -2618,26 +2618,26 @@ class PresupuestoViewTest(TestCase):
         my_presupuesto = Presupuesto.objects.create(
             categoria=Categoria.objects.all().first(),
             vivienda=test_user.get_vivienda(),
-            monto=12345)
+            monto=123)
 
         other_presupuesto = Presupuesto.objects.create(
             categoria=Categoria.objects.all().first(),
             vivienda=other_vivienda,
-            monto=54321)
+            monto=321)
         response = self.client.get(
             "/presupuestos/",
             follow=True)
 
-        self.assertNotContains(response, "<td>%d</td>" %
+        self.assertNotContains(response, "<td>$ %d</td>" %
                                (other_presupuesto.monto))
-        self.assertContains(response, "<td>%d</td>" % (my_presupuesto.monto))
+        self.assertContains(response, "<td>$ %d</td>" % (my_presupuesto.monto))
 
     def test_past_user_cant_see_presupuestos_of_old_vivienda(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
         presupuesto_old = Presupuesto.objects.create(
             categoria=Categoria.objects.all().first(),
             vivienda=test_user.get_vivienda(),
-            monto=12345)
+            monto=123)
         test_user.get_vu().leave()
         new_vivienda = Vivienda.objects.create(alias="my_new_viv")
         new_viv_usuario = ViviendaUsuario.objects.create(
@@ -2645,14 +2645,15 @@ class PresupuestoViewTest(TestCase):
         presupuesto_new = Presupuesto.objects.create(
             categoria=Categoria.objects.all().first(),
             vivienda=test_user.get_vivienda(),
-            monto=54321)
+            monto=321)
         response = self.client.get(
             "/presupuestos/",
             follow=True)
 
-        self.assertNotContains(response, "<td>%d</td>" %
+        self.assertNotContains(response, "<td>$ %d</td>" %
                                (presupuesto_old.monto))
-        self.assertContains(response, "<td>%d</td>" % (presupuesto_new.monto))
+        self.assertContains(response, "<td>$ %d</td>" %
+                            (presupuesto_new.monto))
 
     def test_url_without_period_redirects_to_current_period(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -2688,20 +2689,21 @@ class PresupuestoViewTest(TestCase):
             categoria=Categoria.objects.all().first(),
             vivienda=test_user.get_vivienda(),
             year_month=this_period,
-            monto=12345)
+            monto=123)
 
         presupuesto_next = Presupuesto.objects.create(
             categoria=Categoria.objects.all().first(),
             vivienda=test_user.get_vivienda(),
             year_month=next_period,
-            monto=54321)
+            monto=321)
         response = self.client.get(
             "/presupuestos/",
             follow=True)
 
-        self.assertNotContains(response, "<td>%d</td>" %
+        self.assertNotContains(response, "<td>$ %d</td>" %
                                (presupuesto_next.monto))
-        self.assertContains(response, "<td>%d</td>" % (presupuesto_now.monto))
+        self.assertContains(response, "<td>$ %d</td>" %
+                            (presupuesto_now.monto))
 
     def test_logged_user_can_see_link_to_next_period(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -3343,6 +3345,7 @@ class NuevoPresupuestoViewTest(TestCase):
 
 class EditPresupuestoTest(TestCase):
 
+    # testing whether the user can see the form
     def test_not_logged_user_cant_see_presupuestos_edit_form(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
         presupuesto = Presupuesto.objects.create(
@@ -3468,3 +3471,240 @@ class EditPresupuestoTest(TestCase):
 
         self.assertContains(response, "<form")
         self.assertContains(response, "%d" % (presupuesto.monto))
+
+    # testing whether the user make a post request to modify the presupuesto
+    def test_not_logged_user_cant_edit_presupuestos(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        presupuesto = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=test_user.get_vivienda(),
+            monto=100)
+        url = "/presupuestos/%d/%d/%s/" % (
+            presupuesto.year_month.year,
+            presupuesto.year_month.month,
+            presupuesto.categoria)
+
+        self.client.logout()
+        response = self.client.post(
+            url,
+            data={
+                "monto": 200
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=%s" % (url))
+        self.assertNotEqual(
+            Presupuesto.objects.get(id=presupuesto.id).monto,
+            200)
+        self.assertNotEqual(
+            Presupuesto.objects.get(id=presupuesto.id).monto,
+            300)
+        self.assertEqual(
+            Presupuesto.objects.get(id=presupuesto.id).monto,
+            100)
+
+    def test_homeless_user_cant_edit_presupuesto(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        presupuesto = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=test_user.get_vivienda(),
+            monto=100)
+        url = "/presupuestos/%d/%d/%s/" % (
+            presupuesto.year_month.year,
+            presupuesto.year_month.month,
+            presupuesto.categoria)
+
+        test_user.get_vu().leave()
+        response = self.client.post(
+            url,
+            data={
+                "monto": 200
+            },
+            follow=True)
+
+        self.assertRedirects(response, "/error/")
+        self.assertNotContains(
+            response,
+            presupuesto.categoria)
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+        self.assertNotEqual(
+            Presupuesto.objects.get(id=presupuesto.id).monto,
+            200)
+        self.assertNotEqual(
+            Presupuesto.objects.get(id=presupuesto.id).monto,
+            300)
+        self.assertEqual(
+            Presupuesto.objects.get(id=presupuesto.id).monto,
+            100)
+
+    def test_outsider_cant_edit_presupuesto_of_vivienda(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        other_vivienda = Vivienda.objects.exclude(
+            id=test_user.get_vivienda().id).first()
+        other_presupuesto = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=other_vivienda,
+            monto=300)
+
+        url = "/presupuestos/%d/%d/%s/" % (
+            other_presupuesto.year_month.year,
+            other_presupuesto.year_month.month,
+            other_presupuesto.categoria)
+        response = self.client.post(
+            url,
+            data={
+                "monto": 200
+            },
+            follow=True)
+        self.assertEqual(response.status_code, 404)
+        self.assertNotEqual(
+            Presupuesto.objects.get(id=other_presupuesto.id).monto,
+            200)
+        self.assertEqual(
+            Presupuesto.objects.get(id=other_presupuesto.id).monto,
+            300)
+
+    def test_past_user_cant_edit_presupuesto_of_old_vivienda(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        presupuesto_old = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=test_user.get_vivienda(),
+            monto=300)
+        test_user.get_vu().leave()
+        new_vivienda = Vivienda.objects.create(alias="my_new_viv")
+        new_viv_usuario = ViviendaUsuario.objects.create(
+            user=test_user, vivienda=new_vivienda)
+
+        url = "/presupuestos/%d/%d/%s/" % (
+            presupuesto_old.year_month.year,
+            presupuesto_old.year_month.month,
+            presupuesto_old.categoria)
+        response = self.client.post(
+            url,
+            data={
+                "monto": 200
+            },
+            follow=True)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertNotEqual(
+            Presupuesto.objects.get(id=presupuesto_old.id).monto,
+            200)
+        self.assertEqual(
+            Presupuesto.objects.get(id=presupuesto_old.id).monto,
+            300)
+
+    def test_posting_to_non_existant_presupuesto_raises_404(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        presupuesto = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=test_user.get_vivienda(),
+            monto=300)
+        next_year, next_month = presupuesto.year_month.get_next_period()
+
+        url = "/presupuestos/%d/%d/%s/" % (
+            next_year,
+            next_month,
+            presupuesto.categoria)
+        response = self.client.post(
+            url,
+            data={
+                "monto": 200
+            },
+            follow=True)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertNotEqual(
+            Presupuesto.objects.get(id=presupuesto.id).monto,
+            200)
+        self.assertEqual(
+            Presupuesto.objects.get(id=presupuesto.id).monto,
+            300)
+
+    def test_user_cant_edit_presupuesto_with_broken_POST(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        presupuesto = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=test_user.get_vivienda(),
+            monto=300)
+        url = "/presupuestos/%d/%d/%s/" % (
+            presupuesto.year_month.year,
+            presupuesto.year_month.month,
+            presupuesto.categoria)
+
+        response = self.client.post(
+            url,
+            data={
+                "asdf": "asdf"
+            },
+            follow=True)
+
+        self.assertRedirects(response, url)
+        self.assertContains(response, "Debe ingresar un monto")
+        self.assertEqual(
+            Presupuesto.objects.get(id=presupuesto.id).monto,
+            300)
+
+        response = self.client.post(
+            url,
+            data={
+                "monto": ""
+            },
+            follow=True)
+
+        self.assertRedirects(response, url)
+        self.assertContains(response, "Debe ingresar un monto mayor a 0")
+        self.assertEqual(
+            Presupuesto.objects.get(id=presupuesto.id).monto,
+            300)
+
+        response = self.client.post(
+            url,
+            data={
+                "monto": 0
+            },
+            follow=True)
+
+        self.assertRedirects(response, url)
+        self.assertContains(response, "Debe ingresar un monto mayor a 0")
+        self.assertEqual(
+            Presupuesto.objects.get(id=presupuesto.id).monto,
+            300)
+
+    def test_user_can_edit_presupuesto(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        presupuesto = Presupuesto.objects.create(
+            categoria=Categoria.objects.all().first(),
+            vivienda=test_user.get_vivienda(),
+            monto=100)
+        url = "/presupuestos/%d/%d/%s/" % (
+            presupuesto.year_month.year,
+            presupuesto.year_month.month,
+            presupuesto.categoria)
+
+        self.assertEqual(Presupuesto.objects.count(), 1)
+
+        response = self.client.post(
+            url,
+            data={
+                "monto": 200
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/graphs/presupuestos/%d/%d" % (
+                presupuesto.year_month.year,
+                presupuesto.year_month.month))
+        self.assertContains(response, "Presupuesto modificado con éxito")
+        self.assertEqual(Presupuesto.objects.count(), 1)
+        self.assertNotEqual(
+            Presupuesto.objects.get(id=presupuesto.id).monto,
+            100)
+        self.assertEqual(
+            Presupuesto.objects.get(id=presupuesto.id).monto,
+            200)

@@ -14,17 +14,17 @@
 {% block content_title %}{{request.user.get_vivienda}}{% endblock %}
 {% block content %}
 	<h3>Presupuestos {{year}}-{{month}}</h3>
-	<a href="/presupuestos/new/" class="btn btn-warning" role="button">
-		{% bootstrap_icon "plus" %} Nuevo Presupuesto
-	</a>
 	<a href="/graphs/presupuestos/{{prev_year}}/{{prev_month}}" class="btn btn-primary" role="button">
 		{% bootstrap_icon "chevron-left" %} Período Anterior
 	</a>
 	<a href="/graphs/presupuestos/{{next_year}}/{{next_month}}" class="btn btn-primary" role="button">
 		Próximo período {% bootstrap_icon "chevron-right" %}
 	</a>
+	<a href="/presupuestos/new/" class="btn btn-warning" role="button" style="float: right;">
+		{% bootstrap_icon "plus" %} Nuevo Presupuesto
+	</a>
 	<br>
-	<br>
+	<hr>
 	<div class="row">
 		{% for p in presupuestos %}
 			<div class="col-sm-4">
@@ -34,6 +34,7 @@
 			{% if forloop.counter|divisibleby:3 %}
 				<!-- add new row -->
 				</div>
+				<hr>
 				<div class="row">
 			{% endif %}
 		{% empty %}
@@ -44,21 +45,36 @@
 
 	<script type="text/javascript">
 		$(document).ready(function(){
+			$.format.locale({
+			    number: {
+			        groupingSeparator: '.',
+			        decimalSeparator: ','
+			    }
+			});
 			Chart.defaults.global.responsive = true;
 			{% for p in presupuestos %}
 				var ctx = $("#{{p.id}}_Chart").get(0).getContext("2d");
 				presupuesto = parseInt("{{p.monto}}");
 				invertido = parseInt("{{p.get_total_expenses}}")
 				restante = presupuesto - invertido;
-				if(restante<0){
+				invertido_color = "808080";
+				invertido_highlight = "575252";
+				invertido_label = "Monto Invertido"
+				presupuesto_pretty = "$" + $.format.number(presupuesto, '#,##0.#')
+				invertido_pretty = "$" + $.format.number(invertido, '#,##0.#')
+				restante_pretty = "$" + $.format.number(restante, '#,##0.#')
+				if(restante<=0){
 					restante=0;
+					invertido_color = "763939";
+					invertido_highlight = "763939";
+					invertido_label = "Presupuesto de " + presupuesto_pretty + " superado! Invertido"
 				}
 				var data = [
 				    {
 				        value: invertido,
-				        color:"#FF5A5E",
-				        highlight: "#F7464A",
-				        label: "Monto invertido"
+				        color:"#" + invertido_color,
+				        highlight: "#" + invertido_highlight,
+				        label: invertido_label
 				    },
 				    {
 				        value: restante,
@@ -71,10 +87,13 @@
 				];
 				// TODO this is awesome but completely unneccesary and should never
 				// get to production. Looks good on PC, but not terrible on mobile
+				{% autoescape on %}
 				options = {
 					animateRotate : true,
 					animateScale : true,
+					tooltipTemplate : "<%=label%>: $<%= $.format.number(value, '#,##0.#') %>"
 				}
+				{% endautoescape %}
 
 				var myDoughnutChart = new Chart(ctx).Doughnut(data, options);
 			{% endfor %}

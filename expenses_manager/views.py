@@ -504,5 +504,32 @@ def edit_presupuesto(request, year, month, categoria):
         year_month=year_month,
         categoria=categoria,
         vivienda=request.user.get_vivienda())
+    if request.POST:
+        def redirect_to_invalid_monto():
+            messages.error(request, "Debe ingresar un monto mayor a 0")
+            return HttpResponseRedirect(
+                "/presupuestos/%d/%d/%s/" % (int(year),
+                                             int(month),
+                                             categoria))
+        form = PresupuestoEditForm(request.POST)
+        if form.is_valid():
+            nuevo_monto = request.POST.get("monto", None)
+            try:
+                nuevo_monto = int(nuevo_monto)
+                if nuevo_monto <= 0:
+                    return redirect_to_invalid_monto()
+            except ValueError:
+                return redirect_to_invalid_monto()
+
+            presupuesto.monto = nuevo_monto
+            presupuesto.save()
+            messages.success(request, "Presupuesto modificado con éxito")
+            return HttpResponseRedirect(
+                "/graphs/presupuestos/%d/%d" % (
+                    year_month.year,
+                    year_month.month))
+        else:
+            return redirect_to_invalid_monto()
+
     form = PresupuestoEditForm(initial=presupuesto.__dict__)
     return render(request, "vivienda/edit_presupuesto.html", locals())

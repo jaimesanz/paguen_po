@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load bootstrap3 %}
+{% load humanize %}
 
 {% block custom_head %}
 	{% include "general/datatables.html" %}
@@ -31,7 +32,7 @@
 			{% for p in presupuestos %}
 			<tr>
 				<a href="/presupuestos/{{p.year_month.year}}/{{p.year_month.month}}/{{p.categoria}}"><td>{{p.categoria}}</td></a>
-				<td>{{p.monto}}</td>
+				<td>$ {{p.monto|intcomma}}</td>
 				<!-- <td>{{p.get}}</td> -->
 			</tr>
 			{% endfor %}

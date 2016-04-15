@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
 {% block content %}
@@ -13,10 +14,17 @@
 				</thead>
 				<tbody>
 					{% for field in gasto_form %}
-						<tr>
-						    <td><b>{{ field.label }}:</b> </td>
-						    <td>{{ field.data }}</td>
-						</tr>
+						{% if field.label == "Monto" %}
+							<tr>
+							    <td><b>{{ field.label }}:</b> </td>
+							    <td>$ {{field.data|intcomma }}</td>
+							</tr>
+						{% else %}
+							<tr>
+							    <td><b>{{ field.label }}:</b> </td>
+							    <td>{{ field.data }}</td>
+							</tr>
+						{% endif %}
 					{% endfor %}
 				</tbody>
 			</table>
@@ -31,7 +39,7 @@
 			<tbody>
 				<tr>
 					<td><b>Monto:</b> </td>
-					<td>{{gasto.monto}}</td>
+					<td>$ {{gasto.monto|intcomma}}</td>
 				</tr>
 				<tr>
 					<td><b>Creado por:</b></td>

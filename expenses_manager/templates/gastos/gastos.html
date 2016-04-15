@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load bootstrap3 %}
+{% load humanize %}
 
 {% block custom_head %}
 	{% include "general/datatables.html" %}
@@ -56,7 +57,7 @@
 			        	<tr>
 				            <td><a href="/detalle_gasto/{{gasto.id}}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{gasto.fecha_creacion}}</td>
 				            <td>{{gasto.categoria}}</td>
-				            <td>$ {{gasto.monto}}</td>
+				            <td>$ {{gasto.monto|intcomma}}</td>
 			        	</tr>
 			        {% endfor %}
 			    </tbody>
@@ -79,7 +80,7 @@
 						<tr>
 							<td><a href="/detalle_gasto/{{gasto.id}}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{gasto.fecha_creacion}}</td>
 							<td>{{gasto.categoria}}</td>
-							<td>{{gasto.monto}}</td>
+							<td>$ {{gasto.monto|intcomma}}</td>
 						</tr>
 						{% endfor %}
 					</tbody>
