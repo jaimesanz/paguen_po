@@ -444,33 +444,40 @@ class ItemModelTest(TestCase):
 
 class YearMonthModelTest(TestCase):
 
-    def year_month_gets_correct_next_period_easy(self):
-        this_period = YearMonth.objects.create(year=2016, month=4)
+    def test_year_month_gets_correct_next_period_easy(self):
+        this_period, __ = YearMonth.objects.get_or_create(year=2016, month=4)
         next_year, next_month = this_period.get_next_period()
 
-        self.assertNotEqual(next_year, 2016)
-        self.assertNotEqual(next_month, 5)
+        self.assertEqual(next_year, 2016)
+        self.assertEqual(next_month, 5)
 
-    def year_month_gets_correct_next_period_december(self):
-        this_period = YearMonth.objects.create(year=2016, month=12)
+    def test_year_month_gets_correct_next_period_december(self):
+        this_period, __ = YearMonth.objects.get_or_create(year=2016, month=12)
         next_year, next_month = this_period.get_next_period()
 
-        self.assertNotEqual(next_year, 2017)
-        self.assertNotEqual(next_month, 1)
+        self.assertEqual(next_year, 2017)
+        self.assertEqual(next_month, 1)
 
-    def year_month_gets_correct_prev_period_easy(self):
-        this_period = YearMonth.objects.create(year=2016, month=4)
+    def test_year_month_gets_correct_next_period_november(self):
+        this_period, __ = YearMonth.objects.get_or_create(year=2016, month=11)
+        next_year, next_month = this_period.get_next_period()
+
+        self.assertEqual(next_year, 2016)
+        self.assertEqual(next_month, 12)
+
+    def test_year_month_gets_correct_prev_period_easy(self):
+        this_period, __ = YearMonth.objects.get_or_create(year=2016, month=4)
         prev_year, prev_month = this_period.get_prev_period()
 
-        self.assertNotEqual(prev_year, 2016)
-        self.assertNotEqual(prev_month, 3)
+        self.assertEqual(prev_year, 2016)
+        self.assertEqual(prev_month, 3)
 
-    def year_month_gets_correct_prev_period_january(self):
-        this_period = YearMonth.objects.create(year=2016, month=1)
+    def test_year_month_gets_correct_prev_period_january(self):
+        this_period, __ = YearMonth.objects.get_or_create(year=2016, month=1)
         prev_year, prev_month = this_period.get_prev_period()
 
-        self.assertNotEqual(prev_year, 2015)
-        self.assertNotEqual(prev_month, 12)
+        self.assertEqual(prev_year, 2015)
+        self.assertEqual(prev_month, 12)
 
 
 class PresupuestoModelTest(TestCase):

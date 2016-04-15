@@ -48,8 +48,12 @@ urlpatterns = [
     url(r'^detalle_lista/(?P<lista_id>.*)/$',
         views.detalle_lista, name='detalle_lista'),
 
+    url(r'^$', views.home, name='home'),
+
+    # AJAX urls
     url(r'^get_items_autocomplete/$', views.get_items_autocomplete,
         name='get_items_autocomplete'),
+    url(r'^get_old_presupuesto/$', views.get_old_presupuesto,
+        name='get_old_presupuesto')
 
-    url(r'^$', views.home, name='home')
 ]

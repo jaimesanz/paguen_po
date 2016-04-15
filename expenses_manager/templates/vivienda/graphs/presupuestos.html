@@ -20,7 +20,7 @@
 	<a href="/graphs/presupuestos/{{next_year}}/{{next_month}}" class="btn btn-primary" role="button">
 		Próximo período {% bootstrap_icon "chevron-right" %}
 	</a>
-	<a href="/presupuestos/new/" class="btn btn-warning" role="button" style="float: right;">
+	<a href="/presupuestos/new/" class="btn btn-warning" role="button">
 		{% bootstrap_icon "plus" %} Nuevo Presupuesto
 	</a>
 	<br>
@@ -45,6 +45,7 @@
 
 	<script type="text/javascript">
 		$(document).ready(function(){
+			var is_mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent)
 			$.format.locale({
 			    number: {
 			        groupingSeparator: '.',
@@ -87,13 +88,12 @@
 				];
 				// TODO this is awesome but completely unneccesary and should never
 				// get to production. Looks good on PC, but not terrible on mobile
-				{% autoescape on %}
+				random_number=Math.random()
 				options = {
-					animateRotate : true,
-					animateScale : true,
+					animateRotate : random_number<0.66 && !is_mobile,
+					animateScale : random_number>0.33 && !is_mobile,
 					tooltipTemplate : "<%=label%>: $<%= $.format.number(value, '#,##0.#') %>"
 				}
-				{% endautoescape %}
 
 				var myDoughnutChart = new Chart(ctx).Doughnut(data, options);
 			{% endfor %}
