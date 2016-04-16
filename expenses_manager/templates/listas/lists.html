@@ -23,14 +23,6 @@
 			<form action="/nueva_lista/" method="POST" id="nueva_lista_form">
 				<input type="hidden" name="max_item_index" id="max_item_index"></input>
 				{% csrf_token %}
-				<button type="button" id="add_item" class="btn btn-warning">
-					{% bootstrap_icon "plus" %} Agregar ítem
-				</button>
-				<button type="submit" class="btn btn-primary">
-					{% bootstrap_icon "ok" %} Generar lista
-				</button>
-				<br>
-				<br>
 				<table id="items_lista" class="table table-striped table-bordered" cellspacing="0" width="100%">
 					<thead>
 						<tr>
@@ -40,8 +32,21 @@
 						</tr>
 					</thead>
 					<tbody>
+						<tr>
+							<td>
+								<button type="button" id="add_item" class="btn btn-warning">
+									{% bootstrap_icon "plus" %} Agregar ítem
+								</button>
+							</td>
+							<td></td>
+							<td></td>
+						</tr>
 					</tbody>
 				</table>
+				<br>
+				<button type="submit" class="btn btn-primary" style="float: right;">
+					{% bootstrap_icon "ok" %} Generar lista
+				</button>
 				<br><br>
 				<div id="nueva_lista_form_dyn"></div>
 				<!-- TODO put each tab ina  diferent page. This way the user doesn't have to load the whole set of lists when the only thing he wanted was to create a new one -->
@@ -83,7 +88,9 @@
 			});
 			var items_lista = $('#items_lista').DataTable({
 				paging: false,
-				filter: false
+				filter: false,
+				bSort: false,
+				bInfo:false
 			});
 			$('#add_item').click(function(){
 				this_item_number = input_number++;
@@ -129,6 +136,7 @@
 				})
 
 				$("#"+this_item_input_id).autocomplete({
+					autoFocus: true,
 					source: function(request, response){
 						$.ajax({
 							url:"/get_items_autocomplete/",
@@ -153,7 +161,7 @@
 					change: function (ev, ui) {
 						if (!ui.item)
 							$(this).val("");
-					}
+					},
 				})
 			});
 		} );

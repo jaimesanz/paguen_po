@@ -5,32 +5,43 @@
 {% block content %}
 	<h3>Nuevo Presupuesto</h3>
 	{% bootstrap_button "¿Reutilizar existente?" name="copy_old" button_type="submit" button_class="btn-warning" %}
-	<div id="copy_old_form" style="display: none;">
-		<br>
-		<p>Ingresa un período y una categoría y luego presiona "Cargar". Verás que el formulario de abajo tendrá la info del presupuesto correspondiente a los datos que ingresaste. ¡Recuerda seleccionar un período distinto al que seleccionaste!</p>
+	<div id="copy_old_form" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Copiar presupuesto existente</h4>
+				</div>
+				<div class="modal-body">
+					<div class="alert alert-danger" style="display: none;">
+					</div>
+					<div class="alert alert-success" style="display: none;">
+						¡Presupuesto cargado!
+					</div>
+					<p>Ingresa un período y una categoría y luego presiona "Cargar". Verás que el formulario de atrás tendrá la info del presupuesto correspondiente a los datos que ingresaste. ¡Recuerda seleccionar un período distinto al que quieres crear!</p>
 
-		<div class="row">
-			{% for field in form %}
-				<div class="col-sm-4">
-						<div class="input-group load_old_input_group">
-							{% if field.label == "Monto" %}
-							{% else %}
-								{% bootstrap_field field %}
-							{% endif %}
+					<div class="row">
+						{% for field in form %}
+							<div class="col-sm-4">
+									<div class="input-group load_old_input_group">
+										{% if field.label == "Monto" %}
+										{% else %}
+											{% bootstrap_field field %}
+										{% endif %}
+									</div>
+							</div>
+						{% endfor %}
+					</div>
+					<br>
+					<div class="row">
+						<div class="col-sm-4">
+							{% bootstrap_button "¡Cargar!" name="load_old" button_type="submit" button_class="btn-success" %}
 						</div>
+					</div>
 				</div>
-			{% endfor %}
-		</div>
-		<br>
-		<div class="row">
-			<div class="col-sm-4">
-				{% bootstrap_button "¡Cargar!" name="load_old" button_type="submit" button_class="btn-success" %}
-			</div>
-			<div class="col-sm-4">
-				<div class="alert alert-danger" style="display: none;">
-				</div>
-				<div class="alert alert-success" style="display: none;">
-					¡Presupuesto cargado!
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
 				</div>
 			</div>
 		</div>
@@ -45,7 +56,7 @@
 		$(document).ready(function(){
 			$("button[name=copy_old]").click(function(){
 				copy_old_form = $("#copy_old_form");
-				copy_old_form.toggle();
+				copy_old_form.modal("toggle");
 			});
 			$("button[name=load_old]").click(function(){
 				input_group = $(".load_old_input_group");
