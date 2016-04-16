@@ -9,14 +9,17 @@
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
 {% block content %}
 	<h3>Presupuestos {{year}}-{{month}}</h3>
-	<a href="/presupuestos/new/" class="btn btn-warning" role="button">
-		{% bootstrap_icon "plus" %} Nuevo Presupuesto
-	</a>
 	<a href="/presupuestos/{{prev_year}}/{{prev_month}}" class="btn btn-primary" role="button">
 		{% bootstrap_icon "chevron-left" %} Período Anterior
 	</a>
 	<a href="/presupuestos/{{next_year}}/{{next_month}}" class="btn btn-primary" role="button">
 		Próximo período {% bootstrap_icon "chevron-right" %}
+	</a>
+	<a href="/graphs/presupuestos/{{year}}/{{month}}" class="btn btn-primary" role="button">
+		{% bootstrap_icon "signal" %} Gráficos
+	</a>
+	<a href="/presupuestos/new/" class="btn btn-warning" role="button">
+		{% bootstrap_icon "plus" %} Nuevo Presupuesto
 	</a>
 	<br>
 	<br>
