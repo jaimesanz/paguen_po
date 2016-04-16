@@ -377,6 +377,7 @@ def get_items_autocomplete(request):
             json.dumps(
                 [(item.nombre, item.unidad_medida) for item in items]))
 
+
 def get_old_presupuesto(request):
     ans = []
     categoria = request.POST.get("categoria", None)
@@ -390,10 +391,11 @@ def get_old_presupuesto(request):
             vivienda=request.user.get_vivienda()).first()
         if presupuesto is not None:
             ans.append((
-                presupuesto.categoria.nombre, 
+                presupuesto.categoria.nombre,
                 presupuesto.year_month.id,
-                presupuesto.monto ))
-    return HttpResponse( json.dumps( ans ) )
+                presupuesto.monto))
+    return HttpResponse(json.dumps(ans))
+
 
 @login_required
 def presupuestos(request):
@@ -488,6 +490,7 @@ def graphs_presupuestos(request):
     today = timezone.now()
     return HttpResponseRedirect(
         "/graphs/presupuestos/%d/%d" % (today.year, today.month))
+
 
 @login_required
 def graphs_presupuestos_period(request, year, month):

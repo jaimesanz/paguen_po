@@ -336,8 +336,8 @@ class YearMonth(models.Model):
         """
         next_month = self.month + 1
         next_year = self.year
-        if next_month>12:
-            next_month=1
+        if next_month > 12:
+            next_month = 1
             next_year += 1
         return (next_year, next_month)
 
