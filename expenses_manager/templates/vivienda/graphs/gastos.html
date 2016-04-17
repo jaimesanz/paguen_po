@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block custom_head %}
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+{% endblock %}
+
+
+{% block content_title %}{{vivienda}}{% endblock %}
+{% block content %}
+	<h3>Gastos</h3>
+	<hr>
+	<div class="btn-group" data-toggle="buttons">
+			<label class="btn btn-success active">
+				<input type="checkbox" checked autocomplete="off" id="total_checkbox"> Total
+			</label>
+	</div>
+	<div class="btn-group" id="categorias_checkbox" data-toggle="buttons">
+		{% for c in categorias %}
+			<label class="btn btn-success">
+				<input type="checkbox" autocomplete="off" name="{{c}}"> {{c}}
+			</label>
+		{% endfor %}
+	</div>
+	{% csrf_token %}
+	<button class="btn btn-primary" id="get_graph">
+		Generar gráfico
+	</button>
+	<hr>
+	<div id="canvas_container">
+		<canvas id="gastos_chart"></canvas>
+	</div>
+	<div id="chart_legend"></div>
+
+	<script type="text/javascript">
+		function getRandomColor() {
+		    var letters = '0123456789ABCDEF'.split('');
+		    var color = '#';
+		    for (var i = 0; i < 6; i++ ) {
+		        color += letters[Math.floor(Math.random() * 16)];
+		    }
+		    return color;
+		}
+		$(document).ready(function(){
+			$.format.locale({
+			    number: {
+			        groupingSeparator: '.',
+			        decimalSeparator: ','
+			    }
+			});
+
+			Chart.defaults.global.responsive = true;
+			var ctx = $("#gastos_chart").get(0).getContext("2d");
+			var myLineChart = null;
+			var options = {
+				legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\">" + 
+				"<% for (var i=0; i<datasets.length; i++){" + 
+					"%><li><span style=\"background-color:<%=datasets[i].strokeColor%>\">"+
+						"<%if(datasets[i].label){"+
+						"%><%=datasets[i].label%><%"+
+						"}%></span>"+
+					"</li><%"+
+				"}%></ul>",
+				multiTooltipTemplate: "$<%= $.format.number(value, '#,##0.#') %>",
+			}
+			$("#get_graph").click(function(){
+				datasets = [];
+				periods = [];
+				init_year = 2016;
+				init_month = 4;
+				last_year = 2016;
+				last_month = 4;
+				categorias = []
+				$('#categorias_checkbox').find('.active').find("input").each(function(){
+					categorias.push($(this).attr("name"))
+				})
+				// include total of each perido in graphics?
+				include_total = $("#total_checkbox:checked").length;
+				$.ajax({
+					url:"/get_gastos_graph/",
+					type: "POST",
+					data: {
+						csrfmiddlewaretoken: document.getElementsByName('csrfmiddlewaretoken')[0].value,
+						categorias: JSON.stringify(categorias),
+						init_year: init_year,
+						init_month: init_month,
+						last_year: last_year,
+						last_month: last_month,
+						include_total: include_total
+					},
+					dataType: "json",
+					success: function( data ) {
+						for(idx=0 ; idx<data.length ;idx++){
+							d = data[idx]
+							console.log(d)
+							// d[0] -> nombre categoria
+							// d[1] -> lista con valores por período
+							color = getRandomColor()
+							datasets.push(
+								{
+								    label: d[0],
+								    fillColor: color,
+								    strokeColor: color,
+								    pointColor: color,
+								    pointStrokeColor: "#fff",
+								    pointHighlightFill: "#fff",
+								    pointHighlightStroke: "rgba(220,220,220,1)",
+								    data: d[1]
+								}
+							);
+						}
+						var data = {
+						    labels: ["{{current_year_month}}"],
+						    datasets: datasets
+						};
+
+						if(myLineChart!=null){
+							myLineChart.destroy()
+						}
+						myLineChart = new Chart(ctx).Bar(data, options);
+						$("#chart_legend").html(myLineChart.generateLegend());
+					}
+				});
+			});
+			
+		});
+	</script>
+{% endblock %}

@@ -159,6 +159,35 @@ class Vivienda(models.Model):
         """
         return self.get_gastos_pendientes(), self.get_gastos_pagados()
 
+    def get_categorias(self):
+        """
+        Returns a QuerySet with all Categoria objects related to the Vivienda.
+        For now it just returns all existant Categoria objects, because
+        they are (as of the time when this was written) global.
+        """
+        return Categoria.objects.all()
+
+    def get_total_expenses_categoria_period(self, categoria, year_month):
+        montos = Gasto.objects.filter(
+            creado_por__vivienda=self,
+            year_month=year_month,
+            categoria=categoria,
+            estado__estado="pagado").values("monto")
+        total = 0
+        for d in montos:
+            total += d["monto"]
+        return total
+
+    def get_total_expenses_period(self, year_month):
+        montos = Gasto.objects.filter(
+            creado_por__vivienda=self,
+            year_month=year_month,
+            estado__estado="pagado").values("monto")
+        total = 0
+        for d in montos:
+            total += d["monto"]
+        return total
+
     def __str__(self):
         return self.alias
 
@@ -381,15 +410,9 @@ class Presupuesto(models.Model):
         Returns the sum of all paid Gastos of the Presupuesto's Categoria in
         the Presupuesto's YearMonth for the Presupuesto's Vivienda
         """
-        montos = Gasto.objects.filter(
-            creado_por__vivienda=self.vivienda,
-            year_month=self.year_month,
-            categoria=self.categoria,
-            estado__estado="pagado").values("monto")
-        total = 0
-        for d in montos:
-            total += d["monto"]
-        return total
+        return self.vivienda.get_total_expenses_categoria_period(
+            self.categoria,
+            self.year_month)
 
 
 class ListaCompras(models.Model):

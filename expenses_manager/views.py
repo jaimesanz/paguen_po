@@ -11,6 +11,27 @@ from django.utils import timezone
 from django.contrib import messages
 
 
+# helper functions
+def get_next_year_month_pair(y, m):
+    next_year = y
+    next_month = m+1
+    if next_month>12:
+        next_month=1
+        next_year+=1
+    return (next_year, next_month)
+
+def get_periods(y0, m0, y1, m1):
+    periods = []
+    y = y0
+    m = m0
+    while y<=y1 and m<=m1:
+        periods.append((y,m))
+        y,m = get_next_year_month_pair(y,m)
+    return periods
+
+def is_valid_year_month_range(y0, m0, y1, m1):
+    return True
+
 def home(request):
     # locals() creates a dict() object with all the variables from the local
     # scope. We are passing it to the template
@@ -199,18 +220,6 @@ def nuevo_gasto(request):
 
 
 @login_required
-def balance(request):
-    vivienda_usuario = request.user.get_vu()
-    return render(request, "balance.html", locals())
-
-
-@login_required
-def visualizations(request):
-    vivienda_usuario = request.user.get_vu()
-    return render(request, "visualizations.html", locals())
-
-
-@login_required
 def gastos(request):
     vu = request.user.get_vu()
     if vu is None:
@@ -220,6 +229,68 @@ def gastos(request):
     gasto_form = GastoForm()
     return render(request, "gastos/gastos.html", locals())
 
+@login_required
+def graph_gastos(request):
+    if not request.user.has_vivienda():
+        messages.error(
+            request,
+            "Debe pertenecer a una vivienda para ver esta página")
+        return HttpResponseRedirect("/error")
+    vivienda = request.user.get_vivienda()
+    today = timezone.now()
+    current_year_month = YearMonth.objects.get(
+        year=today.year, 
+        month=today.month)
+    total_this_period = vivienda.get_total_expenses_period(current_year_month)
+    categorias = vivienda.get_categorias()
+    categoria_total = []
+    for c in categorias:
+        categoria_total.append((
+            c, 
+            vivienda.get_total_expenses_categoria_period(
+                c,
+                current_year_month)))
+    return render(request, "vivienda/graphs/gastos.html", locals())
+
+def get_gastos_graph(request):
+
+    init_year = int(request.POST.get("init_year", None))
+    init_month = int(request.POST.get("init_month", None))
+    last_year = int(request.POST.get("last_year", None))
+    last_month = int(request.POST.get("last_month", None))
+    if not is_valid_year_month_range(init_year, init_month, last_year, last_month):
+        return HttpResponse( json.dumps( [] ) )
+
+    periods = get_periods(init_year, init_month, last_year, last_month)
+    categorias = json.loads(request.POST.get("categorias", None))
+    
+    res = []
+    vivienda = request.user.get_vivienda()
+    year_months = [YearMonth.objects.get(year=p[0], month=p[1]) for p in periods]
+
+    # total values
+    if request.POST.get("include_total", None) and int(request.POST.get("include_total", None))>0:
+        total_values = []
+        for ym in year_months:
+            total_values.append(vivienda.get_total_expenses_period(ym))
+        res.append(["Total", total_values])
+
+    # values per categoria
+    for c in categorias:
+        this_res = [c]
+        this_res_values = []
+
+        for ym in year_months:
+            this_res_values.append(
+                vivienda.get_total_expenses_categoria_period(
+                    c,
+                    ym))
+
+        this_res.append(this_res_values)
+        res.append(this_res)
+
+
+    return HttpResponse( json.dumps( res ) )
 
 @login_required
 def detalle_gasto(request, gasto_id):

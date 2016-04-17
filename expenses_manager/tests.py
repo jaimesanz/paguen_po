@@ -2081,6 +2081,53 @@ class GastoViviendaPayViewTest(TestCase):
             1)
 
 
+class GastoGraphsTest(TestCase):
+
+    url = "/graphs/gastos/"
+
+    def test_not_logged_user_cant_see_gasto_graph(self):
+        (test_user_1,
+            test_user_2,
+            test_user_3,
+            dummy_categoria,
+            gasto_1,
+            gasto_2,
+            gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+        self.client.logout()
+        response = self.client.get(
+            self.url,
+            follow=True)
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=%s" % (self.url))
+        has_not_logged_navbar(self, response)
+
+    def test_homeless_user_cant_see_gasto_graph(self):
+        test_user = get_test_user_and_login(self)
+        response = self.client.get(
+            self.url, 
+            follow=True)
+
+        self.assertRedirects(response, "/error/")
+        has_logged_navbar_without_viv(self, response, test_user)
+
+    def test_user_can_see_graphs(self):
+        (test_user_1,
+            test_user_2,
+            test_user_3,
+            dummy_categoria,
+            gasto_1,
+            gasto_2,
+            gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+        response = self.client.get(
+            self.url,
+            follow=True)
+        self.assertContains(response, "canvas")
+        self.assertContains(response, dummy_categoria.nombre)
+
+
 class ListaPendingViewTest(TestCase):
 
     def test_basic_setup(self):
