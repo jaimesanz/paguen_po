@@ -17,7 +17,7 @@ urlpatterns = [
     url(r'^accounts/', include('registration.backends.hmac.urls')),
     url(r'^login_post_process/$', views.login_post_process,
         name='login_post_process'),
-    
+
     # vivienda
     url(r'^vivienda/$', views.vivienda, name='vivienda'),
     url(r'^nueva_vivienda/$', views.nueva_vivienda, name='nueva_vivienda'),
@@ -42,7 +42,7 @@ urlpatterns = [
     url(r'^lists/$', views.lists, name='lists'),
     url(r'^detalle_lista/(?P<lista_id>.*)/$',
         views.detalle_lista, name='detalle_lista'),
-    
+
     # presupuestos
     url(r'^presupuestos/$', views.presupuestos, name='presupuestos'),
     url(r'^presupuestos/(\d+)/(\d+)/(.+)/$',
@@ -67,7 +67,7 @@ urlpatterns = [
         name='get_old_presupuesto'),
     url(r'^get_gastos_graph/$', views.get_gastos_graph,
         name='get_gastos_graph'),
-    
+
 
     # default to home
     url(r'^$', views.home, name='home')

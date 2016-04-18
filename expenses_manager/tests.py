@@ -2106,7 +2106,7 @@ class GastoGraphsTest(TestCase):
     def test_homeless_user_cant_see_gasto_graph(self):
         test_user = get_test_user_and_login(self)
         response = self.client.get(
-            self.url, 
+            self.url,
             follow=True)
 
         self.assertRedirects(response, "/error/")
