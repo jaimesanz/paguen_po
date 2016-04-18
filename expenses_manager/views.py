@@ -24,7 +24,7 @@ def get_periods(y0, m0, y1, m1):
     periods = []
     y = y0
     m = m0
-    while y<=y1 and m<=m1:
+    while y<y1 or (y<=y1 and m<=m1):
         periods.append((y,m))
         y,m = get_next_year_month_pair(y,m)
     return periods
@@ -253,6 +253,12 @@ def graph_gastos(request):
     return render(request, "vivienda/graphs/gastos.html", locals())
 
 def get_gastos_graph(request):
+    """
+    Returns an array of the form [ [String, [int, int, int, ...]], ... ] where
+    the string represents the name of the categoría, and the array of iIntegers
+    represents the total amount of expenses for that categoria in that period
+    of time (The index of the value represents the period of time)
+    """
 
     init_year = int(request.POST.get("init_year", None))
     init_month = int(request.POST.get("init_month", None))
@@ -273,7 +279,7 @@ def get_gastos_graph(request):
         total_values = []
         for ym in year_months:
             total_values.append(vivienda.get_total_expenses_period(ym))
-        res.append(["Total", total_values])
+        res.append(["total", total_values])
 
     # values per categoria
     for c in categorias:
@@ -289,7 +295,7 @@ def get_gastos_graph(request):
         this_res.append(this_res_values)
         res.append(this_res)
 
-
+    print(json.dumps( res ))
     return HttpResponse( json.dumps( res ) )
 
 @login_required

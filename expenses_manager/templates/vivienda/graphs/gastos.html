@@ -2,6 +2,17 @@
 
 {% block custom_head %}
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/7.0.0/bootstrap-slider.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/7.0.0/css/bootstrap-slider.min.css">
+
+	<style type="text/css">
+	.slider-horizontal {
+		width: 90% !important;
+		margin-right: 5% !important;
+		margin-left: 5% !important;
+		margin-bottom: 30px !important;
+	}
+	</style>
 {% endblock %}
 
 
@@ -9,17 +20,27 @@
 {% block content %}
 	<h3>Gastos</h3>
 	<hr>
-	<div class="btn-group" data-toggle="buttons">
-			<label class="btn btn-success active">
-				<input type="checkbox" checked autocomplete="off" id="total_checkbox"> Total
-			</label>
-	</div>
+	<input id="ex19" type="text"
+		data-provide="slider"
+		data-slider-ticks="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]"
+		data-slider-ticks-labels='["2015-4", "2015-5", "2015-6", "2015-7", "2015-8", "2015-9", "2015-10", "2015-11", "2015-12", "2016-1", "2016-2", "2016-3", "2016-4"]'
+		data-slider-min="1"
+		data-slider-max="13"
+		data-slider-step="1"
+		data-slider-value="[12,13]"
+		data-slider-tooltip="hide" />
+	<br>
 	<div class="btn-group" id="categorias_checkbox" data-toggle="buttons">
 		{% for c in categorias %}
 			<label class="btn btn-success">
 				<input type="checkbox" autocomplete="off" name="{{c}}"> {{c}}
 			</label>
 		{% endfor %}
+	</div>
+	<div class="btn-group" data-toggle="buttons">
+			<label class="btn btn-success active">
+				<input type="checkbox" checked autocomplete="off" name="total" id="total_checkbox"> Total
+			</label>
 	</div>
 	{% csrf_token %}
 	<button class="btn btn-primary" id="get_graph">
@@ -29,18 +50,59 @@
 	<div id="canvas_container">
 		<canvas id="gastos_chart"></canvas>
 	</div>
-	<div id="chart_legend"></div>
 
 	<script type="text/javascript">
-		function getRandomColor() {
+		var getRandomColor = function(){
 		    var letters = '0123456789ABCDEF'.split('');
 		    var color = '#';
 		    for (var i = 0; i < 6; i++ ) {
 		        color += letters[Math.floor(Math.random() * 16)];
 		    }
-		    return color;
+		    return color;	
+		};
+		var is_valid_period_range = function(y0,m0,y1,m1){
+			return y0<y1 || (y0==y1 && m0<=m1)
 		}
+		var get_next_year_month_pair = function(y,m){
+			next_year = y
+			next_month = m+1
+			if(next_month>12){
+			    next_month = 1
+			    next_year++
+			}
+			return [next_year, next_month]
+		}
+		var get_period_range = function(y0, m0, y1, m1){
+			periods = []
+			y = y0
+			m = m0
+			while( (y<y1) || (y==y1 && m<=m1)	){
+				periods.push(y + "-" + m)
+				ym_pair = get_next_year_month_pair(y,m)
+				y = ym_pair[0]
+				m = ym_pair[1]
+			}
+			console.log(periods)
+			return periods
+		};
+
 		$(document).ready(function(){
+
+			var not_checked_color = $("#categorias_checkbox").find("label").first().css("background-color")
+
+			$("#categorias_checkbox").find("label").click(function(){
+				// if checked, change to default not_checked_color
+				if($(this).hasClass("active")){
+					$(this).css("background-color", not_checked_color)
+				}
+				// if not checked, change to random color
+				else{
+					$(this).css("background-color", getRandomColor())
+				}
+			});
+
+			var range_periods_labels = JSON.parse($("#ex19").attr("data-slider-ticks-labels"))
+
 			$.format.locale({
 			    number: {
 			        groupingSeparator: '.',
@@ -51,6 +113,7 @@
 			Chart.defaults.global.responsive = true;
 			var ctx = $("#gastos_chart").get(0).getContext("2d");
 			var myLineChart = null;
+			var labels = [];
 			var options = {
 				legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\">" + 
 				"<% for (var i=0; i<datasets.length; i++){" + 
@@ -64,11 +127,21 @@
 			}
 			$("#get_graph").click(function(){
 				datasets = [];
-				periods = [];
-				init_year = 2016;
-				init_month = 4;
-				last_year = 2016;
-				last_month = 4;
+				var year_month_indexes = JSON.parse("[" + $("#ex19").val() + "]")
+				first_index = parseInt(year_month_indexes[0])-1
+				last_index = parseInt(year_month_indexes[1])-1
+
+				var init_year = range_periods_labels[first_index].split("-")[0]
+				var init_month = range_periods_labels[first_index].split("-")[1]
+				
+				var last_year = range_periods_labels[last_index].split("-")[0]
+				var last_month = range_periods_labels[last_index].split("-")[1]
+
+				labels = []
+				for (var i = first_index; i <= last_index; i++) {
+					labels.push(range_periods_labels[i]);
+				}
+
 				categorias = []
 				$('#categorias_checkbox').find('.active').find("input").each(function(){
 					categorias.push($(this).attr("name"))
@@ -89,12 +162,12 @@
 					},
 					dataType: "json",
 					success: function( data ) {
+						// update graph data
 						for(idx=0 ; idx<data.length ;idx++){
 							d = data[idx]
-							console.log(d)
 							// d[0] -> nombre categoria
 							// d[1] -> lista con valores por período
-							color = getRandomColor()
+							color = $("input[name='" + d[0] + "']").parent().css("background-color")
 							datasets.push(
 								{
 								    label: d[0],
@@ -109,7 +182,7 @@
 							);
 						}
 						var data = {
-						    labels: ["{{current_year_month}}"],
+						    labels: labels,
 						    datasets: datasets
 						};
 
@@ -117,7 +190,6 @@
 							myLineChart.destroy()
 						}
 						myLineChart = new Chart(ctx).Bar(data, options);
-						$("#chart_legend").html(myLineChart.generateLegend());
 					}
 				});
 			});
