@@ -15,6 +15,11 @@
 		margin-left: 5% !important;
 		margin-bottom: 30px !important;
 	}
+	html, body {
+	  width:  100%;
+	  height: 100%;
+	  margin: 0px;
+	}
 	</style>
 {% endblock %}
 
@@ -22,6 +27,15 @@
 {% block content_title %}{{vivienda}}{% endblock %}
 {% block content %}
 	<h3>Gastos</h3>
+	<div class="alert alert-danger" style="display: none;">
+		¡Debe seleccionar al menos una opción para graficar!
+	</div>
+	<div class="alert alert-success" style="display: none;">
+		¡Gráfico cargado!
+	</div>
+	<div class="alert alert-warning" style="display: none;">
+		Cargando...
+	</div>
 	<hr>
 	<input id="ex19" type="text"
 		data-provide="slider"
@@ -50,8 +64,10 @@
 		Generar gráfico
 	</button>
 	<hr>
-	<div id="canvas_container">
-		<canvas id="gastos_chart"></canvas>
+	<div class="row">
+		<div id="canvas_container">
+			<canvas id="gastos_chart" height="100px"></canvas>
+		</div>
 	</div>
 
 	<script type="text/javascript">
@@ -100,9 +116,15 @@
 					"</li><%"+
 				"}%></ul>",
 				multiTooltipTemplate: "$<%= $.format.number(value, '#,##0.#') %>",
+				tooltipTemplate : "<%=label%>: $<%= $.format.number(value, '#,##0.#') %>"
 			}
 			// this is the main method that generates the graph
 			$("#get_graph").click(function(){
+				// hide messages
+				$(".alert-success").hide();
+				$(".alert-danger").hide();
+				$(".alert-warning").show();
+
 				// reset datasets
 				datasets = [];
 
@@ -132,6 +154,13 @@
 
 				// include total of each perido in graphics?
 				include_total = $("#total_checkbox:checked").length;
+
+				if(categorias.length<1 && include_total<1){
+					$(".alert-success").hide();
+					$(".alert-warning").hide();
+					$(".alert-danger").show();
+					return;
+				}
 
 				// ajax call that actually creates the graph
 				$.ajax({
@@ -180,6 +209,12 @@
 							myChart.destroy()
 						}
 						myChart = new Chart(ctx).Bar(data, options);
+						// wait a sec before changing the messages
+						setTimeout(function(){
+							$(".alert-success").show();
+							$(".alert-warning").hide();
+							$(".alert-danger").hide();
+						}, 300);
 					}
 				});
 			});
