@@ -35,56 +35,48 @@ def error(request):
 @login_required
 def get_gastos_graph(request):
     """
-    Returns an array of the form [ [String, [int, int, int, ...]], ... ] where
-    the string represents the name of the categoría, and the array of iIntegers
+    Receives a POST of the form:
+    {
+        periods : "['2016-4', ..., '2017-2']",
+        categorias : "['cat1', 'cat2', ...]",
+        include_total : 0 (or 1)
+    }
+    Note that the values of the keys are STRNGS, not lists.
+
+    Returns a dict of the form {String : [int, ...] , ...} where
+    the string represents the name of the categoría, and the array of Integers
     represents the total amount of expenses for that categoria in that period
     of time (The index of the value represents the period of time)
     """
 
-    # return HttpResponse(json.dumps({"total":[500,600], "Supermercado":[200,300]}))
-
-    init_year = int(request.POST.get("init_year", None))
-    init_month = int(request.POST.get("init_month", None))
-    last_year = int(request.POST.get("last_year", None))
-    last_month = int(request.POST.get("last_month", None))
-    if not is_valid_year_month_range(
-            init_year,
-            init_month,
-            last_year,
-            last_month):
-        return HttpResponse(json.dumps([]))
-
-    periods = get_periods(init_year, init_month, last_year, last_month)
-    categorias = json.loads(request.POST.get("categorias", None))
-
-    res = []
+    periods_json = request.POST.get("periods", None)
+    categorias_json = request.POST.get("categorias", None)
+    if periods_json is None or categorias_json is None:
+        return HttpResponse(json.dumps({}))
+    periods = json.loads(periods_json)
+    categorias = json.loads(categorias_json)
     vivienda = request.user.get_vivienda()
     year_months = [YearMonth.objects.get(
-        year=p[0], month=p[1]) for p in periods]
+        year=p.split("-")[0], month=p.split("-")[1]) for p in periods]
 
+    res = {}
     # total values
     if (request.POST.get("include_total", None) and
             int(request.POST.get("include_total", None)) > 0):
         total_values = []
         for ym in year_months:
             total_values.append(vivienda.get_total_expenses_period(ym))
-        res.append(["total", total_values])
+        res["total"] = total_values
 
     # values per categoria
     for c in categorias:
-        this_res = [c]
-        this_res_values = []
-
+        values = []
         for ym in year_months:
-            this_res_values.append(
+            values.append(
                 vivienda.get_total_expenses_categoria_period(
                     c,
                     ym))
-
-        this_res.append(this_res_values)
-        res.append(this_res)
-
-    print(json.dumps(res))
+        res[c] = values
     return HttpResponse(json.dumps(res))
 
 
@@ -326,9 +318,9 @@ def graph_gastos(request):
     # TODO this window defines how far in the past the user can graph
     # it's set to 12 months, but in the future must be customizable
     # by the user. Also, the window should be measured in months
-    window = 1 #year
-    periods = json.dumps(["%d-%d" % (y,m) for y,m in get_periods(
-        today.year-window,
+    window = 1  # year
+    periods = json.dumps(["%d-%d" % (y, m) for y, m in get_periods(
+        today.year - window,
         today.month,
         today.year,
         today.month)])

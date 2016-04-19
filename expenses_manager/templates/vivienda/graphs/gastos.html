@@ -134,12 +134,6 @@
 				first_index = parseInt(year_month_indexes[0])-1
 				last_index = parseInt(year_month_indexes[1])-1
 
-				var init_year = range_periods_labels[first_index].split("-")[0]
-				var init_month = range_periods_labels[first_index].split("-")[1]
-				
-				var last_year = range_periods_labels[last_index].split("-")[0]
-				var last_month = range_periods_labels[last_index].split("-")[1]
-
 				// reset labels. The values are taken from the labels of the slider
 				labels = []
 				for (var i = first_index; i <= last_index; i++) {
@@ -152,7 +146,7 @@
 					categorias.push($(this).attr("name"))
 				})
 
-				// include total of each perido in graphics?
+				// include total of each period in graph?
 				include_total = $("#total_checkbox:checked").length;
 
 				if(categorias.length<1 && include_total<1){
@@ -162,49 +156,47 @@
 					return;
 				}
 
-				// ajax call that actually creates the graph
+				// AJAX call that actually creates and draws the graph
 				$.ajax({
 					url:"/get_gastos_graph/",
 					type: "POST",
 					data: {
 						csrfmiddlewaretoken: document.getElementsByName('csrfmiddlewaretoken')[0].value,
 						categorias: JSON.stringify(categorias),
-						init_year: init_year,
-						init_month: init_month,
-						last_year: last_year,
-						last_month: last_month,
+						periods: JSON.stringify(labels),
 						include_total: include_total
 					},
 					dataType: "json",
 					success: function( data ) {
 						// update graph data
-						for(idx=0 ; idx<data.length ;idx++){
-							d = data[idx]
-							// d[0] -> nombre categoria
-							// d[1] -> list with values per period
-							// periods are ordered!
+						for(var categoria_nombre in data){
+							if (data.hasOwnProperty(categoria_nombre)) {
+								values = data[categoria_nombre]
+								// data[nombre_categoria] = [value_period_1, value_period_2, ...]
+								// periods are ordered!
 
-							// create dataset where the label is the name of the categoria, the data is the array with values per period and the color is the color of the highlighted checkbox of the categoria
-							color = $("input[name='" + d[0] + "']").parent().css("background-color")
-							datasets.push(
-								{
-								    label: d[0],
-								    fillColor: color,
-								    strokeColor: color,
-								    pointColor: color,
-								    pointStrokeColor: "#fff",
-								    pointHighlightFill: "#fff",
-								    pointHighlightStroke: "rgba(220,220,220,1)",
-								    data: d[1]
-								}
-							);
+								// create dataset where the label is the name of the categoria, the data is the array with values per period and the color is the color of the highlighted checkbox of the categoria
+								color = $("input[name='" + categoria_nombre + "']").parent().css("background-color")
+								datasets.push(
+									{
+									    label: categoria_nombre,
+									    fillColor: color,
+									    strokeColor: color,
+									    pointColor: color,
+									    pointStrokeColor: "#fff",
+									    pointHighlightFill: "#fff",
+									    pointHighlightStroke: "rgba(220,220,220,1)",
+									    data: values
+									}
+								);
+							}
 						}
 						var data = {
 						    labels: labels,
 						    datasets: datasets
 						};
 
-						// graph must be destroyed before adding the new data
+						// graph must be destroyed and rebuild from scratch
 						if(myChart!=null){
 							myChart.destroy()
 						}
