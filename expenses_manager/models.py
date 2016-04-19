@@ -6,6 +6,8 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 # helper functions
+
+
 def get_current_yearMonth_obj():
     """
     Returns the current YearMonth period.
@@ -326,6 +328,7 @@ class SolicitudAbandonarVivienda(models.Model):
 
 
 class Categoria(models.Model):
+
     class Meta:
         ordering = ['nombre']
     nombre = models.CharField(max_length=100, primary_key=True)

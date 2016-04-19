@@ -68,7 +68,6 @@ urlpatterns = [
     url(r'^get_gastos_graph/$', views.get_gastos_graph,
         name='get_gastos_graph'),
 
-
     # default to home
     url(r'^$', views.home, name='home')
 ]
