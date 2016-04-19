@@ -28,15 +28,13 @@
 			<tr>
 				<th>Categoría</th>
 				<th>Presupuesto</th>
-				<!-- <th>Real</th> -->
 			</tr>
 		</thead>
 		<tbody>
 			{% for p in presupuestos %}
 			<tr>
-				<a href="/presupuestos/{{p.year_month.year}}/{{p.year_month.month}}/{{p.categoria}}"><td>{{p.categoria}}</td></a>
+				<td><a href="/presupuestos/{{p.year_month.year}}/{{p.year_month.month}}/{{p.categoria}}">{{p.categoria}}</a></td>
 				<td>$ {{p.monto|intcomma}}</td>
-				<!-- <td>{{p.get}}</td> -->
 			</tr>
 			{% endfor %}
 		</tbody>
