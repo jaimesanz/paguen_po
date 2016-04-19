@@ -52,7 +52,97 @@ def error(request):
 # from here on, everything must have @login_required
 ######################################################
 
+#######################
+# AJAX dispatchers
+#######################
 
+
+@login_required
+def get_gastos_graph(request):
+    """
+    Returns an array of the form [ [String, [int, int, int, ...]], ... ] where
+    the string represents the name of the categoría, and the array of iIntegers
+    represents the total amount of expenses for that categoria in that period
+    of time (The index of the value represents the period of time)
+    """
+
+    init_year = int(request.POST.get("init_year", None))
+    init_month = int(request.POST.get("init_month", None))
+    last_year = int(request.POST.get("last_year", None))
+    last_month = int(request.POST.get("last_month", None))
+    if not is_valid_year_month_range(
+            init_year,
+            init_month,
+            last_year,
+            last_month):
+        return HttpResponse(json.dumps([]))
+
+    periods = get_periods(init_year, init_month, last_year, last_month)
+    categorias = json.loads(request.POST.get("categorias", None))
+
+    res = []
+    vivienda = request.user.get_vivienda()
+    year_months = [YearMonth.objects.get(
+        year=p[0], month=p[1]) for p in periods]
+
+    # total values
+    if (request.POST.get("include_total", None) and
+            int(request.POST.get("include_total", None)) > 0):
+        total_values = []
+        for ym in year_months:
+            total_values.append(vivienda.get_total_expenses_period(ym))
+        res.append(["total", total_values])
+
+    # values per categoria
+    for c in categorias:
+        this_res = [c]
+        this_res_values = []
+
+        for ym in year_months:
+            this_res_values.append(
+                vivienda.get_total_expenses_categoria_period(
+                    c,
+                    ym))
+
+        this_res.append(this_res_values)
+        res.append(this_res)
+
+    print(json.dumps(res))
+    return HttpResponse(json.dumps(res))
+
+
+@login_required
+def get_items_autocomplete(request):
+    if 'term' in request.GET:
+        items = Item.objects.filter(nombre__istartswith=request.GET['term'])
+        return HttpResponse(
+            json.dumps(
+                [(item.nombre, item.unidad_medida) for item in items]))
+
+
+@login_required
+def get_old_presupuesto(request):
+    ans = []
+    categoria = request.POST.get("categoria", None)
+    year_month = request.POST.get("year_month", None)
+    print(categoria)
+    print(year_month)
+    if categoria is not None and year_month is not None:
+        presupuesto = Presupuesto.objects.filter(
+            categoria=categoria,
+            year_month=year_month,
+            vivienda=request.user.get_vivienda()).first()
+        if presupuesto is not None:
+            ans.append((
+                presupuesto.categoria.nombre,
+                presupuesto.year_month.id,
+                presupuesto.monto))
+    return HttpResponse(json.dumps(ans))
+
+
+#######################
+# Views
+#######################
 @login_required
 def login_post_process(request):
     # set session variables here
@@ -257,59 +347,6 @@ def graph_gastos(request):
     return render(request, "vivienda/graphs/gastos.html", locals())
 
 
-def get_gastos_graph(request):
-    """
-    Returns an array of the form [ [String, [int, int, int, ...]], ... ] where
-    the string represents the name of the categoría, and the array of iIntegers
-    represents the total amount of expenses for that categoria in that period
-    of time (The index of the value represents the period of time)
-    """
-
-    init_year = int(request.POST.get("init_year", None))
-    init_month = int(request.POST.get("init_month", None))
-    last_year = int(request.POST.get("last_year", None))
-    last_month = int(request.POST.get("last_month", None))
-    if not is_valid_year_month_range(
-            init_year,
-            init_month,
-            last_year,
-            last_month):
-        return HttpResponse(json.dumps([]))
-
-    periods = get_periods(init_year, init_month, last_year, last_month)
-    categorias = json.loads(request.POST.get("categorias", None))
-
-    res = []
-    vivienda = request.user.get_vivienda()
-    year_months = [YearMonth.objects.get(
-        year=p[0], month=p[1]) for p in periods]
-
-    # total values
-    if (request.POST.get("include_total", None) and
-            int(request.POST.get("include_total", None)) > 0):
-        total_values = []
-        for ym in year_months:
-            total_values.append(vivienda.get_total_expenses_period(ym))
-        res.append(["total", total_values])
-
-    # values per categoria
-    for c in categorias:
-        this_res = [c]
-        this_res_values = []
-
-        for ym in year_months:
-            this_res_values.append(
-                vivienda.get_total_expenses_categoria_period(
-                    c,
-                    ym))
-
-        this_res.append(this_res_values)
-        res.append(this_res)
-
-    print(json.dumps(res))
-    return HttpResponse(json.dumps(res))
-
-
 @login_required
 def detalle_gasto(request, gasto_id):
     vivienda_usuario = request.user.get_vu()
@@ -457,33 +494,6 @@ def detalle_lista(request, lista_id):
     else:
         # user is not allowed
         return HttpResponseRedirect("/error")
-
-
-def get_items_autocomplete(request):
-    if 'term' in request.GET:
-        items = Item.objects.filter(nombre__istartswith=request.GET['term'])
-        return HttpResponse(
-            json.dumps(
-                [(item.nombre, item.unidad_medida) for item in items]))
-
-
-def get_old_presupuesto(request):
-    ans = []
-    categoria = request.POST.get("categoria", None)
-    year_month = request.POST.get("year_month", None)
-    print(categoria)
-    print(year_month)
-    if categoria is not None and year_month is not None:
-        presupuesto = Presupuesto.objects.filter(
-            categoria=categoria,
-            year_month=year_month,
-            vivienda=request.user.get_vivienda()).first()
-        if presupuesto is not None:
-            ans.append((
-                presupuesto.categoria.nombre,
-                presupuesto.year_month.id,
-                presupuesto.monto))
-    return HttpResponse(json.dumps(ans))
 
 
 @login_required
