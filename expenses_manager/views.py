@@ -41,6 +41,8 @@ def get_gastos_graph(request):
     of time (The index of the value represents the period of time)
     """
 
+    # return HttpResponse(json.dumps({"total":[500,600], "Supermercado":[200,300]}))
+
     init_year = int(request.POST.get("init_year", None))
     init_month = int(request.POST.get("init_month", None))
     last_year = int(request.POST.get("last_year", None))
@@ -321,6 +323,15 @@ def graph_gastos(request):
             vivienda.get_total_expenses_categoria_period(
                 c,
                 current_year_month)))
+    # TODO this window defines how far in the past the user can graph
+    # it's set to 12 months, but in the future must be customizable
+    # by the user. Also, the window should be measured in months
+    window = 1 #year
+    periods = json.dumps(["%d-%d" % (y,m) for y,m in get_periods(
+        today.year-window,
+        today.month,
+        today.year,
+        today.month)])
     return render(request, "vivienda/graphs/gastos.html", locals())
 
 
