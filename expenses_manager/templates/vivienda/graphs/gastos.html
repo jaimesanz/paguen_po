@@ -55,8 +55,8 @@
 		{% endfor %}
 	</div>
 	<div class="btn-group" data-toggle="buttons">
-			<label class="btn btn-success active">
-				<input type="checkbox" checked autocomplete="off" name="total" id="total_checkbox"> Total
+			<label class="btn btn-success">
+				<input type="checkbox" autocomplete="off" name="total" id="total_checkbox"> Total
 			</label>
 	</div>
 	{% csrf_token %}
@@ -76,7 +76,7 @@
 			// get the color of the not checked categorias for later use wheen restarting the color aof a button
 			var not_checked_color = $("#categorias_checkbox").find("label").first().css("background-color")
 
-			$("#categorias_checkbox").find("label").click(function(){
+			$("label").click(function(){
 				// if checked, change to default not_checked_color
 				if($(this).hasClass("active")){
 					$(this).css("background-color", not_checked_color)
