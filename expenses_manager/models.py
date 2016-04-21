@@ -349,6 +349,12 @@ class Categoria(models.Model):
     class Meta:
         ordering = ['nombre']
     nombre = models.CharField(max_length=100, primary_key=True)
+    vivienda = models.ForeignKey(
+        Vivienda,
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.CASCADE)
 
     def __str__(self):
         return self.nombre
