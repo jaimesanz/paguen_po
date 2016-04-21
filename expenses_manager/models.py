@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.db.models import Q
 
 # helper functions
 
@@ -162,12 +163,14 @@ class Vivienda(models.Model):
     def get_categorias(self):
         """
         Returns a QuerySet with all Categoria objects related to the Vivienda.
-        For now it just returns all existant Categoria objects, because
-        they are (as of the time when this was written) global.
         """
-        return Categoria.objects.all()
+        return Categoria.objects.filter(Q(vivienda=None) | Q(vivienda=self))
 
     def get_total_expenses_categoria_period(self, categoria, year_month):
+        """
+        Returns the total sum of all Gastos made during the given YearMonth
+        for the given Categoria in this Vivienda
+        """
         montos = Gasto.objects.filter(
             creado_por__vivienda=self,
             year_month=year_month,
@@ -179,6 +182,10 @@ class Vivienda(models.Model):
         return total
 
     def get_total_expenses_period(self, year_month):
+        """
+        Returns the sum of all Gastos made during the given YearMonth
+        regardless of Categoria
+        """
         montos = Gasto.objects.filter(
             creado_por__vivienda=self,
             year_month=year_month,
@@ -190,7 +197,7 @@ class Vivienda(models.Model):
 
     def get_total_expenses_per_active_user(self):
         """
-        Returns a dictionary where the keys are the names of the users
+        Returns a dict where the keys are the names of the users
         and the values are the total expenses of said user
         """
         active_users = ViviendaUsuario.objects.filter(

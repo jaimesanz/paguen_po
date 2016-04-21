@@ -1806,7 +1806,7 @@ class GastoViviendaPendingListViewTest(TestCase):
         response = self.client.post(
             "/nuevo_gasto/",
             data={"categoria": dummy_categoria,
-                  "monto": 232, "is_not_paid": ""},
+                  "monto": 232, "is_paid": "no"},
             follow=True)
 
         self.assertRedirects(response, "/gastos/")
@@ -1876,7 +1876,10 @@ class GastoViviendaPaidListViewTest(TestCase):
             self)
         response = self.client.post(
             "/nuevo_gasto/",
-            data={"categoria": dummy_categoria, "monto": 232, "is_paid": ""},
+            data={
+                "categoria": dummy_categoria, 
+                "monto": 232, 
+                "is_paid": "yes"},
             follow=True)
 
         self.assertRedirects(response, "/gastos/")

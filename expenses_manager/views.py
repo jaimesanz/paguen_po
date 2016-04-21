@@ -281,10 +281,11 @@ def nuevo_gasto(request):
                 "El gasto fue creado exitósamente")
 
             # check if it's paid
-            if request.POST.get("is_paid", None) is not None:
+            is_paid = request.POST.get("is_paid", None)
+            if is_paid == "yes":
                 nuevo_gasto.pagar(request.user)
                 return HttpResponseRedirect("/gastos")
-            elif request.POST.get("is_not_paid", None) is not None:
+            elif is_paid == "no":
                 return HttpResponseRedirect("/gastos")
             else:
                 return HttpResponseRedirect("/error")
@@ -302,6 +303,7 @@ def gastos(request):
     # get list of gastos
     gastos_pendientes_list, gastos_pagados_list = vu.get_gastos_vivienda()
     gasto_form = GastoForm()
+    gasto_form.fields["categoria"].queryset = vu.vivienda.get_categorias()
     return render(request, "gastos/gastos.html", locals())
 
 
@@ -567,6 +569,7 @@ def nuevo_presupuesto(request):
             "/presupuestos/%d/%d" % (year_month.year,
                                      year_month.month))
     form = PresupuestoForm()
+    form.fields["categoria"].queryset = vivienda_usuario.vivienda.get_categorias()
     return render(request, "vivienda/nuevo_presupuesto.html", locals())
 
 
