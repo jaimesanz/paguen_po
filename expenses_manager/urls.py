@@ -24,6 +24,7 @@ urlpatterns = [
     url(r'^user_info/$', views.user_info, name='user_info'),
     url(r'^manage_users/$', views.manage_users, name='manage_users'),
     url(r'^abandon/$', views.abandon, name='abandon'),
+    url(r'^vivienda/balance/$', views.balance, name='balance'),
 
     # invites
     url(r'^invites_list/$', views.invites_list, name='invites_list'),

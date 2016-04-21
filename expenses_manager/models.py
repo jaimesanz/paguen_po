@@ -188,6 +188,23 @@ class Vivienda(models.Model):
             total += d["monto"]
         return total
 
+    def get_total_expenses_per_active_user(self):
+        """
+        Returns a dictionary where the keys are the names of the users
+        and the values are the total expenses of said user
+        """
+        active_users = ViviendaUsuario.objects.filter(
+            vivienda=self,
+            estado="activo")
+        user_expenses = {}
+        for u in active_users:
+            user_expenses[u.user]=0
+        gastos_pagados = self.get_gastos_pagados()
+        for gasto in gastos_pagados:
+            user_that_paid = gasto.usuario.user
+            user_expenses[user_that_paid]+= gasto.monto
+        return user_expenses
+
     def __str__(self):
         return self.alias
 

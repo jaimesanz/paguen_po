@@ -1,8 +1,57 @@
 {% extends "base.html" %}
+{% load static %}
+
+
+{% block custom_head %}
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+	<script type="text/javascript" src="{% static 'js/period_functions.js' %}"></script>
+{% endblock %}
+
 
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
 {% block content %}
 	<h3>Balance de Gastos</h3>
-	<p>¿Qué desea hacer?</p>
-	<p>:3</p>
+	<canvas id="user_expenses_chart"></canvas>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			$.format.locale({
+			    number: {
+			        groupingSeparator: '.',
+			        decimalSeparator: ','
+			    }
+			});
+
+			Chart.defaults.global.responsive = true;
+
+			var ctx = $("#user_expenses_chart").get(0).getContext("2d");
+			var myNewChart = new Chart(ctx);
+			var options = {
+				multiTooltipTemplate: "$<%= $.format.number(value, '#,##0.#') %>",
+				tooltipTemplate : "<%=label%>: $<%= $.format.number(value, '#,##0.#') %>"
+			}
+			labels = []
+			values = []
+			{% for u,m in user_expenses.items %}
+				labels.push("{{u}}");
+				values.push("{{m}}");
+			{% endfor %}
+			color = getRandomColor()
+			var data = {
+			    labels: labels,
+			    datasets: [
+			        {
+			            label: "Balance de Gastos",
+			            fillColor: color,
+			            strokeColor: color,
+			            pointColor: color,
+			            pointStrokeColor: "#fff",
+			            pointHighlightFill: "#fff",
+			            pointHighlightStroke: color,
+			            data: values
+			        }
+			    ]
+			};
+			var myRadarChart = new Chart(ctx).Bar(data, options);
+		});
+	</script>
 {% endblock %}

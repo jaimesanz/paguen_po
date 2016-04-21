@@ -246,6 +246,17 @@ def manage_users(request):
 
 
 @login_required
+def balance(request):
+    if not request.user.has_vivienda():
+        messages.error(
+            request,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+        return HttpResponseRedirect("/error")
+    user_expenses = request.user.get_vivienda().get_total_expenses_per_active_user()
+    return render(request, "vivienda/balance.html", locals())
+
+
+@login_required
 def abandon(request):
     if request.POST:
         vu = get_object_or_404(

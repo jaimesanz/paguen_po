@@ -2887,10 +2887,8 @@ class PresupuestoViewTest(TestCase):
             "/presupuestos/",
             follow=True)
 
-        self.assertContains(response, "<td>%s</td>" %
-                            (presupuesto_cat1.categoria))
-        self.assertContains(response, "<td>%s</td>" %
-                            (presupuesto_cat2.categoria))
+        self.assertContains(response, presupuesto_cat1.categoria)
+        self.assertContains(response, presupuesto_cat2.categoria)
 
 
 class PresupuestoGraphsTest(TestCase):
@@ -3762,3 +3760,85 @@ class EditPresupuestoTest(TestCase):
         self.assertEqual(
             Presupuesto.objects.get(id=presupuesto.id).monto,
             200)
+
+
+class BalanceViewTest(TestCase):
+
+    url = "/vivienda/balance/"
+
+    def test_not_logged_user_cant_see_balance(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        self.client.logout()
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=%s" % (self.url))
+
+    def test_homeless_user_cant_see_balance(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        test_user.get_vu().leave()
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/error/")
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+
+    def test_user_can_see_roommates(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        for roommate in test_user.get_roommates():
+            self.assertContains(
+                response,
+                roommate.user)
+
+    def test_user_can_see_total_expenses(self):
+        (test_user_1,
+            test_user_2,
+            test_user_3,
+            dummy_categoria,
+            gasto_1,
+            gasto_2,
+            gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+
+        test_user_1.pagar(gasto_1)
+        test_user_1.pagar(gasto_2)
+
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertContains(response, gasto_1.monto + gasto_2.monto)
+        self.assertContains(response, 0)
+
+    def test_user_can_see_total_expenses_of_roommates(self):
+        (test_user_1,
+            test_user_2,
+            test_user_3,
+            dummy_categoria,
+            gasto_1,
+            gasto_2,
+            gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+
+        test_user_1.pagar(gasto_1)
+        test_user_2.pagar(gasto_2)
+
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertContains(response, gasto_1.monto)
+        self.assertContains(response, gasto_2.monto)
