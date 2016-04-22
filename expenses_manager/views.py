@@ -265,6 +265,16 @@ def abandon(request):
         request.session['user_has_vivienda'] = False
     return HttpResponseRedirect("/home")
 
+@login_required
+def categorias(request):
+    vivienda = request.user.get_vivienda()
+    if not vivienda:
+        messages.error(
+            request,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+        return HttpResponseRedirect("/error")
+    categorias = vivienda.get_categorias()
+    return render(request, "vivienda/categorias.html", locals())
 
 @login_required
 def nuevo_gasto(request):

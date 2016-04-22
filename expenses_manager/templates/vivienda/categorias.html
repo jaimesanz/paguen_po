@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content_title %}{{vivienda}}{% endblock %}
+{% block content %}
+	<h3>Categorías</h3>
+	<hr>
+	<div class="row">
+		<div class="col-lg-6">
+			<h4>Globales</h4>
+				{% for c in categorias %}
+					{% if not c.vivienda %}
+						<p>{{c}}</p>
+					{% endif %}
+				{% endfor %}
+		</div>
+		<div class="col-lg-6">
+			<h4>Personalizadas</h4>
+				{% for c in categorias %}
+					{% if c.vivienda %}
+						<p>{{c}}</p>
+					{% endif %}
+				{% endfor %}
+		</div>
+	</div>
+{% endblock %}

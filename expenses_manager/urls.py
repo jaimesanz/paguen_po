@@ -31,6 +31,10 @@ urlpatterns = [
     url(r'^invite_user/$', views.invite_user, name='invite_user'),
     url(r'^invite/(?P<invite_id>.*)/$', views.invite, name='invite'),
 
+    # categorías
+    url(r'^vivienda/categorias/$', views.categorias, name='categorias'),
+
+
     # gastos
     url(r'^gastos/$', views.gastos, name='gastos'),
     url(r'^nuevo_gasto/$', views.nuevo_gasto, name='nuevo_gasto'),

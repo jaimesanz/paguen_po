@@ -3845,3 +3845,103 @@ class BalanceViewTest(TestCase):
 
         self.assertContains(response, gasto_1.monto)
         self.assertContains(response, gasto_2.monto)
+
+
+class CategoriaListViewTest(TestCase):
+
+    url = "/vivienda/categorias/"
+    url_new = "/vivienda/categorias/new/"
+
+    # not logged cant see
+    def test_not_logged_user_cant_see_categorias(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        self.client.logout()
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=%s" % (self.url))
+    # homeless cant see
+    def test_homeless_user_cant_see_categorias(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        test_user.get_vu().leave()
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/error/")
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+    # user can only see categorias of his vivienda
+    def test_user_can_see_categorias_of_active_vivienda_only(self):
+        (test_user_1,
+            test_user_2,
+            test_user_3,
+            dummy_categoria,
+            gasto_1,
+            gasto_2,
+            gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+        categoria_1 = Categoria.objects.create(
+            nombre="custom_1", 
+            vivienda=test_user_1.get_vivienda())
+        categoria_2 = Categoria.objects.create(
+            nombre="custom_2", 
+            vivienda=test_user_3.get_vivienda())
+
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertContains(response, categoria_1)
+        self.assertNotContains(response, categoria_2)
+        self.assertContains(response, dummy_categoria)
+
+    # user can create new categoria
+    def test_user_can_create_custom_categoria(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        categoria_count = Categoria.objects.count()
+        categoria_global_count = Categoria.objects.filter(vivienda=None)
+
+        response = self.client.post(
+            self.url_new,
+            data={
+                "nombre":"custom_1"
+            },
+            follow=True)
+
+        self.assertRedirects(response, self.url)
+        self.assertContains(response, "¡Categoría agregada!")
+        self.assertEqual(
+            categoria_count, 
+            Categoria.objects.count()-1)
+        self.assertEqual(
+            categoria_global_count, 
+            Categoria.objects.filter(vivienda=None).count())
+        categoria_custom = Categoria.objects.exclude(vivienda=None)
+        self.assertEqual(categoria_custom.count(),1)
+        self.assertEqual(
+            categoria_custom.first().nombre, 
+            "custom_1")
+        self.assertEqual(
+            categoria_custom.first().vivienda, 
+            test_user.get_vivienda())
+
+    # user cant create categoria with broken post
+    # --> DO THIS
+
+    # user CANT create custom categoria that already exists as gloabl
+    # user CAN create custom categoria even if another vivienda has the same custom categoria
+    # ---> the primary key is [or should be] (nombre, vivienda)
+
+    # user can "delete" (or hide?) custom categoria <-- can he???? 
+    # ---> this would delete all records of Gastos of that categoria
+
+    def test_pass(self):
+        pass
