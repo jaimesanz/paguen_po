@@ -288,6 +288,24 @@ class ViviendaModelTest(TestCase):
         self.assertEqual(gastos_pendientes_direct.count(), 0)
         self.assertEqual(gastos_pagados_direct.count(), 1)
 
+    def test_add_new_categoria(self):
+        user, vivienda, user_viv = get_vivienda_with_1_user()
+        dummy_categoria = Categoria.objects.create(nombre="dummy1")
+
+        vivienda.add_categoria("dummy2")
+
+        self.assertEqual(
+            Categoria.objects.count(),
+            2)
+        self.assertEqual(
+            ViviendaCategoria.objects.count(),
+            1)
+        viv_cat = ViviendaCategoria.objects.all().first()
+        self.assertFalse(viv_cat.hidden)
+        self.assertTrue(viv_cat.categoria.is_custom)
+        self.assertFalse(viv_cat.categoria.is_global())
+
+
 
 class ViviendaUsuarioModelTest(TestCase):
 
@@ -3888,26 +3906,31 @@ class CategoriaListViewTest(TestCase):
             gasto_1,
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
-        categoria_1 = Categoria.objects.create(
-            nombre="custom_1", 
-            vivienda=test_user_1.get_vivienda())
-        categoria_2 = Categoria.objects.create(
-            nombre="custom_2", 
-            vivienda=test_user_3.get_vivienda())
+        categoria_1 = ViviendaCategoria.objects.create(
+            vivienda=test_user_1.get_vivienda(),
+            categoria=Categoria.objects.create(
+                nombre="custom_1", 
+                is_custom=True))
+        categoria_2 = ViviendaCategoria.objects.create(
+            vivienda=test_user_3.get_vivienda(),
+            categoria=Categoria.objects.create(
+                nombre="custom_2", 
+                is_custom=True))
 
         response = self.client.get(
             self.url,
             follow=True)
 
-        self.assertContains(response, categoria_1)
-        self.assertNotContains(response, categoria_2)
+        self.assertContains(response, categoria_1.categoria)
+        self.assertNotContains(response, categoria_2.categoria)
         self.assertContains(response, dummy_categoria)
 
     # user can create new categoria
     def test_user_can_create_custom_categoria(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
         categoria_count = Categoria.objects.count()
-        categoria_global_count = Categoria.objects.filter(vivienda=None)
+        categoria_global_count = Categoria.objects.filter(
+            is_custom=False).count()
 
         response = self.client.post(
             self.url_new,
@@ -3922,26 +3945,76 @@ class CategoriaListViewTest(TestCase):
             categoria_count, 
             Categoria.objects.count()-1)
         self.assertEqual(
-            categoria_global_count, 
-            Categoria.objects.filter(vivienda=None).count())
-        categoria_custom = Categoria.objects.exclude(vivienda=None)
+            categoria_global_count,
+            Categoria.objects.filter(is_custom=False).count())
+        categoria_custom = Categoria.objects.filter(is_custom=True)
         self.assertEqual(categoria_custom.count(),1)
         self.assertEqual(
             categoria_custom.first().nombre, 
             "custom_1")
-        self.assertEqual(
-            categoria_custom.first().vivienda, 
-            test_user.get_vivienda())
 
     # user cant create categoria with broken post
-    # --> DO THIS
+    def test_user_cant_create_custom_categoria_w_broken_POST(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        categoria_count = Categoria.objects.count()
+        categoria_global_count = Categoria.objects.filter(
+            is_custom=False).count()
 
-    # user CANT create custom categoria that already exists as gloabl
-    # user CAN create custom categoria even if another vivienda has the same custom categoria
-    # ---> the primary key is [or should be] (nombre, vivienda)
+        response = self.client.post(
+            self.url_new,
+            data={
+                "nombre":""
+            },
+            follow=True)
+
+        self.assertRedirects(response, self.url_new)
+        self.assertContains(response, "Debe ingresar un nombre de categoría")
+        self.assertEqual(categoria_count, Categoria.objects.count())
+        self.assertEqual(
+            categoria_global_count,
+            Categoria.objects.filter(is_custom=False).count())
+
+        response = self.client.post(
+            self.url_new,
+            data={
+                "weird_key" : "SQLInj",
+                "not_name_key" : "some_rubbish"
+            },
+            follow=True)
+
+        self.assertRedirects(response, self.url_new)
+        self.assertContains(response, "Debe ingresar un nombre de categoría")
+        self.assertEqual(categoria_count, Categoria.objects.count())
+        self.assertEqual(
+            categoria_global_count,
+            Categoria.objects.filter(is_custom=False).count())
+
+    # user CANT create custom categoria that already exists as global
+    def test_user_cant_create_custom_categoria_that_exists_as_global(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        categoria_count = Categoria.objects.count()
+        categoria_global_count = Categoria.objects.filter(
+            is_custom=False).count()
+
+        response = self.client.post(
+            self.url_new,
+            data={
+                "nombre":"dummy1"
+            },
+            follow=True)
+
+        self.assertRedirects(response, self.url_new)
+        self.assertContains(
+            response,
+            "El nombre ingresado corresponde a una categoría global")
+        self.assertEqual(categoria_count, Categoria.objects.count())
+        self.assertEqual(
+            categoria_global_count,
+            Categoria.objects.filter(is_custom=False).count())
+
+    # user CAN create custom categoria even if another vivienda has the same 
+    # custom categoria ---> the primary 
+    # key is [or should be] (nombre, vivienda)
 
     # user can "delete" (or hide?) custom categoria <-- can he???? 
     # ---> this would delete all records of Gastos of that categoria
-
-    def test_pass(self):
-        pass

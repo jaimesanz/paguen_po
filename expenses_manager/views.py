@@ -277,6 +277,30 @@ def categorias(request):
     return render(request, "vivienda/categorias.html", locals())
 
 @login_required
+def nueva_categoria(request):
+    vivienda = request.user.get_vivienda()
+    if not vivienda:
+        messages.error(
+            request,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+        return HttpResponseRedirect("/error")
+    if request.POST:
+        nueva_categoria_nombre = request.POST.get("nombre", None)
+        if nueva_categoria_nombre:
+            nueva_categoria, mensaje = vivienda.add_categoria(nueva_categoria_nombre)
+            if not nueva_categoria:
+                messages.error(request, mensaje)
+                return HttpResponseRedirect("/vivienda/categorias/new")
+            else:
+                messages.success(request, mensaje)
+                return HttpResponseRedirect("/vivienda/categorias")
+        else:
+            messages.error(request, "Debe ingresar un nombre de categoría")
+            return HttpResponseRedirect("/vivienda/categorias/new")
+    form = CategoriaForm()
+    return render(request, "vivienda/nueva_categoria.html", locals())
+
+@login_required
 def nuevo_gasto(request):
     vivienda_usuario = request.user.get_vu()
     if request.POST:

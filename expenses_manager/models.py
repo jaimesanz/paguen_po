@@ -164,7 +164,12 @@ class Vivienda(models.Model):
         """
         Returns a QuerySet with all Categoria objects related to the Vivienda.
         """
-        return Categoria.objects.filter(Q(vivienda=None) | Q(vivienda=self))
+        vivivienda_custom_categorias = ViviendaCategoria.objects.filter(
+            vivienda=self,
+            hidden=False).values("categoria")
+        return Categoria.objects.filter(
+            Q(is_custom=False) | 
+            Q(nombre__in=vivivienda_custom_categorias))
 
     def get_total_expenses_categoria_period(self, categoria, year_month):
         """
@@ -211,6 +216,34 @@ class Vivienda(models.Model):
             user_that_paid = gasto.usuario.user
             user_expenses[user_that_paid]+= gasto.monto
         return user_expenses
+
+    def add_categoria(self, nombre):
+        """
+        Takes a String representing the name of a new custom Categoria
+        the user wants to create. If there's no Categoria with that name,
+        a new one is created, and a new ViviendaCategoria is created,
+        using the user's Vivienda and the newly created Categoria.
+        Returns a tuple (Categoria, String):
+        - the first element is the newly created categoria, or None
+        if there was any error creating it
+        - the String is a message explaining what happened (it
+        failed for some reason / it finished successfully)
+        """
+        categoria, created = Categoria.objects.get_or_create(nombre=nombre)
+        if not created and categoria.is_global():
+            # it's trying to override a global categoria
+            return (None,
+                "El nombre ingresado corresponde a una categoría global")
+        if created:
+            categoria.is_custom = True
+            categoria.save()
+
+        viv_cat, created = ViviendaCategoria.objects.get_or_create(
+            vivienda=self,
+            categoria=categoria)
+        if created:
+            return (viv_cat, "¡Categoría agregada!")
+        return (None, "La categoría ya esta asociada a su vivienda")
 
     def __str__(self):
         return self.alias
@@ -355,16 +388,28 @@ class Categoria(models.Model):
 
     class Meta:
         ordering = ['nombre']
-    nombre = models.CharField(max_length=100, primary_key=True)
-    vivienda = models.ForeignKey(
-        Vivienda,
-        null=True,
-        blank=True,
-        default=None,
-        on_delete=models.CASCADE)
+    nombre = models.CharField(max_length=100, primary_key=True)    
+    is_custom = models.BooleanField(default=False)
+
+    def is_global(self):
+        """
+        Returns True if the categoria is Global and common for every Vivienda
+        """
+        return not self.is_custom
 
     def __str__(self):
         return self.nombre
+
+class ViviendaCategoria(models.Model):
+
+    vivienda = models.ForeignKey(
+        Vivienda,
+        on_delete=models.CASCADE)
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    hidden = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.vivienda) + "__" + str(self.categoria)
 
 
 class Item(models.Model):

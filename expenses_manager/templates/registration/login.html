@@ -6,7 +6,6 @@
   {% csrf_token %}
   {% bootstrap_form form %}
   {% bootstrap_button "Entrar" button_type="submit" button_class="btn-primary" %}
-  <!-- <input type="submit" value="Entrar" /> -->
   <input type="hidden" name="next" value="{{ next }}" />
 </form>
 <br>

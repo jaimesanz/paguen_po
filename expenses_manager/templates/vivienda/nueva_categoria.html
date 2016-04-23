@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+
+{% block content_title %}{{vivienda}}{% endblock %}
+{% block content %}
+	<h3>Nueva Categoría</h3>
+	<hr>
+
+	<form method="post" action=".">
+	  {% csrf_token %}
+	  {% bootstrap_form form %}
+	  {% bootstrap_button "Crear" button_type="submit" button_class="btn-primary" %}
+	</form>
+{% endblock %}

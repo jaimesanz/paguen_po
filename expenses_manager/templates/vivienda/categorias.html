@@ -1,14 +1,18 @@
 {% extends "base.html" %}
+{% load bootstrap3 %}
 
 {% block content_title %}{{vivienda}}{% endblock %}
 {% block content %}
 	<h3>Categorías</h3>
+	<a href="/vivienda/categorias/new" class="btn btn-warning" role="button">
+		{% bootstrap_icon "plus" %} Nueva Categoría
+	</a>
 	<hr>
 	<div class="row">
 		<div class="col-lg-6">
 			<h4>Globales</h4>
 				{% for c in categorias %}
-					{% if not c.vivienda %}
+					{% if c.is_global %}
 						<p>{{c}}</p>
 					{% endif %}
 				{% endfor %}
@@ -16,7 +20,7 @@
 		<div class="col-lg-6">
 			<h4>Personalizadas</h4>
 				{% for c in categorias %}
-					{% if c.vivienda %}
+					{% if not c.is_global %}
 						<p>{{c}}</p>
 					{% endif %}
 				{% endfor %}

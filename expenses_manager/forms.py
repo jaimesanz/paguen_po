@@ -45,3 +45,9 @@ class PresupuestoEditForm(forms.ModelForm):
     class Meta:
         model = Presupuesto
         fields = ("monto",)
+
+class CategoriaForm(forms.ModelForm):
+
+    class Meta:
+        model = Categoria
+        fields = ("nombre",)

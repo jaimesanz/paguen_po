@@ -7,6 +7,7 @@ from .models import *
 admin.site.register(ProxyUser)
 admin.site.register(Vivienda)
 admin.site.register(ViviendaUsuario)
+admin.site.register(ViviendaCategoria)
 admin.site.register(Invitacion)
 admin.site.register(SolicitudAbandonarVivienda)
 admin.site.register(Categoria)
