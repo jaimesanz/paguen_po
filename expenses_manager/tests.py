@@ -306,7 +306,6 @@ class ViviendaModelTest(TestCase):
         self.assertFalse(viv_cat.categoria.is_global())
 
 
-
 class ViviendaUsuarioModelTest(TestCase):
 
     def test_user_leaves_vivienda(self):
@@ -1895,8 +1894,8 @@ class GastoViviendaPaidListViewTest(TestCase):
         response = self.client.post(
             "/nuevo_gasto/",
             data={
-                "categoria": dummy_categoria, 
-                "monto": 232, 
+                "categoria": dummy_categoria,
+                "monto": 232,
                 "is_paid": "yes"},
             follow=True)
 
@@ -3883,6 +3882,7 @@ class CategoriaListViewTest(TestCase):
             response,
             "/accounts/login/?next=%s" % (self.url))
     # homeless cant see
+
     def test_homeless_user_cant_see_categorias(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
 
@@ -3898,6 +3898,7 @@ class CategoriaListViewTest(TestCase):
             response,
             "Para tener acceso a esta página debe pertenecer a una vivienda")
     # user can only see categorias of his vivienda
+
     def test_user_can_see_categorias_of_active_vivienda_only(self):
         (test_user_1,
             test_user_2,
@@ -3909,12 +3910,12 @@ class CategoriaListViewTest(TestCase):
         categoria_1 = ViviendaCategoria.objects.create(
             vivienda=test_user_1.get_vivienda(),
             categoria=Categoria.objects.create(
-                nombre="custom_1", 
+                nombre="custom_1",
                 is_custom=True))
         categoria_2 = ViviendaCategoria.objects.create(
             vivienda=test_user_3.get_vivienda(),
             categoria=Categoria.objects.create(
-                nombre="custom_2", 
+                nombre="custom_2",
                 is_custom=True))
 
         response = self.client.get(
@@ -3935,22 +3936,22 @@ class CategoriaListViewTest(TestCase):
         response = self.client.post(
             self.url_new,
             data={
-                "nombre":"custom_1"
+                "nombre": "custom_1"
             },
             follow=True)
 
         self.assertRedirects(response, self.url)
         self.assertContains(response, "¡Categoría agregada!")
         self.assertEqual(
-            categoria_count, 
-            Categoria.objects.count()-1)
+            categoria_count,
+            Categoria.objects.count() - 1)
         self.assertEqual(
             categoria_global_count,
             Categoria.objects.filter(is_custom=False).count())
         categoria_custom = Categoria.objects.filter(is_custom=True)
-        self.assertEqual(categoria_custom.count(),1)
+        self.assertEqual(categoria_custom.count(), 1)
         self.assertEqual(
-            categoria_custom.first().nombre, 
+            categoria_custom.first().nombre,
             "custom_1")
 
     # user cant create categoria with broken post
@@ -3963,7 +3964,7 @@ class CategoriaListViewTest(TestCase):
         response = self.client.post(
             self.url_new,
             data={
-                "nombre":""
+                "nombre": ""
             },
             follow=True)
 
@@ -3977,8 +3978,8 @@ class CategoriaListViewTest(TestCase):
         response = self.client.post(
             self.url_new,
             data={
-                "weird_key" : "SQLInj",
-                "not_name_key" : "some_rubbish"
+                "weird_key": "SQLInj",
+                "not_name_key": "some_rubbish"
             },
             follow=True)
 
@@ -3999,7 +4000,7 @@ class CategoriaListViewTest(TestCase):
         response = self.client.post(
             self.url_new,
             data={
-                "nombre":"dummy1"
+                "nombre": "dummy1"
             },
             follow=True)
 
@@ -4012,9 +4013,9 @@ class CategoriaListViewTest(TestCase):
             categoria_global_count,
             Categoria.objects.filter(is_custom=False).count())
 
-    # user CAN create custom categoria even if another vivienda has the same 
-    # custom categoria ---> the primary 
+    # user CAN create custom categoria even if another vivienda has the same
+    # custom categoria ---> the primary
     # key is [or should be] (nombre, vivienda)
 
-    # user can "delete" (or hide?) custom categoria <-- can he???? 
+    # user can "delete" (or hide?) custom categoria <-- can he????
     # ---> this would delete all records of Gastos of that categoria

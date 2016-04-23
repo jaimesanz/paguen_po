@@ -247,12 +247,13 @@ def manage_users(request):
 
 @login_required
 def balance(request):
-    if not request.user.has_vivienda():
+    vivienda = request.user.get_vivienda()
+    if not vivienda:
         messages.error(
             request,
             "Para tener acceso a esta página debe pertenecer a una vivienda")
         return HttpResponseRedirect("/error")
-    user_expenses = request.user.get_vivienda().get_total_expenses_per_active_user()
+    user_expenses = vivienda.get_total_expenses_per_active_user()
     return render(request, "vivienda/balance.html", locals())
 
 
@@ -265,6 +266,7 @@ def abandon(request):
         request.session['user_has_vivienda'] = False
     return HttpResponseRedirect("/home")
 
+
 @login_required
 def categorias(request):
     vivienda = request.user.get_vivienda()
@@ -275,6 +277,7 @@ def categorias(request):
         return HttpResponseRedirect("/error")
     categorias = vivienda.get_categorias()
     return render(request, "vivienda/categorias.html", locals())
+
 
 @login_required
 def nueva_categoria(request):
@@ -287,7 +290,8 @@ def nueva_categoria(request):
     if request.POST:
         nueva_categoria_nombre = request.POST.get("nombre", None)
         if nueva_categoria_nombre:
-            nueva_categoria, mensaje = vivienda.add_categoria(nueva_categoria_nombre)
+            nueva_categoria, mensaje = vivienda.add_categoria(
+                nueva_categoria_nombre)
             if not nueva_categoria:
                 messages.error(request, mensaje)
                 return HttpResponseRedirect("/vivienda/categorias/new")
@@ -299,6 +303,7 @@ def nueva_categoria(request):
             return HttpResponseRedirect("/vivienda/categorias/new")
     form = CategoriaForm()
     return render(request, "vivienda/nueva_categoria.html", locals())
+
 
 @login_required
 def nuevo_gasto(request):
@@ -603,7 +608,8 @@ def nuevo_presupuesto(request):
             "/presupuestos/%d/%d" % (year_month.year,
                                      year_month.month))
     form = PresupuestoForm()
-    form.fields["categoria"].queryset = vivienda_usuario.vivienda.get_categorias()
+    form.fields[
+        "categoria"].queryset = vivienda_usuario.vivienda.get_categorias()
     return render(request, "vivienda/nuevo_presupuesto.html", locals())
 
 

@@ -168,7 +168,7 @@ class Vivienda(models.Model):
             vivienda=self,
             hidden=False).values("categoria")
         return Categoria.objects.filter(
-            Q(is_custom=False) | 
+            Q(is_custom=False) |
             Q(nombre__in=vivivienda_custom_categorias))
 
     def get_total_expenses_categoria_period(self, categoria, year_month):
@@ -210,11 +210,11 @@ class Vivienda(models.Model):
             estado="activo")
         user_expenses = {}
         for u in active_users:
-            user_expenses[u.user]=0
+            user_expenses[u.user] = 0
         gastos_pagados = self.get_gastos_pagados()
         for gasto in gastos_pagados:
             user_that_paid = gasto.usuario.user
-            user_expenses[user_that_paid]+= gasto.monto
+            user_expenses[user_that_paid] += gasto.monto
         return user_expenses
 
     def add_categoria(self, nombre):
@@ -233,7 +233,7 @@ class Vivienda(models.Model):
         if not created and categoria.is_global():
             # it's trying to override a global categoria
             return (None,
-                "El nombre ingresado corresponde a una categoría global")
+                    "El nombre ingresado corresponde a una categoría global")
         if created:
             categoria.is_custom = True
             categoria.save()
@@ -388,7 +388,7 @@ class Categoria(models.Model):
 
     class Meta:
         ordering = ['nombre']
-    nombre = models.CharField(max_length=100, primary_key=True)    
+    nombre = models.CharField(max_length=100, primary_key=True)
     is_custom = models.BooleanField(default=False)
 
     def is_global(self):
@@ -399,6 +399,7 @@ class Categoria(models.Model):
 
     def __str__(self):
         return self.nombre
+
 
 class ViviendaCategoria(models.Model):
 
