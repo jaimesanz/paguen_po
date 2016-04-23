@@ -1,11 +1,95 @@
 {% extends "base.html" %}
+{% load bootstrap3 %}
 
 {% block content_title %}{{request.user.get_vivienda}}{% endblock %}
 {% block content %}
-	<p>¿Qué desea hacer?</p>
-	<p><a href="/manage_users">Gestionar usuarios</a></p>
-	<p><a href="/gastos">Ver Gastos</a></p>
-	<p><a href="/graphs/presupuestos">Visualizar Presupuestos</a></p>
-	<p><a href="/presupuestos">Lista de presupuestos</a></p>
-	<p><a href="/vivienda/categorias">Administrar Categorías</a></p>
+	<hr>
+	<div class="row">
+		<div class="col-lg-3 col-md-6">
+		    <div class="panel panel-primary">
+		        <div class="panel-heading">
+		            <div class="row">
+		                <div class="col-xs-3">
+		                	{% bootstrap_icon "user" %}
+		                </div>
+		                <div class="col-xs-9 text-right">
+		                    <div class="huge">Usuarios</div>
+		                </div>
+		            </div>
+		        </div>
+		        <a href="/manage_users">
+		            <div class="panel-footer">
+		                <span class="pull-left">Administrar</span>
+		                <div class="clearfix"></div>
+		            </div>
+		        </a>
+		    </div>
+		</div>
+		<div class="col-lg-3 col-md-6">
+		    <div class="panel panel-primary">
+		        <div class="panel-heading">
+		            <div class="row">
+		                <div class="col-xs-3">
+		                	{% bootstrap_icon "apple" %}
+		                </div>
+		                <div class="col-xs-9 text-right">
+		                    <div class="huge">Categorías</div>
+		                </div>
+		            </div>
+		        </div>
+		        <a href="/vivienda/categorias">
+		            <div class="panel-footer">
+		                <span class="pull-left">Administrar</span>
+		                <div class="clearfix"></div>
+		            </div>
+		        </a>
+		    </div>
+		</div>
+		<div class="col-lg-3 col-md-6">
+		    <div class="panel panel-primary">
+		        <div class="panel-heading">
+		            <div class="row">
+		                <div class="col-xs-3">
+		                	{% bootstrap_icon "usd" %}
+		                </div>
+		                <div class="col-xs-9 text-right">
+		                    <div class="huge">Gastos</div>
+		                </div>
+		            </div>
+		        </div>
+		        <a href="/gastos">
+		            <div class="panel-footer">
+		                <span class="pull-left">Ver listado</span>
+		                <div class="clearfix"></div>
+		            </div>
+		        </a>
+		    </div>
+		</div>
+		<div class="col-lg-3 col-md-6">
+		    <div class="panel panel-primary">
+		        <div class="panel-heading">
+		            <div class="row">
+		                <div class="col-xs-3">
+		                	{% bootstrap_icon "piggy-bank" %}
+		                </div>
+		                <div class="col-xs-9 text-right">
+		                    <div class="huge">Presupuestos</div>
+		                </div>
+		            </div>
+		        </div>
+		        <a href="/graphs/presupuestos">
+		            <div class="panel-footer">
+		                <span class="pull-left">Ver gráficos</span>
+		                <div class="clearfix"></div>
+		            </div>
+		        </a>
+		        <a href="/presupuestos">
+		            <div class="panel-footer">
+		                <span class="pull-left">Ver listado</span>
+		                <div class="clearfix"></div>
+		            </div>
+		        </a>
+		    </div>
+		</div>
+	</div>
 {% endblock %}
