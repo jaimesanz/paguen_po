@@ -4014,8 +4014,59 @@ class CategoriaListViewTest(TestCase):
             Categoria.objects.filter(is_custom=False).count())
 
     # user CAN create custom categoria even if another vivienda has the same
-    # custom categoria ---> the primary
-    # key is [or should be] (nombre, vivienda)
+    # custom categoria
+    def test_user_can_create_cstm_categoria_that_exists_for_other_viv(self):
+        (test_user_1,
+            test_user_2,
+            test_user_3,
+            dummy_categoria,
+            gasto_1,
+            gasto_2,
+            gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+        custom_categoria = ViviendaCategoria.objects.create(
+            vivienda=test_user_3.get_vivienda(),
+            categoria=Categoria.objects.create(
+                nombre="custom_1",
+                is_custom=True))
+        categoria_count = Categoria.objects.count()
+        categoria_global_count = Categoria.objects.filter(
+            is_custom=False).count()
+        vivienda_categoria_count = ViviendaCategoria.objects.count()
 
-    # user can "delete" (or hide?) custom categoria <-- can he????
-    # ---> this would delete all records of Gastos of that categoria
+        response = self.client.post(
+            self.url_new,
+            data={
+                "nombre": "custom_1"
+            },
+            follow=True)
+
+        self.assertRedirects(response, self.url)
+        self.assertContains(response, "¡Categoría agregada!")
+        self.assertEqual(
+            vivienda_categoria_count,
+            ViviendaCategoria.objects.count() - 1)
+        self.assertEqual(
+            categoria_count,
+            Categoria.objects.count())
+        self.assertEqual(
+            categoria_global_count,
+            Categoria.objects.filter(is_custom=False).count())
+        categoria_custom = Categoria.objects.filter(is_custom=True)
+        self.assertEqual(categoria_custom.count(), 1)
+        self.assertEqual(
+            categoria_custom.first().nombre,
+            "custom_1")
+
+    def test_user_can_hide_categoria(self):
+        # if a user HIDES a categoria, it wont show when the vivienda gets
+        # the list of categorias, but gastos of a hidden categoria
+        # still count towards the common purse
+        self.fail()
+
+    def test_user_cant_delete_global_categoria(self):
+        self.fail()
+
+    def test_user_can_delete_categoria_and_transfer_gastos_to_otros(self):
+        # if a user DELETES a custom categoria, all gastos of this categoria
+        # are transfered to the default "otros" categoria
+        self.fail()
