@@ -10,6 +10,7 @@ import json
 from django.utils import timezone
 from django.contrib import messages
 from expenses_manager.helper_functions import *
+from expenses_manager.custom_decorators import request_passes_test
 
 
 def home(request):
@@ -134,13 +135,11 @@ def invites_list(request):
 
 
 @login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
 def invite_user(request):
     vivienda_usuario = request.user.get_vu()
-    if vivienda_usuario is None:
-        messages.error(
-            request,
-            "Para tener acceso a esta página debe pertenecer a una vivienda")
-        return HttpResponseRedirect("/error")
     if request.POST:
         post = request.POST.copy()
         post['invitado_por'] = vivienda_usuario
@@ -246,13 +245,11 @@ def manage_users(request):
 
 
 @login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
 def balance(request):
     vivienda = request.user.get_vivienda()
-    if not vivienda:
-        messages.error(
-            request,
-            "Para tener acceso a esta página debe pertenecer a una vivienda")
-        return HttpResponseRedirect("/error")
     user_expenses = vivienda.get_total_expenses_per_active_user()
     return render(request, "vivienda/balance.html", locals())
 
@@ -268,25 +265,21 @@ def abandon(request):
 
 
 @login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
 def categorias(request):
     vivienda = request.user.get_vivienda()
-    if not vivienda:
-        messages.error(
-            request,
-            "Para tener acceso a esta página debe pertenecer a una vivienda")
-        return HttpResponseRedirect("/error")
     categorias = vivienda.get_categorias()
     return render(request, "vivienda/categorias.html", locals())
 
 
 @login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
 def nueva_categoria(request):
     vivienda = request.user.get_vivienda()
-    if not vivienda:
-        messages.error(
-            request,
-            "Para tener acceso a esta página debe pertenecer a una vivienda")
-        return HttpResponseRedirect("/error")
     if request.POST:
         nueva_categoria_nombre = request.POST.get("nombre", None)
         if nueva_categoria_nombre:
@@ -347,12 +340,10 @@ def gastos(request):
 
 
 @login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
 def graph_gastos(request):
-    if not request.user.has_vivienda():
-        messages.error(
-            request,
-            "Debe pertenecer a una vivienda para ver esta página")
-        return HttpResponseRedirect("/error")
     vivienda = request.user.get_vivienda()
     today = timezone.now()
     current_year_month = YearMonth.objects.get(
@@ -404,13 +395,11 @@ def detalle_gasto(request, gasto_id):
 
 
 @login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
 def lists(request):
     vivienda_usuario = request.user.get_vu()
-    if vivienda_usuario is None:
-        messages.error(
-            request,
-            "Para tener acceso a esta página debe pertenecer a una vivienda")
-        return HttpResponseRedirect("/error")
     listas_pendientes = ListaCompras.objects.filter(
         usuario_creacion__vivienda=request.user.get_vivienda(),
         estado="pendiente")
@@ -418,13 +407,11 @@ def lists(request):
 
 
 @login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
 def nueva_lista(request):
     if request.POST:
-        if not request.user.has_vivienda():
-            messages.error(
-                request,
-                "Debe pertenecer a una vivienda para ver esta página")
-            return HttpResponseRedirect("/error")
         max_item_index_post = request.POST.get("max_item_index", None)
         if max_item_index_post is None or max_item_index_post == "":
             messages.error(
@@ -529,26 +516,22 @@ def detalle_lista(request, lista_id):
 
 
 @login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
 def presupuestos(request):
     vivienda_usuario = request.user.get_vu()
-    if vivienda_usuario is None:
-        messages.error(
-            request,
-            "Para tener acceso a esta página debe pertenecer a una vivienda")
-        return HttpResponseRedirect("/error")
     today = timezone.now()
     return HttpResponseRedirect(
         "/presupuestos/%d/%d" % (today.year, today.month))
 
 
 @login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
 def presupuestos_period(request, year, month):
     vivienda_usuario = request.user.get_vu()
-    if vivienda_usuario is None:
-        messages.error(
-            request,
-            "Para tener acceso a esta página debe pertenecer a una vivienda")
-        return HttpResponseRedirect("/error")
     this_period = get_object_or_404(
         YearMonth,
         year=year,
@@ -562,13 +545,11 @@ def presupuestos_period(request, year, month):
 
 
 @login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
 def nuevo_presupuesto(request):
     vivienda_usuario = request.user.get_vu()
-    if vivienda_usuario is None:
-        messages.error(
-            request,
-            "Para ver esta página debe pertenecer a una vivienda")
-        return HttpResponseRedirect("/error")
     if request.POST:
         categoria_nombre = request.POST.get("categoria", None)
         if categoria_nombre is None:
@@ -614,24 +595,20 @@ def nuevo_presupuesto(request):
 
 
 @login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
 def graphs_presupuestos(request):
-    if not request.user.has_vivienda():
-        messages.error(
-            request,
-            "Para tener acceso a esta página debe pertenecer a una vivienda")
-        return HttpResponseRedirect("/error")
     today = timezone.now()
     return HttpResponseRedirect(
         "/graphs/presupuestos/%d/%d" % (today.year, today.month))
 
 
 @login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
 def graphs_presupuestos_period(request, year, month):
-    if not request.user.has_vivienda():
-        messages.error(
-            request,
-            "Para tener acceso a esta página debe pertenecer a una vivienda")
-        return HttpResponseRedirect("/error")
     this_period = get_object_or_404(
         YearMonth,
         year=year,
@@ -645,12 +622,10 @@ def graphs_presupuestos_period(request, year, month):
 
 
 @login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
 def edit_presupuesto(request, year, month, categoria):
-    if not request.user.has_vivienda():
-        messages.error(
-            request,
-            "Para tener acceso a esta página debe pertenecer a una vivienda")
-        return HttpResponseRedirect("/error")
     year_month = get_object_or_404(YearMonth, year=year, month=month)
     presupuesto = get_object_or_404(
         Presupuesto,

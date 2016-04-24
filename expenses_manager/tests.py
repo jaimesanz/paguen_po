@@ -3227,7 +3227,7 @@ class NuevoPresupuestoViewTest(TestCase):
             "/error/")
         self.assertContains(
             response,
-            "Para ver esta página debe pertenecer a una vivienda")
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
 
     def test_user_can_see_form(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
