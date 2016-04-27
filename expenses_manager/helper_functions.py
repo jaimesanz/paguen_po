@@ -33,8 +33,8 @@ def get_periods(year0, month0, year1, month1):
 
 def is_valid_year_month_range(year0, month0, year1, month1):
     """
-    Returns True only if the period corresponding to year1,month1 is a date that comes
-    after  the period corresponding to year0,month0.
+    Returns True only if the period corresponding to year1,month1 is a
+    date that comes after the period corresponding to year0,month0.
     """
     return (year0 < year1) or (year0 == year1 and month0 <= month1)
 

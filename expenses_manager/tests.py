@@ -4058,15 +4058,109 @@ class CategoriaListViewTest(TestCase):
             "custom_1")
 
     def test_user_can_hide_categoria(self):
-        # if a user HIDES a categoria, it wont show when the vivienda gets
-        # the list of categorias, but gastos of a hidden categoria
-        # still count towards the common purse
+        """
+        If a user HIDES a categoria, it won't show when the vivienda gets
+        the list of Categorias, but Gastos of a hidden Categoria
+        still count towards the common purse. These Gastos' Categoria will
+        be shown as the default "other" Categoria -> "Otros"
+        """
+        # create users and viviendas
+        (test_user_1,
+            __,
+            __,
+            dummy_categoria,
+            gasto_1,
+            gasto_2,
+            __) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+        vivienda = test_user_1.get_vivienda()
+        gasto_1.pagar(test_user_1)
+        gasto_2.pagar(test_user_1)
+        otros_cat = Categoria.objects.create(nombre="Otros")
+        total_dummy = vivienda.get_total_expenses_categoria_period(
+            categoria=dummy_categoria,
+            year_month=gasto_1.year_month)
+        total_otros = vivienda.get_total_expenses_categoria_period(
+            categoria=otros_cat,
+            year_month=gasto_1.year_month)
+        # check that categoria is not hidden (database)
+        self.assertFalse(dummy_categoria.is_hidden(vivienda))
+        self.assertEqual(total_otros, 0)
+        self.assertEqual(total_dummy, gasto_1.monto + gasto_2.monto)
+        # user send POST to hide categoria
+        response = self.client.post(
+            self.url,
+            data={
+                "categoria": "dummy1"
+            },
+            follow=True)
+        # user is redirected to same page
+        self.assertRedirects(response, self.url)
+        # check that categoria is hidden (database)
+        self.assertTrue(dummy_categoria.is_hidden(vivienda))
+        # get total of "Otros" Gastos, and check that it's the same as the
+        # sum of hidden gastos
+        total_dummy = vivienda.get_total_expenses_categoria_period(
+            categoria=dummy_categoria,
+            year_month=gasto_1.year_month)
+        total_otros = vivienda.get_total_expenses_categoria_period(
+            categoria=otros_cat,
+            year_month=gasto_1.year_month)
+        self.assertEqual(total_dummy, 0)
+        self.assertEqual(total_otros, gasto_1.monto + gasto_2.monto)
+
+    def test_user_can_unhide_categoria(self):
+        """
+        if a user UN-HIDES a categoria, it will show when the vivienda gets
+        the list of categorias
+        """
+        (test_user_1,
+            __,
+            __,
+            dummy_categoria,
+            gasto_1,
+            gasto_2,
+            __) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+        gasto_1.pagar(test_user_1)
+        gasto_2.pagar(test_user_1)
+        vivienda = test_user_1.get_vivienda()
+        # hide categoria
+        dummy_categoria.hide(vivienda)
+        otros_cat = Categoria.objects.create(nombre="Otros")
+        # get total expenses
+        total_dummy = vivienda.get_total_expenses_categoria_period(
+            categoria=dummy_categoria,
+            year_month=gasto_1.year_month)
+        total_otros = vivienda.get_total_expenses_categoria_period(
+            categoria=otros_cat,
+            year_month=gasto_1.year_month)
+        # check that categoria is hidden (database)
+        self.assertTrue(dummy_categoria.is_hidden(vivienda))
+        # user send POST to un-hide categoria
+        response = self.client.post(
+            self.url,
+            data={
+                "categoria": "dummy1"
+            },
+            follow=True)
+        # user is redirected to same page
+        self.assertRedirects(response, self.url)
+        # check that categoria is not hidden (database)
+        self.assertFalse(dummy_categoria.is_hidden(vivienda))
+        total_dummy = vivienda.get_total_expenses_categoria_period(
+            categoria=dummy_categoria,
+            year_month=gasto_1.year_month)
+        total_otros = vivienda.get_total_expenses_categoria_period(
+            categoria=otros_cat,
+            year_month=gasto_1.year_month)
+        self.assertEqual(total_dummy, gasto_1.monto + gasto_2.monto)
+        self.assertEqual(total_otros, 0)
+
+    def test_user_can_delete_categoria_and_transfer_gastos_to_otros(self):
+        """
+        if a user DELETES a custom categoria, all gastos of this categoria
+        are transfered to the default "otros" categoria
+        """
         self.fail()
 
     def test_user_cant_delete_global_categoria(self):
-        self.fail()
-
-    def test_user_can_delete_categoria_and_transfer_gastos_to_otros(self):
-        # if a user DELETES a custom categoria, all gastos of this categoria
-        # are transfered to the default "otros" categoria
         self.fail()

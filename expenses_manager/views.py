@@ -270,7 +270,18 @@ def abandon(request):
                      redirect_field_name=None)
 def categorias(request):
     vivienda = request.user.get_vivienda()
-    categorias = vivienda.get_categorias()
+    if request.POST:
+        categoria_nombre = request.POST.get("categoria", None)
+        if categoria_nombre is not None and categoria_nombre != "":
+            categoria = get_object_or_404(Categoria, nombre=categoria_nombre)
+            categoria.toggle(vivienda)
+            return HttpResponseRedirect("/vivienda/categorias")
+        else:
+            messages.error(
+                request,
+                "Se produjo un error procesando la solicitud")
+            return HttpResponseRedirect("/error")
+    categorias = vivienda.get_all_vivienda_categorias_with_is_hidden_field()
     return render(request, "vivienda/categorias.html", locals())
 
 
