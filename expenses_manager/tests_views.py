@@ -8,7 +8,6 @@ from expenses_manager.views import *
 from .helper_functions_tests import *
 
 
-
 class HomePageTest(TestCase):
 
     def test_basics_root_url(self):
@@ -2980,7 +2979,6 @@ class NewItemTest(TestCase):
         self.assertEqual(
             Item.objects.filter(nombre="customizimo").count(),
             1)
-
 
     def test_user_cant_create_item_with_broken_POST(self):
         test_user = get_setup_with_gastos_items_and_listas(self)

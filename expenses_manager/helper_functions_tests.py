@@ -55,7 +55,6 @@ def get_dummy_lista_with_2_items(user_viv):
     return lista, item_1, item_lista_1, item_2, item_lista_2
 
 
-
 def get_test_user():
     user = ProxyUser.objects.create(username="test_user_1", email="a@a.com")
     user.set_password("holahola")

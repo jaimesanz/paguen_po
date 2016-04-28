@@ -356,6 +356,7 @@ def delete_categoria(request):
 
     return HttpResponseRedirect("/vivienda/categorias")
 
+
 @login_required
 @request_passes_test(user_has_vivienda,
                      login_url="/error/",
@@ -364,6 +365,7 @@ def items(request):
     vivienda = request.user.get_vivienda()
     items = vivienda.get_items()
     return render(request, "vivienda/items.html", locals())
+
 
 @login_required
 @request_passes_test(user_has_vivienda,
@@ -383,6 +385,7 @@ def new_item(request):
                 "Se produjo un error procesando los datos ingresados")
             return HttpResponseRedirect("/vivienda/items")
     return HttpResponseRedirect("/error")
+
 
 @login_required
 def nuevo_gasto(request):
