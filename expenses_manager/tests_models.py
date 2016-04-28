@@ -5,6 +5,8 @@ from expenses_manager.models import *
 ##########################
 # Helper functions
 ##########################
+
+
 def get_lone_user():
     return ProxyUser.objects.create(username="us1", email="a@a.com")
 
@@ -59,7 +61,7 @@ def get_dummy_lista_with_2_items(user_viv):
 
 
 ##########################
-# Model Tests
+# Tests
 ##########################
 
 class ProxyUserModelTest(TestCase):

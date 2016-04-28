@@ -12,6 +12,7 @@ from .tests_models import get_vivienda_with_1_user, get_lone_user
 # Helper functions
 ##########################
 
+
 def get_test_user():
     user = ProxyUser.objects.create(username="test_user_1", email="a@a.com")
     user.set_password("holahola")
@@ -32,12 +33,13 @@ def get_test_user_with_vivienda_and_login(test):
         vivienda=vivienda, user=test_user)
     return test_user, vivienda, test_user_viv
 
-# creates a vivienda with 2 users (and logs in 1 of them),
-# and another vivienda with 1 user
-# returns the user that is logged in, his roommate and the third one
-
 
 def get_basic_setup_and_login_user_1(test):
+    """
+    Creates a Vivienda with 2 users (and logs in 1 of them),
+    and another vivienda with 1 user.
+    Returns the user that is logged in, his roommate and the third one
+    """
     # get first user
     (test_user_1,
         vivienda_A,
@@ -101,13 +103,15 @@ def get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(test):
             gasto_2,
             gasto_3)
 
-# the same as get_setup_viv_2_users_viv_1_user_cat_1_gastos_3 plus 3 dummy
-# items and a 2 dummy lista: one for the logged user's vivienda with items A
-# and B, and one for the other vivienda with item A.
-# returns the user that's logged in
-
 
 def get_setup_with_gastos_items_and_listas(test):
+    """
+    The same as get_setup_viv_2_users_viv_1_user_cat_1_gastos_3, plus 3 dummy
+    items and 2 dummy Listas:
+    - one for the logged user's vivienda with items A and B
+    - one for the other vivienda with item C
+    Returns the user that's logged in
+    """
     (test_user_1,
         test_user_2,
         test_user_3,
@@ -142,9 +146,6 @@ def get_setup_with_gastos_items_and_listas(test):
         item=item_3, lista=lista_2, cantidad_solicitada=3)
 
     return test_user_1
-
-# check navbar
-##################
 
 
 def has_navbar_without_vivienda(test, response, status_code=200):
@@ -192,12 +193,11 @@ def has_logged_navbar_with_viv(test, response, test_user, status_code=200):
     # has no vivienda
     has_navbar_with_vivienda(test, response, status_code)
 
-# test basics
-##################
-# tests template loaded, corect html, resolves to correct view function
-
 
 def test_the_basics(test, url, template_name, view_func):
+    """
+    Tests: template loaded, corect html, resolves to correct view function
+    """
     found = resolve(url)
     response = test.client.get(url, follow=True)
 
@@ -206,11 +206,11 @@ def test_the_basics(test, url, template_name, view_func):
 
     return response
 
-# tests the basics and checks navbar is logged out
-
 
 def test_the_basics_not_logged_in(test, url, template_name, view_func):
-
+    """
+    Tests the basics and checks navbar is logged out
+    """
     response = test_the_basics(test, url, template_name, view_func)
     has_not_logged_navbar(test, response)
 
@@ -250,14 +250,17 @@ def execute_test_basics_logged_with_viv(test, url, template_name, view_func):
 
 
 def execute_test_the_basics_not_logged_in_restricted(test, url):
-    # check that i was redirected to login page
+    """
+    Checks that the user was redirected to login page
+    """
     response = test.client.get(url)
 
     test.assertRedirects(response, "/accounts/login/?next=" + url)
 
-# classes
-##################
 
+##########################
+# Tests
+##########################
 
 class HomePageTest(TestCase):
 
