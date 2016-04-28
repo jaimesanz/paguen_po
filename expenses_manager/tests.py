@@ -4304,3 +4304,49 @@ class CategoriaListViewTest(TestCase):
         self.assertEqual(
             Gasto.objects.filter(categoria=otros_cat).count(),
             0)
+
+class ItemListTest(TestCase):
+
+    url = "/vivienda/items/"
+
+    def test_not_logged_user_cant_see_items(self):
+        self.fail()
+
+    def test_homeless_user_cant_see_items(self):
+        self.fail()
+
+    def test_user_can_see_items_of_his_vivienda_only(self):
+        self.fail()
+
+class NewItemTest(TestCase):
+
+    url_new = "/vivienda/items/new/"
+
+    def test_not_logged_user_cant_create_item(self):
+        self.fail()
+
+    def test_homeless_user_cant_create_item(self):
+        self.fail()
+
+    def test_user_can_create_custom_item(self):
+        self.fail()
+
+    def test_user_cant_create_item_with_broken_POST(self):
+        self.fail()
+
+class EditItemViewTest(TestCase):
+
+    def test_not_logged_user_cant_edit_item(self):
+        self.fail()
+
+    def test_homeless_user_cant_edit_item(self):
+        self.fail()
+
+    def test_user_cant_edit_item_of_other_vivienda(self):
+        self.fail()
+
+    def test_user_can_edit_item_of_own_vivienda(self):
+        self.fail()
+
+    def test_user_cant_edit_item_with_broken_POST(self):
+        self.fail()
