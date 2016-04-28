@@ -297,13 +297,9 @@ class ViviendaModelTest(TestCase):
         self.assertEqual(
             Categoria.objects.count(),
             2)
-        self.assertEqual(
-            ViviendaCategoria.objects.count(),
-            1)
-        viv_cat = ViviendaCategoria.objects.all().first()
+        viv_cat = Categoria.objects.filter(vivienda=vivienda).first()
         self.assertFalse(viv_cat.hidden)
-        self.assertTrue(viv_cat.categoria.is_custom)
-        self.assertFalse(viv_cat.categoria.is_global())
+        self.assertFalse(viv_cat.is_global())
 
 
 class ViviendaUsuarioModelTest(TestCase):
@@ -502,7 +498,9 @@ class PresupuestoModelTest(TestCase):
     def test_get_total_expenses_returns_0_if_there_are_no_Gastos(self):
         user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
         presupuesto = Presupuesto.objects.create(
-            categoria=Categoria.objects.create(nombre="dummy"),
+            categoria=Categoria.objects.create(
+                nombre="dummy",
+                vivienda=correct_vivienda),
             vivienda=correct_vivienda,
             monto=10000)
 
@@ -510,7 +508,9 @@ class PresupuestoModelTest(TestCase):
 
     def test_get_total_expenses_returns_0_if_there_are_no_paid_Gastos(self):
         user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
-        dummy_categoria = Categoria.objects.create(nombre="dummy")
+        dummy_categoria = Categoria.objects.create(
+            nombre="dummy",
+            vivienda=correct_vivienda)
         presupuesto = Presupuesto.objects.create(
             categoria=dummy_categoria,
             vivienda=correct_vivienda,
@@ -530,7 +530,9 @@ class PresupuestoModelTest(TestCase):
 
     def test_get_total_expenses_works_with_mix_of_pending_and_paid(self):
         user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
-        dummy_categoria = Categoria.objects.create(nombre="dummy")
+        dummy_categoria = Categoria.objects.create(
+            nombre="dummy",
+            vivienda=correct_vivienda)
         presupuesto = Presupuesto.objects.create(
             categoria=dummy_categoria,
             vivienda=correct_vivienda,
@@ -551,8 +553,12 @@ class PresupuestoModelTest(TestCase):
 
     def test_get_total_expenses_works_with_mix_of_categorias(self):
         user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
-        dummy_categoria_1 = Categoria.objects.create(nombre="dummy1")
-        dummy_categoria_2 = Categoria.objects.create(nombre="dummy2")
+        dummy_categoria_1 = Categoria.objects.create(
+            nombre="dummy1",
+            vivienda=correct_vivienda)
+        dummy_categoria_2 = Categoria.objects.create(
+            nombre="dummy2",
+            vivienda=correct_vivienda)
         presupuesto = Presupuesto.objects.create(
             categoria=dummy_categoria_1,
             vivienda=correct_vivienda,
@@ -1243,19 +1249,25 @@ def get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(test):
     test_user_1, test_user_2, test_user_3 = get_basic_setup_and_login_user_1(
         test)
 
-    dummy_categoria = Categoria.objects.create(nombre="dummy1")
+    dummy_categoria_global = Categoria.objects.create(nombre="dummy1")
+    dummy_categoria_viv1 = Categoria.objects.create(
+        nombre="dummy1",
+        vivienda=test_user_1.get_vivienda())
+    dummy_categoria_viv2 = Categoria.objects.create(
+        nombre="dummy1",
+        vivienda=test_user_3.get_vivienda())
     gasto_1 = Gasto.objects.create(
         monto=111,
         creado_por=test_user_1.get_vu(),
-        categoria=dummy_categoria)
+        categoria=dummy_categoria_viv1)
     gasto_2 = Gasto.objects.create(
         monto=222,
         creado_por=test_user_2.get_vu(),
-        categoria=dummy_categoria)
+        categoria=dummy_categoria_viv1)
     gasto_3 = Gasto.objects.create(
         monto=333,
         creado_por=test_user_3.get_vu(),
-        categoria=dummy_categoria)
+        categoria=dummy_categoria_viv2)
 
     test.assertEqual(Gasto.objects.filter(
         estado__estado="pendiente").count(), 3)
@@ -1272,7 +1284,7 @@ def get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(test):
     return (test_user_1,
             test_user_2,
             test_user_3,
-            dummy_categoria,
+            dummy_categoria_viv1,
             gasto_1,
             gasto_2,
             gasto_3)
@@ -1801,7 +1813,10 @@ class GastoViviendaPendingListViewTest(TestCase):
 
         response = self.client.post(
             "/nuevo_gasto/",
-            data={"categoria": dummy_categoria, "monto": 232},
+            data={
+                "categoria": dummy_categoria.id,
+                "monto": 232
+            },
             follow=True)
 
         self.assertRedirects(response, "/error/")
@@ -1822,8 +1837,11 @@ class GastoViviendaPendingListViewTest(TestCase):
 
         response = self.client.post(
             "/nuevo_gasto/",
-            data={"categoria": dummy_categoria,
-                  "monto": 232, "is_paid": "no"},
+            data={
+                "categoria": dummy_categoria.id,
+                "monto": 232,
+                "is_paid": "no"
+            },
             follow=True)
 
         self.assertRedirects(response, "/gastos/")
@@ -1894,9 +1912,10 @@ class GastoViviendaPaidListViewTest(TestCase):
         response = self.client.post(
             "/nuevo_gasto/",
             data={
-                "categoria": dummy_categoria,
+                "categoria": dummy_categoria.id,
                 "monto": 232,
-                "is_paid": "yes"},
+                "is_paid": "yes"
+            },
             follow=True)
 
         self.assertRedirects(response, "/gastos/")
@@ -2886,6 +2905,7 @@ class PresupuestoViewTest(TestCase):
 
     def test_user_can_see_presupuestos_for_any_categoria_in_this_period(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
         now = timezone.now()
         this_period, __ = YearMonth.objects.get_or_create(
             year=now.year, month=now.month)
@@ -2893,14 +2913,18 @@ class PresupuestoViewTest(TestCase):
         next_period, __ = YearMonth.objects.get_or_create(
             year=next_year, month=next_month)
         presupuesto_cat1 = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
-            vivienda=test_user.get_vivienda(),
+            categoria=Categoria.objects.create(
+                nombre="d1",
+                vivienda=vivienda),
+            vivienda=vivienda,
             year_month=this_period,
             monto=12345)
 
         presupuesto_cat2 = Presupuesto.objects.create(
-            categoria=Categoria.objects.create(nombre="dummy2"),
-            vivienda=test_user.get_vivienda(),
+            categoria=Categoria.objects.create(
+                nombre="d2",
+                vivienda=vivienda),
+            vivienda=vivienda,
             year_month=this_period,
             monto=54321)
         response = self.client.get(
@@ -2926,8 +2950,11 @@ class PresupuestoGraphsTest(TestCase):
 
     def test_not_logged_user_cant_see_presupuestos_graph(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
+        cat = Categoria.objects.create(
+            nombre="dumdum",
+            vivienda=test_user.get_vivienda())
         presupuesto = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=cat,
             vivienda=test_user.get_vivienda(),
             monto=12345)
 
@@ -2945,8 +2972,11 @@ class PresupuestoGraphsTest(TestCase):
 
     def test_homeless_user_cant_see_presupuestos_graph(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
+        cat = Categoria.objects.create(
+            nombre="dumdum",
+            vivienda=test_user.get_vivienda())
         presupuesto = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=cat,
             vivienda=test_user.get_vivienda(),
             monto=12345)
         test_user.get_vu().leave()
@@ -2969,9 +2999,11 @@ class PresupuestoGraphsTest(TestCase):
             categoria=Categoria.objects.all().first(),
             vivienda=test_user.get_vivienda(),
             monto=12345)
-
+        cat = Categoria.objects.create(
+            nombre="dumdum",
+            vivienda=test_user.get_vivienda())
         other_presupuesto = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=cat,
             vivienda=other_vivienda,
             monto=54321)
         response = self.client.get(
@@ -2991,8 +3023,11 @@ class PresupuestoGraphsTest(TestCase):
         new_vivienda = Vivienda.objects.create(alias="my_new_viv")
         new_viv_usuario = ViviendaUsuario.objects.create(
             user=test_user, vivienda=new_vivienda)
+        cat = Categoria.objects.create(
+            nombre="dumdum",
+            vivienda=test_user.get_vivienda())
         presupuesto_new = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=cat,
             vivienda=test_user.get_vivienda(),
             monto=54321)
         response = self.client.get(
@@ -3032,14 +3067,17 @@ class PresupuestoGraphsTest(TestCase):
         next_year, next_month = this_period.get_next_period()
         next_period, __ = YearMonth.objects.get_or_create(
             year=next_year, month=next_month)
+        cat = Categoria.objects.create(
+            nombre="dumdum",
+            vivienda=test_user.get_vivienda())
         presupuesto_now = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=cat,
             vivienda=test_user.get_vivienda(),
             year_month=this_period,
             monto=12345)
 
         presupuesto_next = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=cat,
             vivienda=test_user.get_vivienda(),
             year_month=next_period,
             monto=54321)
@@ -3058,14 +3096,17 @@ class PresupuestoGraphsTest(TestCase):
         next_year, next_month = this_period.get_next_period()
         next_period, __ = YearMonth.objects.get_or_create(
             year=next_year, month=next_month)
+        cat = Categoria.objects.create(
+            nombre="dumdum",
+            vivienda=test_user.get_vivienda())
         presupuesto_now = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=cat,
             vivienda=test_user.get_vivienda(),
             year_month=this_period,
             monto=12345)
 
         presupuesto_next = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=cat,
             vivienda=test_user.get_vivienda(),
             year_month=next_period,
             monto=54321)
@@ -3083,14 +3124,17 @@ class PresupuestoGraphsTest(TestCase):
         prev_year, prev_month = this_period.get_prev_period()
         prev_period, __ = YearMonth.objects.get_or_create(
             year=prev_year, month=prev_month)
+        cat = Categoria.objects.create(
+            nombre="dumdum",
+            vivienda=test_user.get_vivienda())
         presupuesto_now = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=cat,
             vivienda=test_user.get_vivienda(),
             year_month=this_period,
             monto=12345)
 
         presupuesto_prev = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=cat,
             vivienda=test_user.get_vivienda(),
             year_month=prev_period,
             monto=54321)
@@ -3108,14 +3152,17 @@ class PresupuestoGraphsTest(TestCase):
         next_year, next_month = this_period.get_next_period()
         next_period, __ = YearMonth.objects.get_or_create(
             year=next_year, month=next_month)
+        cat = Categoria.objects.create(
+            nombre="dumdum",
+            vivienda=test_user.get_vivienda())
         presupuesto_now = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=cat,
             vivienda=test_user.get_vivienda(),
             year_month=this_period,
             monto=12345)
 
         presupuesto_next = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=cat,
             vivienda=test_user.get_vivienda(),
             year_month=next_period,
             monto=54321)
@@ -3133,14 +3180,17 @@ class PresupuestoGraphsTest(TestCase):
         next_year, next_month = this_period.get_next_period()
         next_period, __ = YearMonth.objects.get_or_create(
             year=next_year, month=next_month)
+        cat = Categoria.objects.create(
+            nombre="dumdum",
+            vivienda=test_user.get_vivienda())
         presupuesto_now = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=cat,
             vivienda=test_user.get_vivienda(),
             year_month=this_period,
             monto=12345)
 
         presupuesto_next = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=cat,
             vivienda=test_user.get_vivienda(),
             year_month=next_period,
             monto=54321)
@@ -3157,6 +3207,7 @@ class PresupuestoGraphsTest(TestCase):
 
     def test_user_can_see_presupuestos_for_any_categoria_in_this_period(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
         now = timezone.now()
         this_period, __ = YearMonth.objects.get_or_create(
             year=now.year, month=now.month)
@@ -3164,14 +3215,18 @@ class PresupuestoGraphsTest(TestCase):
         next_period, __ = YearMonth.objects.get_or_create(
             year=next_year, month=next_month)
         presupuesto_cat1 = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
-            vivienda=test_user.get_vivienda(),
+            categoria=Categoria.objects.create(
+                nombre="d1",
+                vivienda=vivienda),
+            vivienda=vivienda,
             year_month=this_period,
             monto=12345)
 
         presupuesto_cat2 = Presupuesto.objects.create(
-            categoria=Categoria.objects.create(nombre="dummy2"),
-            vivienda=test_user.get_vivienda(),
+            categoria=Categoria.objects.create(
+                nombre="d2",
+                vivienda=vivienda),
+            vivienda=vivienda,
             year_month=this_period,
             monto=54321)
         response = self.client.get(
@@ -3196,7 +3251,7 @@ class NuevoPresupuestoViewTest(TestCase):
         response = self.client.post(
             "/presupuestos/new/",
             data={
-                "categoria": categoria.nombre,
+                "categoria": categoria.id,
                 "year_month": this_period.id,
                 "monto": 10000
             },
@@ -3217,7 +3272,7 @@ class NuevoPresupuestoViewTest(TestCase):
         response = self.client.post(
             "/presupuestos/new/",
             data={
-                "categoria": categoria.nombre,
+                "categoria": categoria.id,
                 "year_month": this_period.id,
                 "monto": 10000
             },
@@ -3251,7 +3306,7 @@ class NuevoPresupuestoViewTest(TestCase):
         response = self.client.post(
             "/presupuestos/new/",
             data={
-                "categoria": categoria.nombre,
+                "categoria": categoria.id,
                 "year_month": this_period.id
             },
             follow=True)
@@ -3263,7 +3318,7 @@ class NuevoPresupuestoViewTest(TestCase):
         response = self.client.post(
             "/presupuestos/new/",
             data={
-                "categoria": categoria.nombre,
+                "categoria": categoria.id,
                 "monto": 10000
             },
             follow=True)
@@ -3288,7 +3343,9 @@ class NuevoPresupuestoViewTest(TestCase):
 
     def test_user_can_create_new_presupuesto_for_current_period(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
-        categoria = Categoria.objects.all().first()
+        categoria = Categoria.objects.create(
+            nombre="dumdum",
+            vivienda=test_user.get_vivienda())
         now = timezone.now()
         this_period, __ = YearMonth.objects.get_or_create(
             year=now.year, month=now.month)
@@ -3298,7 +3355,7 @@ class NuevoPresupuestoViewTest(TestCase):
         response = self.client.post(
             "/presupuestos/new/",
             data={
-                "categoria": categoria.nombre,
+                "categoria": categoria.id,
                 "year_month": this_period.id,
                 "monto": 10000
             },
@@ -3322,7 +3379,9 @@ class NuevoPresupuestoViewTest(TestCase):
 
     def test_user_can_create_new_presupuesto_for_other_period(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
-        categoria = Categoria.objects.all().first()
+        categoria = Categoria.objects.create(
+            nombre="dumdum",
+            vivienda=test_user.get_vivienda())
         now = timezone.now()
         this_period, __ = YearMonth.objects.get_or_create(
             year=now.year, month=now.month)
@@ -3335,7 +3394,7 @@ class NuevoPresupuestoViewTest(TestCase):
         response = self.client.post(
             "/presupuestos/new/",
             data={
-                "categoria": categoria.nombre,
+                "categoria": categoria.id,
                 "year_month": other_period.id,
                 "monto": 10000
             },
@@ -3359,7 +3418,9 @@ class NuevoPresupuestoViewTest(TestCase):
 
     def test_user_cant_create_presupuesto_if_it_already_exists(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
-        categoria = Categoria.objects.all().first()
+        categoria = Categoria.objects.create(
+            nombre="dumdum",
+            vivienda=test_user.get_vivienda())
         now = timezone.now()
         this_period, __ = YearMonth.objects.get_or_create(
             year=now.year, month=now.month)
@@ -3369,7 +3430,7 @@ class NuevoPresupuestoViewTest(TestCase):
         response = self.client.post(
             "/presupuestos/new/",
             data={
-                "categoria": categoria.nombre,
+                "categoria": categoria.id,
                 "year_month": this_period.id,
                 "monto": 10000
             },
@@ -3392,7 +3453,7 @@ class NuevoPresupuestoViewTest(TestCase):
         response = self.client.post(
             "/presupuestos/new/",
             data={
-                "categoria": categoria.nombre,
+                "categoria": categoria.id,
                 "year_month": this_period.id,
                 "monto": 20000
             },
@@ -3488,17 +3549,24 @@ class EditPresupuestoTest(TestCase):
 
     def test_past_user_cant_see_presupuesto_of_old_vivienda(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
+        cat_old = Categoria.objects.create(
+            nombre="common_name",
+            vivienda=vivienda)
         presupuesto_old = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
-            vivienda=test_user.get_vivienda(),
+            categoria=cat_old,
+            vivienda=vivienda,
             monto=12345)
         test_user.get_vu().leave()
         new_vivienda = Vivienda.objects.create(alias="my_new_viv")
         new_viv_usuario = ViviendaUsuario.objects.create(
             user=test_user, vivienda=new_vivienda)
+        cat_new = Categoria.objects.create(
+            nombre="common_name",
+            vivienda=new_vivienda)
         presupuesto_new = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
-            vivienda=test_user.get_vivienda(),
+            categoria=cat_new,
+            vivienda=new_vivienda,
             monto=54321)
         url = "/presupuestos/%d/%d/%s/" % (
             presupuesto_old.year_month.year,
@@ -3508,8 +3576,12 @@ class EditPresupuestoTest(TestCase):
             url,
             follow=True)
 
-        self.assertNotContains(response, presupuesto_old.monto)
-        self.assertContains(response, presupuesto_new.monto)
+        self.assertNotContains(
+            response,
+            presupuesto_old.monto)
+        self.assertContains(
+            response,
+            presupuesto_new.monto)
 
     def test_non_existant_presupuesto_raises_404(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -3907,32 +3979,25 @@ class CategoriaListViewTest(TestCase):
             gasto_1,
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
-        categoria_1 = ViviendaCategoria.objects.create(
+        categoria_1 = Categoria.objects.create(
             vivienda=test_user_1.get_vivienda(),
-            categoria=Categoria.objects.create(
-                nombre="custom_1",
-                is_custom=True))
-        categoria_2 = ViviendaCategoria.objects.create(
+            nombre="custom_1")
+        categoria_2 = Categoria.objects.create(
             vivienda=test_user_3.get_vivienda(),
-            categoria=Categoria.objects.create(
-                nombre="custom_2",
-                is_custom=True))
+            nombre="custom_2")
 
         response = self.client.get(
             self.url,
             follow=True)
 
-        self.assertContains(response, categoria_1.categoria)
-        self.assertNotContains(response, categoria_2.categoria)
+        self.assertContains(response, categoria_1)
+        self.assertNotContains(response, categoria_2)
         self.assertContains(response, dummy_categoria)
 
     # user can create new categoria
     def test_user_can_create_custom_categoria(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
         categoria_count = Categoria.objects.count()
-        categoria_global_count = Categoria.objects.filter(
-            is_custom=False).count()
-
         response = self.client.post(
             self.url_new,
             data={
@@ -3945,21 +4010,11 @@ class CategoriaListViewTest(TestCase):
         self.assertEqual(
             categoria_count,
             Categoria.objects.count() - 1)
-        self.assertEqual(
-            categoria_global_count,
-            Categoria.objects.filter(is_custom=False).count())
-        categoria_custom = Categoria.objects.filter(is_custom=True)
-        self.assertEqual(categoria_custom.count(), 1)
-        self.assertEqual(
-            categoria_custom.first().nombre,
-            "custom_1")
 
     # user cant create categoria with broken post
     def test_user_cant_create_custom_categoria_w_broken_POST(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
         categoria_count = Categoria.objects.count()
-        categoria_global_count = Categoria.objects.filter(
-            is_custom=False).count()
 
         response = self.client.post(
             self.url_new,
@@ -3971,9 +4026,6 @@ class CategoriaListViewTest(TestCase):
         self.assertRedirects(response, self.url_new)
         self.assertContains(response, "Debe ingresar un nombre de categoría")
         self.assertEqual(categoria_count, Categoria.objects.count())
-        self.assertEqual(
-            categoria_global_count,
-            Categoria.objects.filter(is_custom=False).count())
 
         response = self.client.post(
             self.url_new,
@@ -3986,16 +4038,11 @@ class CategoriaListViewTest(TestCase):
         self.assertRedirects(response, self.url_new)
         self.assertContains(response, "Debe ingresar un nombre de categoría")
         self.assertEqual(categoria_count, Categoria.objects.count())
-        self.assertEqual(
-            categoria_global_count,
-            Categoria.objects.filter(is_custom=False).count())
 
     # user CANT create custom categoria that already exists as global
     def test_user_cant_create_custom_categoria_that_exists_as_global(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
         categoria_count = Categoria.objects.count()
-        categoria_global_count = Categoria.objects.filter(
-            is_custom=False).count()
 
         response = self.client.post(
             self.url_new,
@@ -4009,9 +4056,6 @@ class CategoriaListViewTest(TestCase):
             response,
             "El nombre ingresado corresponde a una categoría global")
         self.assertEqual(categoria_count, Categoria.objects.count())
-        self.assertEqual(
-            categoria_global_count,
-            Categoria.objects.filter(is_custom=False).count())
 
     # user CAN create custom categoria even if another vivienda has the same
     # custom categoria
@@ -4023,15 +4067,10 @@ class CategoriaListViewTest(TestCase):
             gasto_1,
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
-        custom_categoria = ViviendaCategoria.objects.create(
+        custom_categoria = Categoria.objects.create(
             vivienda=test_user_3.get_vivienda(),
-            categoria=Categoria.objects.create(
-                nombre="custom_1",
-                is_custom=True))
+            nombre="custom_1")
         categoria_count = Categoria.objects.count()
-        categoria_global_count = Categoria.objects.filter(
-            is_custom=False).count()
-        vivienda_categoria_count = ViviendaCategoria.objects.count()
 
         response = self.client.post(
             self.url_new,
@@ -4043,19 +4082,8 @@ class CategoriaListViewTest(TestCase):
         self.assertRedirects(response, self.url)
         self.assertContains(response, "¡Categoría agregada!")
         self.assertEqual(
-            vivienda_categoria_count,
-            ViviendaCategoria.objects.count() - 1)
-        self.assertEqual(
             categoria_count,
-            Categoria.objects.count())
-        self.assertEqual(
-            categoria_global_count,
-            Categoria.objects.filter(is_custom=False).count())
-        categoria_custom = Categoria.objects.filter(is_custom=True)
-        self.assertEqual(categoria_custom.count(), 1)
-        self.assertEqual(
-            categoria_custom.first().nombre,
-            "custom_1")
+            Categoria.objects.count() - 1)
 
     def test_user_can_hide_categoria(self):
         """
@@ -4075,7 +4103,9 @@ class CategoriaListViewTest(TestCase):
         vivienda = test_user_1.get_vivienda()
         gasto_1.pagar(test_user_1)
         gasto_2.pagar(test_user_1)
-        otros_cat = Categoria.objects.create(nombre="Otros")
+        otros_cat = Categoria.objects.create(
+            nombre="Otros",
+            vivienda=vivienda)
         total_dummy = vivienda.get_total_expenses_categoria_period(
             categoria=dummy_categoria,
             year_month=gasto_1.year_month)
@@ -4083,7 +4113,7 @@ class CategoriaListViewTest(TestCase):
             categoria=otros_cat,
             year_month=gasto_1.year_month)
         # check that categoria is not hidden (database)
-        self.assertFalse(dummy_categoria.is_hidden(vivienda))
+        self.assertFalse(dummy_categoria.is_hidden())
         self.assertEqual(total_otros, 0)
         self.assertEqual(total_dummy, gasto_1.monto + gasto_2.monto)
         # user send POST to hide categoria
@@ -4096,7 +4126,8 @@ class CategoriaListViewTest(TestCase):
         # user is redirected to same page
         self.assertRedirects(response, self.url)
         # check that categoria is hidden (database)
-        self.assertTrue(dummy_categoria.is_hidden(vivienda))
+        dummy_categoria = Categoria.objects.get(id=dummy_categoria.id)
+        self.assertTrue(dummy_categoria.is_hidden())
         # get total of "Otros" Gastos, and check that it's the same as the
         # sum of hidden gastos
         total_dummy = vivienda.get_total_expenses_categoria_period(
@@ -4124,8 +4155,10 @@ class CategoriaListViewTest(TestCase):
         gasto_2.pagar(test_user_1)
         vivienda = test_user_1.get_vivienda()
         # hide categoria
-        dummy_categoria.hide(vivienda)
-        otros_cat = Categoria.objects.create(nombre="Otros")
+        dummy_categoria.hide()
+        otros_cat = Categoria.objects.create(
+            nombre="Otros",
+            vivienda=vivienda)
         # get total expenses
         total_dummy = vivienda.get_total_expenses_categoria_period(
             categoria=dummy_categoria,
@@ -4134,7 +4167,7 @@ class CategoriaListViewTest(TestCase):
             categoria=otros_cat,
             year_month=gasto_1.year_month)
         # check that categoria is hidden (database)
-        self.assertTrue(dummy_categoria.is_hidden(vivienda))
+        self.assertTrue(dummy_categoria.is_hidden())
         # user send POST to un-hide categoria
         response = self.client.post(
             self.url,
@@ -4145,7 +4178,8 @@ class CategoriaListViewTest(TestCase):
         # user is redirected to same page
         self.assertRedirects(response, self.url)
         # check that categoria is not hidden (database)
-        self.assertFalse(dummy_categoria.is_hidden(vivienda))
+        dummy_categoria = Categoria.objects.get(id=dummy_categoria.id)
+        self.assertFalse(dummy_categoria.is_hidden())
         total_dummy = vivienda.get_total_expenses_categoria_period(
             categoria=dummy_categoria,
             year_month=gasto_1.year_month)

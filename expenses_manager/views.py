@@ -95,8 +95,6 @@ def get_old_presupuesto(request):
     ans = []
     categoria = request.POST.get("categoria", None)
     year_month = request.POST.get("year_month", None)
-    print(categoria)
-    print(year_month)
     if categoria is not None and year_month is not None:
         presupuesto = Presupuesto.objects.filter(
             categoria=categoria,
@@ -219,7 +217,7 @@ def nueva_vivienda(request):
         if form.is_valid():
             # process data
             # save new vivienda
-            new_viv = form.save()
+            new_viv = create_new_vivienda(form)
             # create new viviendausuario
             vivienda_usuario = ViviendaUsuario(
                 vivienda=new_viv, user=request.user)
@@ -273,8 +271,11 @@ def categorias(request):
     if request.POST:
         categoria_nombre = request.POST.get("categoria", None)
         if categoria_nombre is not None and categoria_nombre != "":
-            categoria = get_object_or_404(Categoria, nombre=categoria_nombre)
-            categoria.toggle(vivienda)
+            categoria = get_object_or_404(
+                Categoria,
+                nombre=categoria_nombre,
+                vivienda=vivienda)
+            categoria.toggle()
             return HttpResponseRedirect("/vivienda/categorias")
         else:
             messages.error(
@@ -330,11 +331,9 @@ def nuevo_gasto(request):
                 return HttpResponseRedirect("/gastos")
             elif is_paid == "no":
                 return HttpResponseRedirect("/gastos")
-            else:
-                return HttpResponseRedirect("/error")
-        else:
-            # TODO redirect to error
-            pass
+        # form is not valid or missing/invalid "is_paid" field
+        return HttpResponseRedirect("/error")
+
     return HttpResponseRedirect("/gastos")
 
 
@@ -562,8 +561,8 @@ def presupuestos_period(request, year, month):
 def nuevo_presupuesto(request):
     vivienda_usuario = request.user.get_vu()
     if request.POST:
-        categoria_nombre = request.POST.get("categoria", None)
-        if categoria_nombre is None:
+        categoria_id = request.POST.get("categoria", None)
+        if categoria_id is None:
             messages.error(request, 'Debe ingresar una categoría')
         period = request.POST.get("year_month", None)
         if period is None:
@@ -571,17 +570,18 @@ def nuevo_presupuesto(request):
         monto = request.POST.get("monto", None)
         if monto is None or int(monto) <= 0:
             messages.error(request, 'Debe ingresar un monto superior a 0')
-        if any(val is None for val in [categoria_nombre,
+        if any(val is None for val in [categoria_id,
                                        period,
                                        monto]):
             return HttpResponseRedirect("/presupuestos/new")
 
         year_month = YearMonth.objects.get(
             id=request.POST.get("year_month", None))
-        categoria = Categoria.objects.get(nombre=categoria_nombre)
+        vivienda = vivienda_usuario.vivienda
+        categoria = Categoria.objects.get(id=categoria_id)
 
         presupuesto, created = Presupuesto.objects.get_or_create(
-            vivienda=request.user.get_vivienda(),
+            vivienda=vivienda,
             categoria=categoria,
             year_month=year_month)
         if not created:
@@ -637,12 +637,17 @@ def graphs_presupuestos_period(request, year, month):
                      login_url="/error/",
                      redirect_field_name=None)
 def edit_presupuesto(request, year, month, categoria):
+    vivienda = request.user.get_vivienda()
+    categoria = get_object_or_404(
+        Categoria,
+        nombre=categoria,
+        vivienda=vivienda)
     year_month = get_object_or_404(YearMonth, year=year, month=month)
     presupuesto = get_object_or_404(
         Presupuesto,
         year_month=year_month,
         categoria=categoria,
-        vivienda=request.user.get_vivienda())
+        vivienda=vivienda)
     if request.POST:
         def redirect_to_invalid_monto():
             messages.error(request, "Debe ingresar un monto mayor a 0")

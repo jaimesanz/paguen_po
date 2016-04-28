@@ -55,7 +55,7 @@ def get_pending_estadoGasto():
 
 
 def get_default_others_categoria():
-    return Categoria.objects.get_or_create(nombre="Otros")[0]
+    return Categoria.objects.get_or_create(nombre="Otros", vivienda=None)[0]
 
 # proxy user. This is used to add methods to the default django User class
 # without altering it
@@ -170,49 +170,23 @@ class Vivienda(models.Model):
         Returns a QuerySet with all Categoria objects related to the Vivienda
         that are not hidden
         """
-        # get custom categorias related to this vivienda
-        vivivienda_custom_categorias = ViviendaCategoria.objects.filter(
-            vivienda=self,
-            categoria__is_custom=True,
-            hidden=False).values("categoria")
-        # get global categorias that are hidden for this vivienda
-        vivienda_hidden_global = ViviendaCategoria.objects.filter(
-            vivienda=self,
-            categoria__is_custom=False,
-            hidden=True).values("categoria")
-        # get all categorias that are:
-        #   - related to this vivienda
-        #   - custom and not hidden
-        #   - global and not hidden
         return Categoria.objects.filter(
-            (Q(is_custom=False) & ~Q(nombre__in=vivienda_hidden_global)) |
-            Q(nombre__in=vivivienda_custom_categorias))
+            vivienda=self,
+            hidden=False)
 
     def get_all_vivienda_categorias_with_is_hidden_field(self):
         """
         Returns a QuerySet with all Categoria objects related to the Vivienda,
-        with an additional field is_hidden. This field is True if there's
-        a ViviendaCategoria object related to this Vivienda and the
-        given Categoria, and that instance of ViviendaCategoria's hidden field
-        is True
+        including the hidden categorias
         """
-        vivivienda_custom_categorias = ViviendaCategoria.objects.filter(
-            vivienda=self).values("categoria")
-        categorias = Categoria.objects.filter(
-            Q(is_custom=False) |
-            Q(nombre__in=vivivienda_custom_categorias))
-        for cat in categorias:
-            cat.is_hidden = cat.is_hidden(self)
-        return categorias
+        return Categoria.objects.filter(vivienda=self)
 
     def get_hidden_total(self, year_month):
-        hidden_categorias = ViviendaCategoria.objects.filter(
-            (Q(vivienda=self) & Q(hidden=True)) |
-            Q(categoria=get_default_others_categoria())).values("categoria")
         montos = Gasto.objects.filter(
             creado_por__vivienda=self,
             year_month=year_month,
-            categoria__in=hidden_categorias,
+            categoria__vivienda=self,
+            categoria__hidden=True,
             estado__estado="pagado").values("monto")
         total = 0
         for d in montos:
@@ -226,10 +200,12 @@ class Vivienda(models.Model):
         default "other" Categoria, it takes into account that Categoria, plus
         all hidden Categorias related to the Vivienda.
         """
-        categoria = Categoria.objects.get(nombre=categoria)
-        if categoria == get_default_others_categoria():
+        categoria = Categoria.objects.get(
+            nombre=categoria,
+            vivienda=self)
+        if categoria.nombre == get_default_others_categoria().nombre:
             return self.get_hidden_total(year_month)
-        if categoria.is_hidden(self):
+        if categoria.is_hidden():
             return 0
         montos = Gasto.objects.filter(
             creado_por__vivienda=self,
@@ -276,28 +252,23 @@ class Vivienda(models.Model):
         """
         Takes a String representing the name of a new custom Categoria
         the user wants to create. If there's no Categoria with that name,
-        a new one is created, and a new ViviendaCategoria is created,
-        using the user's Vivienda and the newly created Categoria.
+        a new one is created using the user's Vivienda and the given String
+        as the Categoria's "nombre" field.
         Returns a tuple (Categoria, String):
         - the first element is the newly created categoria, or None
         if there was any error creating it
         - the String is a message explaining what happened (it
         failed for some reason / it finished successfully)
         """
-        categoria, created = Categoria.objects.get_or_create(nombre=nombre)
+        categoria, created = Categoria.objects.get_or_create(
+            nombre=nombre,
+            vivienda=self)
         if not created and categoria.is_global():
             # it's trying to override a global categoria
             return (None,
                     "El nombre ingresado corresponde a una categoría global")
         if created:
-            categoria.is_custom = True
-            categoria.save()
-
-        viv_cat, created = ViviendaCategoria.objects.get_or_create(
-            vivienda=self,
-            categoria=categoria)
-        if created:
-            return (viv_cat, "¡Categoría agregada!")
+            return (categoria, "¡Categoría agregada!")
         return (None, "La categoría ya esta asociada a su vivienda")
 
     def __str__(self):
@@ -443,80 +414,64 @@ class Categoria(models.Model):
 
     class Meta:
         ordering = ['nombre']
-    nombre = models.CharField(max_length=100, primary_key=True)
-    is_custom = models.BooleanField(default=False)
+        unique_together = (('nombre', 'vivienda'),)
+    nombre = models.CharField(max_length=100)
+    vivienda = models.ForeignKey(
+        Vivienda,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        default=None)
+    hidden = models.BooleanField(default=False)
 
     def is_global(self):
         """
-        Returns True if the categoria is Global and common for every Vivienda
+        Returns True if the categoria is Global and shared with every Vivienda
         """
-        return not self.is_custom
+        for cat in Categoria.objects.filter(vivienda=None):
+            if cat.nombre == self.nombre:
+                return True
+        return False
 
-    def is_hidden(self, vivienda):
+    def is_hidden(self):
         """
-        Returns True if there's a ViviendaCategoria object related to the
-        given Vivienda and the this Categoria, and that instance of
-        ViviendaCategoria's hidden field is True
+        Returns it's hidden field's boolean value
         """
-        return ViviendaCategoria.objects.filter(
-            vivienda=vivienda,
-            categoria=self,
-            hidden=True).exists()
+        return self.hidden
 
-    def hide(self, vivienda):
+    def hide(self):
         """
-        If this Categoria is already hidden, it returns False. If it's not
-        hidden, changes the related ViviendaCategoria's hidden field
-        to True, and then returns True. If there's no related
-        ViviendaCategoria, it creates it.
+        If the Categoria is not hidden, changes this Categoria's hidden
+        field to True and returns True. If it's already hidden, returns
+        False and does nothing
         """
-        if not self.is_hidden(vivienda=vivienda):
-            vivienda_categoria, __ = ViviendaCategoria.objects.get_or_create(
-                vivienda=vivienda,
-                categoria=self)
-            vivienda_categoria.hidden = True
-            vivienda_categoria.save()
+        if not self.is_hidden():
+            self.hidden = True
+            self.save()
             return True
         return False
 
-    def show(self, vivienda):
+    def show(self):
         """
         If this Categoria is not hidden, it returns False. If it's
-        hidden, changes the related ViviendaCategoria's hidden field
-        to False, and then returns True. If there's no related
-        ViviendaCategoria, it creates it.
+        hidden, changes the it's hidden field to False
         """
-        if self.is_hidden(vivienda=vivienda):
-            vivienda_categoria, __ = ViviendaCategoria.objects.get_or_create(
-                vivienda=vivienda,
-                categoria=self)
-            vivienda_categoria.hidden = False
-            vivienda_categoria.save()
+        if self.is_hidden():
+            self.hidden = False
+            self.save()
             return True
         return False
 
-    def toggle(self, vivienda):
+    def toggle(self):
         """
         Toggles the hidden field of this Categoria.
         """
-        if self.is_hidden(vivienda):
-            return self.show(vivienda)
-        return self.hide(vivienda)
+        if self.is_hidden():
+            return self.show()
+        return self.hide()
 
     def __str__(self):
         return self.nombre
-
-
-class ViviendaCategoria(models.Model):
-
-    vivienda = models.ForeignKey(
-        Vivienda,
-        on_delete=models.CASCADE)
-    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
-    hidden = models.BooleanField(default=False)
-
-    def __str__(self):
-        return str(self.vivienda) + "__" + str(self.categoria)
 
 
 class Item(models.Model):
@@ -717,7 +672,8 @@ class ListaCompras(models.Model):
             monto=monto_total,
             creado_por=vivienda_usuario,
             categoria=Categoria.objects.get_or_create(
-                nombre="Supermercado")[0],
+                nombre="Supermercado",
+                vivienda=vivienda_usuario.vivienda)[0],
             lista_compras=self)
         nuevo_gasto.pagar(vivienda_usuario)
         return nuevo_gasto

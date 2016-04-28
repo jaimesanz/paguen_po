@@ -1,4 +1,16 @@
 from django.contrib import messages
+from .models import Categoria
+
+
+def create_new_vivienda(form):
+    new_viv = form.save()
+    # add global categorias
+    categorias_globales = Categoria.objects.filter(vivienda=None)
+    for cat in categorias_globales:
+        Categoria.objects.create(
+            nombre=cat.nombre,
+            vivienda=new_viv)
+    return new_viv
 
 
 def get_next_year_month_pair(year, month):
