@@ -500,6 +500,12 @@ class Item(models.Model):
     nombre = models.CharField(max_length=255)
     descripcion = models.CharField(max_length=255, blank=True, null=True)
     unidad_medida = models.CharField(max_length=255, default="unidad")
+    vivienda = models.ForeignKey(
+        Vivienda,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        default=None)
 
     def __str__(self):
         return str(self.nombre) + " (" + str(self.unidad_medida) + ")"
