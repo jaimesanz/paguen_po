@@ -7,6 +7,12 @@
 	<a href="/vivienda/categorias/new" class="btn btn-warning" role="button">
 		{% bootstrap_icon "plus" %} Nueva Categoría
 	</a>
+	<a class="btn btn-danger toggle_delete_btn" role="button">
+		{% bootstrap_icon "warning-sign" %} Permitir eliminar
+	</a>
+	<a class="btn btn-primary toggle_delete_btn" role="button" id="hide_delete_btn" style="display: none;">
+		{% bootstrap_icon "adjust" %} Ocultar/Mostrar
+	</a>
 	<hr>
 	<div class="row">
 		<div class="col-lg-6">
@@ -56,10 +62,24 @@
 								    	</button>
 							    	{% endif %}
 								</form>
+								<form action="/vivienda/categorias/delete/" method="post" style="display: none;">
+									{% csrf_token %}
+							    	<button name="categoria" value="{{c.id}}" class="btn btn-danger">
+							    		{% bootstrap_icon "trash" %}
+							    	</button>
+								</form>
 							</div>
 						</div>
 					{% endif %}
 				{% endfor %}
 		</div>
 	</div>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			$(".toggle_delete_btn").click(function(){
+				$("form").toggle()
+				$(".toggle_delete_btn").toggle()
+			})
+		})
+	</script>
 {% endblock %}

@@ -311,6 +311,50 @@ def nueva_categoria(request):
 
 
 @login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
+def delete_categoria(request):
+    if request.POST:
+        categoria_id = request.POST.get("categoria", None)
+        vivienda = request.user.get_vivienda()
+        if categoria_id is not None:
+            categoria = get_object_or_404(Categoria, id=categoria_id)
+            if categoria.vivienda != vivienda:
+                messages.error(request,
+                               "No tiene permiso para editar esta Categoría")
+                return HttpResponseRedirect("/error")
+            elif categoria.is_global():
+                messages.error(request,
+                               "No puede eliminar una categoría global")
+                return HttpResponseRedirect("/vivienda/categorias")
+            else:
+                gastos = Gasto.objects.filter(
+                    categoria=categoria,
+                    creado_por__vivienda=vivienda)
+                otros_cat, __ = Categoria.objects.get_or_create(
+                    nombre="Otros",
+                    vivienda=vivienda)
+                for gasto in gastos:
+                    gasto.categoria = otros_cat
+                    gasto.save()
+                categoria.delete()
+                messages.success(
+                    request,
+                    """
+                    Categoría eliminada.
+                    Los gastos asociados a ésta se traspasaron a la
+                    categoría 'Otros'
+                    """)
+
+        else:
+            messages.error(request,
+                           "Debe especificar una categoría para eliminar")
+
+    return HttpResponseRedirect("/vivienda/categorias")
+
+
+@login_required
 def nuevo_gasto(request):
     vivienda_usuario = request.user.get_vu()
     if request.POST:

@@ -4191,10 +4191,98 @@ class CategoriaListViewTest(TestCase):
 
     def test_user_can_delete_categoria_and_transfer_gastos_to_otros(self):
         """
-        if a user DELETES a custom categoria, all gastos of this categoria
+        If a user DELETES a custom categoria, all gastos of this categoria
         are transfered to the default "otros" categoria
         """
-        self.fail()
+        (test_user_1,
+            __,
+            __,
+            __,
+            __,
+            __,
+            __) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+        vivienda = test_user_1.get_vivienda()
+        custom_categoria = Categoria.objects.create(
+            nombre="dumdum",
+            vivienda=vivienda)
+        otros_cat = Categoria.objects.create(
+            nombre="Otros",
+            vivienda=vivienda)
+        gasto_custom_cat = Gasto.objects.create(
+            monto=1000,
+            creado_por=test_user_1.get_vu(),
+            categoria=custom_categoria)
+        self.assertEqual(
+            Gasto.objects.filter(categoria=custom_categoria).count(),
+            1)
+        self.assertEqual(
+            Gasto.objects.filter(categoria=otros_cat).count(),
+            0)
+
+        response = self.client.post(
+            "/vivienda/categorias/delete/",
+            data={
+                "categoria": custom_categoria.id
+            },
+            follow=True)
+
+        self.assertRedirects(response, self.url)
+        self.assertFalse(Categoria.objects.filter(
+            id=custom_categoria.id).exists())
+        self.assertFalse(Categoria.objects.filter(
+            nombre=custom_categoria.nombre,
+            vivienda=vivienda).exists())
+        self.assertEqual(
+            Gasto.objects.filter(categoria=custom_categoria).count(),
+            0)
+        self.assertEqual(
+            Gasto.objects.filter(categoria=otros_cat).count(),
+            1)
 
     def test_user_cant_delete_global_categoria(self):
-        self.fail()
+        (test_user_1,
+            __,
+            __,
+            __,
+            __,
+            __,
+            __) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+        vivienda = test_user_1.get_vivienda()
+        global_categoria = Categoria.objects.create(
+            nombre="global_cat")
+        categoria = Categoria.objects.create(
+            nombre="global_cat",
+            vivienda=vivienda)
+        otros_cat = Categoria.objects.create(
+            nombre="Otros",
+            vivienda=vivienda)
+        gasto_custom_cat = Gasto.objects.create(
+            monto=1000,
+            creado_por=test_user_1.get_vu(),
+            categoria=categoria)
+        self.assertEqual(
+            Gasto.objects.filter(categoria=categoria).count(),
+            1)
+        self.assertEqual(
+            Gasto.objects.filter(categoria=otros_cat).count(),
+            0)
+
+        response = self.client.post(
+            "/vivienda/categorias/delete/",
+            data={
+                "categoria": categoria.id
+            },
+            follow=True)
+
+        self.assertRedirects(response, self.url)
+        self.assertTrue(Categoria.objects.filter(
+            id=categoria.id).exists())
+        self.assertTrue(Categoria.objects.filter(
+            nombre=categoria.nombre,
+            vivienda=vivienda).exists())
+        self.assertEqual(
+            Gasto.objects.filter(categoria=categoria).count(),
+            1)
+        self.assertEqual(
+            Gasto.objects.filter(categoria=otros_cat).count(),
+            0)
