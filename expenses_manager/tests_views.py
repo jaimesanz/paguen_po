@@ -5,262 +5,9 @@ from django.template.loader import render_to_string
 from expenses_manager.models import *
 from django.utils import timezone
 from expenses_manager.views import *
-from .tests_models import get_vivienda_with_1_user, get_lone_user
+from .helper_functions_tests import *
 
 
-##########################
-# Helper functions
-##########################
-
-
-def get_test_user():
-    user = ProxyUser.objects.create(username="test_user_1", email="a@a.com")
-    user.set_password("holahola")
-    user.save()
-    return user
-
-
-def get_test_user_and_login(test):
-    test_user = get_test_user()
-    test.client.login(username=test_user.username, password="holahola")
-    return test_user
-
-
-def get_test_user_with_vivienda_and_login(test):
-    test_user = get_test_user_and_login(test)
-    vivienda = Vivienda.objects.create(alias="vivA")
-    test_user_viv = ViviendaUsuario.objects.create(
-        vivienda=vivienda, user=test_user)
-    return test_user, vivienda, test_user_viv
-
-
-def get_basic_setup_and_login_user_1(test):
-    """
-    Creates a Vivienda with 2 users (and logs in 1 of them),
-    and another vivienda with 1 user.
-    Returns the user that is logged in, his roommate and the third one
-    """
-    # get first user
-    (test_user_1,
-        vivienda_A,
-        test_user_1_viv_A) = get_test_user_with_vivienda_and_login(
-        test)
-    # get roommate for rist user
-    test_user_2 = ProxyUser.objects.create(
-        username="test_user_2", email="b@b.com")
-    test_user_2_viv_A = ViviendaUsuario.objects.create(
-        vivienda=vivienda_A, user=test_user_2)
-    # get another vivienda with another user
-    test_user_3 = ProxyUser.objects.create(
-        username="test_user_3", email="c@c.com")
-    vivienda_B = Vivienda.objects.create(alias="vivB")
-    test_user_3_viv_B = ViviendaUsuario.objects.create(
-        vivienda=vivienda_B, user=test_user_3)
-    return test_user_1, test_user_2, test_user_3
-
-
-def get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(test):
-    test_user_1, test_user_2, test_user_3 = get_basic_setup_and_login_user_1(
-        test)
-
-    dummy_categoria_global = Categoria.objects.create(nombre="dummy1")
-    dummy_categoria_viv1 = Categoria.objects.create(
-        nombre="dummy1",
-        vivienda=test_user_1.get_vivienda())
-    dummy_categoria_viv2 = Categoria.objects.create(
-        nombre="dummy1",
-        vivienda=test_user_3.get_vivienda())
-    gasto_1 = Gasto.objects.create(
-        monto=111,
-        creado_por=test_user_1.get_vu(),
-        categoria=dummy_categoria_viv1)
-    gasto_2 = Gasto.objects.create(
-        monto=222,
-        creado_por=test_user_2.get_vu(),
-        categoria=dummy_categoria_viv1)
-    gasto_3 = Gasto.objects.create(
-        monto=333,
-        creado_por=test_user_3.get_vu(),
-        categoria=dummy_categoria_viv2)
-
-    test.assertEqual(Gasto.objects.filter(
-        estado__estado="pendiente").count(), 3)
-    test.assertEqual(Gasto.objects.filter(
-        creado_por__vivienda=test_user_1.get_vivienda()).count(),
-        2)
-    test.assertEqual(Gasto.objects.filter(
-        creado_por__vivienda=test_user_2.get_vivienda()).count(),
-        2)
-    test.assertEqual(Gasto.objects.filter(
-        creado_por__vivienda=test_user_3.get_vivienda()).count(),
-        1)
-
-    return (test_user_1,
-            test_user_2,
-            test_user_3,
-            dummy_categoria_viv1,
-            gasto_1,
-            gasto_2,
-            gasto_3)
-
-
-def get_setup_with_gastos_items_and_listas(test):
-    """
-    The same as get_setup_viv_2_users_viv_1_user_cat_1_gastos_3, plus 3 dummy
-    items and 2 dummy Listas:
-    - one for the logged user's vivienda with items A and B
-    - one for the other vivienda with item C
-    Returns the user that's logged in
-    """
-    (test_user_1,
-        test_user_2,
-        test_user_3,
-        dummy_categoria,
-        gasto_1,
-        gasto_2,
-        gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
-        test)
-    # global items
-    Item.objects.create(nombre="d1")
-    Item.objects.create(nombre="d2")
-    Item.objects.create(nombre="d3")
-
-    test_user_1.get_vivienda().add_global_items()
-    test_user_3.get_vivienda().add_global_items()
-
-    item_1 = Item.objects.get(nombre="d1", vivienda=test_user_1.get_vivienda())
-    item_2 = Item.objects.get(nombre="d2", vivienda=test_user_1.get_vivienda())
-    item_3 = Item.objects.get(nombre="d3", vivienda=test_user_3.get_vivienda())
-
-    lista_1 = ListaCompras.objects.create(
-        usuario_creacion=test_user_1.get_vu())
-    lista_2 = ListaCompras.objects.create(
-        usuario_creacion=test_user_3.get_vu())
-
-    il_1 = ItemLista.objects.create(
-        item=item_1, lista=lista_1, cantidad_solicitada=1)
-    il_2 = ItemLista.objects.create(
-        item=item_2, lista=lista_1, cantidad_solicitada=2)
-
-    il_3 = ItemLista.objects.create(
-        item=item_3, lista=lista_2, cantidad_solicitada=3)
-
-    return test_user_1
-
-
-def has_navbar_without_vivienda(test, response, status_code=200):
-    test.assertContains(response, "Crear Vivienda")
-    test.assertContains(response, "Invitaciones")
-    test.assertNotContains(response, "Gastos")
-    test.assertNotContains(response, "Listas")
-
-
-def has_navbar_with_vivienda(test, response, status_code=200):
-    test.assertNotContains(response,
-                           "Crear Vivienda",
-                           status_code=status_code)
-    test.assertNotContains(
-        response,
-        "<li><a href=\"/invites_list\">Invitaciones</a></li>",
-        status_code=status_code)
-    test.assertContains(response, "Gastos", status_code=status_code)
-    test.assertContains(response, "Listas", status_code=status_code)
-
-
-def has_not_logged_navbar(test, response, status_code=200):
-    test.assertNotContains(response, "Salir", status_code=status_code)
-    test.assertContains(response, "Entrar", status_code=status_code)
-    test.assertContains(response, "Registrarse", status_code=status_code)
-
-
-def has_logged_navbar(test, response, test_user, status_code=200):
-    test.assertContains(response, "Salir", status_code=status_code)
-    test.assertNotContains(response, "Entrar", status_code=status_code)
-    test.assertNotContains(response, "Registrarse", status_code=status_code)
-    test.assertContains(response, test_user.username, status_code=status_code)
-
-
-def has_logged_navbar_without_viv(test, response, test_user, status_code=200):
-    # is logged
-    has_logged_navbar(test, response, test_user, status_code)
-    # has no vivienda
-    has_navbar_without_vivienda(test, response, status_code)
-
-
-def has_logged_navbar_with_viv(test, response, test_user, status_code=200):
-    # is logged
-    has_logged_navbar(test, response, test_user, status_code)
-    # has no vivienda
-    has_navbar_with_vivienda(test, response, status_code)
-
-
-def test_the_basics(test, url, template_name, view_func):
-    """
-    Tests: template loaded, corect html, resolves to correct view function
-    """
-    found = resolve(url)
-    response = test.client.get(url, follow=True)
-
-    test.assertTemplateUsed(response, template_name=template_name)
-    test.assertEqual(found.func, view_func)
-
-    return response
-
-
-def test_the_basics_not_logged_in(test, url, template_name, view_func):
-    """
-    Tests the basics and checks navbar is logged out
-    """
-    response = test_the_basics(test, url, template_name, view_func)
-    has_not_logged_navbar(test, response)
-
-
-def execute_test_the_basics_logged_in(test, url, template_name, view_func):
-    user = get_test_user_and_login(test)
-    response = test_the_basics(test, url, template_name, view_func)
-    test.assertNotContains(response, "Entrar")
-    test.assertNotContains(response, "Registrarse")
-    test.assertNotContains(response, "Inicio")
-    test.assertContains(response, user.username)
-    test.assertContains(response, "Salir")
-    if user.has_vivienda():
-        test.assertContains(response, "Gastos")
-        test.assertContains(response, "Listas")
-        test.assertContains(response, "Vivienda")
-    else:
-        test.assertContains(response, "Crear")
-        test.assertContains(response, "Invitaciones")
-
-
-def execute_test_basics_logged_with_viv(test, url, template_name, view_func):
-    user, vivienda, user_viv = get_test_user_with_vivienda_and_login(test)
-    response = test_the_basics(test, url, template_name, view_func)
-    test.assertNotContains(response, "Entrar")
-    test.assertNotContains(response, "Registrarse")
-    test.assertNotContains(response, "Inicio")
-    test.assertContains(response, user.username)
-    test.assertContains(response, "Salir")
-    if user.has_vivienda():
-        test.assertContains(response, "Gastos")
-        test.assertContains(response, "Listas")
-        test.assertContains(response, "Vivienda")
-    else:
-        test.assertContains(response, "Crear")
-        test.assertContains(response, "Invitaciones")
-
-
-def execute_test_the_basics_not_logged_in_restricted(test, url):
-    """
-    Checks that the user was redirected to login page
-    """
-    response = test.client.get(url)
-
-    test.assertRedirects(response, "/accounts/login/?next=" + url)
-
-
-##########################
-# Tests
-##########################
 
 class HomePageTest(TestCase):
 
@@ -3116,30 +2863,150 @@ class ItemListTest(TestCase):
     url = "/vivienda/items/"
 
     def test_not_logged_user_cant_see_items(self):
-        self.fail()
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        self.client.logout()
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=%s" % (self.url))
 
     def test_homeless_user_cant_see_items(self):
-        self.fail()
+        test_user = get_setup_with_gastos_items_and_listas(self)
 
-    def test_user_can_see_items_of_his_vivienda_only(self):
-        self.fail()
+        test_user.get_vu().leave()
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/error/")
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+
+    def test_user_can_see_items_of_his_vivienda(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
+        custom_item = Item.objects.create(
+            nombre="custom1",
+            vivienda=vivienda)
+
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        for item in vivienda.get_items():
+            self.assertContains(response, item.nombre)
+
+    def test_user_cant_see_items_of_other_vivienda(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
+        other_vivienda = Vivienda.objects.exclude(id=vivienda.id).first()
+        custom_item = Item.objects.create(
+            nombre="custom1",
+            vivienda=other_vivienda)
+
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertNotContains(response, custom_item.nombre)
 
 
 class NewItemTest(TestCase):
 
-    url_new = "/vivienda/items/new/"
+    url = "/vivienda/items/new/"
 
     def test_not_logged_user_cant_create_item(self):
-        self.fail()
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        self.client.logout()
+        response = self.client.post(
+            self.url,
+            data={
+                "nombre": "customizimo"
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=%s" % (self.url))
 
     def test_homeless_user_cant_create_item(self):
-        self.fail()
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        test_user.get_vu().leave()
+        response = self.client.post(
+            self.url,
+            data={
+                "nombre": "customizimo"
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/error/")
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
 
     def test_user_can_create_custom_item(self):
-        self.fail()
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
+        original_item_count = vivienda.get_items().count()
+        self.assertFalse(Item.objects.filter(
+            nombre="customizimo",
+            vivienda=vivienda).exists())
+
+        response = self.client.post(
+            self.url,
+            data={
+                "nombre": "customizimo"
+            },
+            follow=True)
+
+        self.assertEqual(
+            vivienda.get_items().count(),
+            original_item_count + 1)
+        self.assertRedirects(response, "/vivienda/items/")
+        self.assertTrue(Item.objects.filter(
+            nombre="customizimo",
+            vivienda=vivienda).exists())
+        self.assertEqual(
+            Item.objects.filter(nombre="customizimo").count(),
+            1)
+
 
     def test_user_cant_create_item_with_broken_POST(self):
-        self.fail()
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
+        original_item_count = vivienda.get_items().count()
+        self.assertFalse(Item.objects.filter(
+            nombre="customizimo",
+            vivienda=vivienda).exists())
+
+        response = self.client.post(
+            self.url,
+            data={
+                "weird_key": "SQLInj"
+            },
+            follow=True)
+
+        self.assertRedirects(response, "/vivienda/items/")
+        self.assertContains(
+            response,
+            "Se produjo un error procesando los datos ingresados")
+        self.assertFalse(Item.objects.filter(
+            nombre="customizimo",
+            vivienda=vivienda).exists())
+        self.assertEqual(
+            vivienda.get_items().count(),
+            original_item_count)
 
 
 class EditItemViewTest(TestCase):

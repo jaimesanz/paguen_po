@@ -356,6 +356,33 @@ def delete_categoria(request):
 
     return HttpResponseRedirect("/vivienda/categorias")
 
+@login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
+def items(request):
+    vivienda = request.user.get_vivienda()
+    items = vivienda.get_items()
+    return render(request, "vivienda/items.html", locals())
+
+@login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
+def new_item(request):
+    if request.POST:
+        new_item_name = request.POST.get("nombre", None)
+        if new_item_name:
+            new_item = Item.objects.create(
+                nombre=new_item_name,
+                vivienda=request.user.get_vivienda())
+            return HttpResponseRedirect("/vivienda/items")
+        else:
+            messages.error(
+                request,
+                "Se produjo un error procesando los datos ingresados")
+            return HttpResponseRedirect("/vivienda/items")
+    return HttpResponseRedirect("/error")
 
 @login_required
 def nuevo_gasto(request):

@@ -40,6 +40,9 @@ urlpatterns = [
         views.delete_categoria,
         name='delete_categoria'),
 
+    # items
+    url(r'^vivienda/items/$', views.items, name='items'),
+    url(r'^vivienda/items/new/$', views.new_item, name='new_item'),
 
     # gastos
     url(r'^gastos/$', views.gastos, name='gastos'),

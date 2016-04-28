@@ -189,6 +189,12 @@ class Vivienda(models.Model):
             vivienda=self,
             hidden=False)
 
+    def get_items(self):
+        """
+        Returns a QuerySet with all Items related to this Vivienda
+        """
+        return Item.objects.filter(vivienda=self)
+
     def get_all_vivienda_categorias_with_is_hidden_field(self):
         """
         Returns a QuerySet with all Categoria objects related to the Vivienda,

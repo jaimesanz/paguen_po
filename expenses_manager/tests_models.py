@@ -1,68 +1,7 @@
 from django.test import TestCase
 from expenses_manager.models import *
+from .helper_functions_tests import *
 
-
-##########################
-# Helper functions
-##########################
-
-
-def get_lone_user():
-    return ProxyUser.objects.create(username="us1", email="a@a.com")
-
-
-def get_vivienda_with_1_user():
-    user1 = get_lone_user()
-    correct_vivienda = Vivienda.objects.create(alias="viv1")
-    user1_viv = ViviendaUsuario.objects.create(
-        vivienda=correct_vivienda, user=user1)
-    return (user1, correct_vivienda, user1_viv)
-
-
-def get_vivienda_with_2_users():
-    user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
-    user2 = ProxyUser.objects.create(username="us2", email="b@b.com")
-    user2_viv = ViviendaUsuario.objects.create(
-        vivienda=correct_vivienda, user=user2)
-    return (user1, user2, correct_vivienda, user1_viv, user2_viv)
-
-
-def get_dummy_gasto_pendiente(user_viv):
-    dummy_categoria = Categoria.objects.create(nombre="dummy")
-    gasto = Gasto.objects.create(
-        monto=1000,
-        creado_por=user_viv,
-        categoria=dummy_categoria)
-    return gasto, dummy_categoria
-
-
-def get_dummy_lista_with_1_item(user_viv):
-    lista = ListaCompras.objects.create(usuario_creacion=user_viv)
-    item = Item.objects.create(nombre="test_item_1")
-    user_viv.vivienda.add_global_items()
-    item = Item.objects.get(nombre=item.nombre, vivienda=user_viv.vivienda)
-    item_lista = ItemLista.objects.create(
-        item=item,
-        lista=lista,
-        cantidad_solicitada=10)
-    return (lista, item, item_lista)
-
-
-def get_dummy_lista_with_2_items(user_viv):
-    lista, item_1, item_lista_1 = get_dummy_lista_with_1_item(user_viv)
-    item_2 = Item.objects.create(nombre="test_item_2")
-    user_viv.vivienda.add_global_items()
-    item_2 = Item.objects.get(nombre=item_2.nombre, vivienda=user_viv.vivienda)
-    item_lista_2 = ItemLista.objects.create(
-        item=item_2,
-        lista=lista,
-        cantidad_solicitada=20)
-    return lista, item_1, item_lista_1, item_2, item_lista_2
-
-
-##########################
-# Tests
-##########################
 
 class ProxyUserModelTest(TestCase):
 
@@ -301,6 +240,22 @@ class ViviendaModelTest(TestCase):
         viv_cat = Categoria.objects.filter(vivienda=vivienda).first()
         self.assertFalse(viv_cat.hidden)
         self.assertFalse(viv_cat.is_global())
+
+    def test_get_items(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
+        custom_item = Item.objects.create(
+            nombre="customizimo",
+            vivienda=vivienda)
+
+        self.assertEqual(vivienda.get_items().count(), 4)
+        for item in vivienda.get_items():
+            self.assertEqual(item.vivienda, vivienda)
+
+        other_vivienda = Vivienda.objects.exclude(id=vivienda.id).first()
+        self.assertEqual(other_vivienda.get_items().count(), 3)
+        for item in other_vivienda.get_items():
+            self.assertNotEqual(item.vivienda, vivienda)
 
 
 class ViviendaUsuarioModelTest(TestCase):
