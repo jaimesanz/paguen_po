@@ -1,57 +1,101 @@
 [
 {
     "model": "expenses_manager.categoria",
-    "pk": "Agua",
-    "fields": {}
+    "pk": 1,
+    "fields": {
+        "nombre": "Agua",
+        "vivienda": null,
+        "hidden": false
+    }
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "Arriendo",
-    "fields": {}
+    "pk": 2,
+    "fields": {
+        "nombre": "Arriendo",
+        "vivienda": null,
+        "hidden": false
+    }
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "Cable",
-    "fields": {}
+    "pk": 3,
+    "fields": {
+        "nombre": "Cable",
+        "vivienda": null,
+        "hidden": false
+    }
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "Gas",
-    "fields": {}
+    "pk": 4,
+    "fields": {
+        "nombre": "Gas",
+        "vivienda": null,
+        "hidden": false
+    }
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "Gastos Comunes",
-    "fields": {}
+    "pk": 5,
+    "fields": {
+        "nombre": "Gastos Comunes",
+        "vivienda": null,
+        "hidden": false
+    }
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "Internet",
-    "fields": {}
+    "pk": 6,
+    "fields": {
+        "nombre": "Internet",
+        "vivienda": null,
+        "hidden": false
+    }
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "Luz",
-    "fields": {}
+    "pk": 7,
+    "fields": {
+        "nombre": "Luz",
+        "vivienda": null,
+        "hidden": false
+    }
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "Otros",
-    "fields": {}
+    "pk": 8,
+    "fields": {
+        "nombre": "Otros",
+        "vivienda": null,
+        "hidden": false
+    }
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "Servicios",
-    "fields": {}
+    "pk": 9,
+    "fields": {
+        "nombre": "Servicios",
+        "vivienda": null,
+        "hidden": false
+    }
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "Supermercado",
-    "fields": {}
+    "pk": 10,
+    "fields": {
+        "nombre": "Supermercado",
+        "vivienda": null,
+        "hidden": false
+    }
 },
 {
     "model": "expenses_manager.categoria",
-    "pk": "Teléfono",
-    "fields": {}
+    "pk": 11,
+    "fields": {
+        "nombre": "Tel\u00e9fono",
+        "vivienda": null,
+        "hidden": false
+    }
 }
 ]
