@@ -428,10 +428,9 @@ class Categoria(models.Model):
         """
         Returns True if the categoria is Global and shared with every Vivienda
         """
-        for cat in Categoria.objects.filter(vivienda=None):
-            if cat.nombre == self.nombre:
-                return True
-        return False
+        return Categoria.objects.filter(
+            vivienda=None,
+            nombre=self.nombre).exists()
 
     def is_hidden(self):
         """

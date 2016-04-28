@@ -323,7 +323,6 @@ def nuevo_gasto(request):
             messages.success(
                 request,
                 "El gasto fue creado exitósamente")
-
             # check if it's paid
             is_paid = request.POST.get("is_paid", None)
             if is_paid == "yes":
@@ -333,7 +332,6 @@ def nuevo_gasto(request):
                 return HttpResponseRedirect("/gastos")
         # form is not valid or missing/invalid "is_paid" field
         return HttpResponseRedirect("/error")
-
     return HttpResponseRedirect("/gastos")
 
 
