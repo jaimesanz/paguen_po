@@ -17,60 +17,62 @@
 	<div class="row">
 		<div class="col-lg-6">
 			<h4>Globales</h4>
-				{% for c in categorias %}
-					{% if c.is_global %}
-						<div class="row">
-							<div class="col-sm-3">
-								{{c}}
-							</div>
-							<div class="col-sm-3">
-								<form action="" method="post">
-									{% csrf_token %}
-							    	{% if c.is_hidden %}
-								    	<button name="categoria" value="{{c}}" class="btn btn-success">
-								    		Mostrar
-								    	</button>
-							    	{% else %}
-								    	<button name="categoria" value="{{c}}" class="btn btn-info">
-								    		Ocultar
-								    	</button>
-							    	{% endif %}
-								</form>
-							</div>
+				{% for c in this_viv_global %}
+					<div class="row">
+						<div class="col-sm-3">
+							{{c}}
 						</div>
-					{% endif %}
+						<div class="col-sm-3">
+							<form action="" method="post">
+								{% csrf_token %}
+						    	{% if c.is_hidden %}
+							    	<button name="categoria" value="{{c}}" class="btn btn-success">
+							    		Mostrar
+							    	</button>
+						    	{% else %}
+							    	<button name="categoria" value="{{c}}" class="btn btn-info">
+							    		Ocultar
+							    	</button>
+						    	{% endif %}
+							</form>
+						</div>
+					</div>
 				{% endfor %}
 		</div>
 		<div class="col-lg-6">
 			<h4>Personalizadas</h4>
-				{% for c in categorias %}
-					{% if not c.is_global %}
-						<div class="row">
-							<div class="col-sm-3">
-								{{c}}
-							</div>
-							<div class="col-sm-3">
-								<form action="" method="post">
-									{% csrf_token %}
-							    	{% if c.is_hidden %}
-								    	<button name="categoria" value="{{c}}" class="btn btn-success">
-								    		Mostrar
-								    	</button>
-							    	{% else %}
-								    	<button name="categoria" value="{{c}}" class="btn btn-info">
-								    		Ocultar
-								    	</button>
-							    	{% endif %}
-								</form>
-								<form action="/vivienda/categorias/delete/" method="post" style="display: none;">
-									{% csrf_token %}
-							    	<button name="categoria" value="{{c.id}}" class="btn btn-danger">
-							    		{% bootstrap_icon "trash" %}
-							    	</button>
-								</form>
-							</div>
+				{% for c in custom_cats %}
+					<div class="row">
+						<div class="col-sm-3">
+							{{c}}
 						</div>
-					{% endif %}
+						<div class="col-sm-3">
+							<form action="" method="post">
+								{% csrf_token %}
+						    	{% if c.is_hidden %}
+							    	<button name="categoria" value="{{c}}" class="btn btn-success">
+							    		Mostrar
+							    	</button>
+						    	{% else %}
+							    	<button name="categoria" value="{{c}}" class="btn btn-info">
+							    		Ocultar
+							    	</button>
+						    	{% endif %}
+							</form>
+							<form action="/vivienda/categorias/delete/" method="post" style="display: none;">
+								{% csrf_token %}
+						    	<button name="categoria" value="{{c.id}}" class="btn btn-danger">
+						    		{% bootstrap_icon "trash" %}
+						    	</button>
+							</form>
+						</div>
+					</div>
+				{% empty %}
+					<div class="row">
+						<div class="col-lg-6">
+							No existen categorías personalizadas.
+						</div>
+					</div>
 				{% endfor %}
 		</div>
 	</div>

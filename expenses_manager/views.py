@@ -282,7 +282,8 @@ def categorias(request):
                 request,
                 "Se produjo un error procesando la solicitud")
             return HttpResponseRedirect("/error")
-    categorias = vivienda.get_all_vivienda_categorias_with_is_hidden_field()
+    this_viv_global = vivienda.get_vivienda_global_categorias()
+    custom_cats = vivienda.get_vivienda_custom_categorias()
     return render(request, "vivienda/categorias.html", locals())
 
 

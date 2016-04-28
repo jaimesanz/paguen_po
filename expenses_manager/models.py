@@ -182,6 +182,10 @@ class Vivienda(models.Model):
         return Categoria.objects.filter(vivienda=self)
 
     def get_hidden_total(self, year_month):
+        """
+        Returns the sum of all Gastos' montos with a Categoria that's
+        hidden
+        """
         montos = Gasto.objects.filter(
             creado_por__vivienda=self,
             year_month=year_month,
@@ -270,6 +274,25 @@ class Vivienda(models.Model):
         if created:
             return (categoria, "¡Categoría agregada!")
         return (None, "La categoría ya esta asociada a su vivienda")
+
+    def get_vivienda_global_categorias(self):
+        """
+        Returns the global Categorias related to this vivienda
+        """
+        global_cats = Categoria.objects.filter(vivienda=None).values("nombre")
+        this_viv_global = Categoria.objects.filter(
+            vivienda=self,
+            nombre__in=global_cats)
+        return this_viv_global
+
+    def get_vivienda_custom_categorias(self):
+        """
+        Returns the custom Categorias related to this vivienda
+        """
+        global_cats = Categoria.objects.filter(vivienda=None).values("nombre")
+        custom_cats = Categoria.objects.filter(
+            Q(vivienda=self) & ~Q(nombre__in=global_cats))
+        return custom_cats
 
     def __str__(self):
         return self.alias
