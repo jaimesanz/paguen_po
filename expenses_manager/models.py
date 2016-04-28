@@ -152,7 +152,6 @@ class Vivienda(models.Model):
                 descripcion=item.descripcion,
                 vivienda=self)
 
-
     def get_gastos_pendientes(self):
         """
         Returns a QuerySet with the Gastos associated with the Vivienda,
