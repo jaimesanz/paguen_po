@@ -42,6 +42,8 @@ def get_dummy_gasto_pendiente(user_viv):
 def get_dummy_lista_with_1_item(user_viv):
     lista = ListaCompras.objects.create(usuario_creacion=user_viv)
     item = Item.objects.create(nombre="test_item_1")
+    user_viv.vivienda.add_global_items()
+    item = Item.objects.get(nombre=item.nombre, vivienda=user_viv.vivienda)
     item_lista = ItemLista.objects.create(
         item=item,
         lista=lista,
@@ -52,6 +54,8 @@ def get_dummy_lista_with_1_item(user_viv):
 def get_dummy_lista_with_2_items(user_viv):
     lista, item_1, item_lista_1 = get_dummy_lista_with_1_item(user_viv)
     item_2 = Item.objects.create(nombre="test_item_2")
+    user_viv.vivienda.add_global_items()
+    item_2 = Item.objects.get(nombre=item_2.nombre, vivienda=user_viv.vivienda)
     item_lista_2 = ItemLista.objects.create(
         item=item_2,
         lista=lista,
@@ -444,7 +448,9 @@ class ItemModelTest(TestCase):
     def test_is_not_in_lista(self):
         user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
         lista, item_1, item_lista_1 = get_dummy_lista_with_1_item(user1_viv)
-        item_2 = Item.objects.create(nombre="test_item_2")
+        item_2 = Item.objects.create(
+            nombre="test_item_2",
+            vivienda=correct_vivienda)
 
         self.assertFalse(item_2.is_in_lista(lista))
 
@@ -660,7 +666,9 @@ class ListaComprasModelTest(TestCase):
          item_2,
          item_lista_2) = get_dummy_lista_with_2_items(
             user1_viv)
-        new_item = Item.objects.create(nombre="test_item_3")
+        new_item = Item.objects.create(
+            nombre="test_item_3",
+            vivienda=correct_vivienda)
 
         new_item_lista = lista.add_item(new_item, 30)
 
@@ -692,7 +700,9 @@ class ListaComprasModelTest(TestCase):
          item_2,
          item_lista_2) = get_dummy_lista_with_2_items(
             user1_viv)
-        new_item = Item.objects.create(nombre="test_item_3")
+        new_item = Item.objects.create(
+            nombre="test_item_3",
+            vivienda=correct_vivienda)
 
         new_item_lista = lista.add_item_by_name(new_item.nombre, 30)
 
@@ -1304,9 +1314,17 @@ def get_setup_with_gastos_items_and_listas(test):
         gasto_2,
         gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
         test)
-    item_1 = Item.objects.create(nombre="d1")
-    item_2 = Item.objects.create(nombre="d2")
-    item_3 = Item.objects.create(nombre="d3")
+    # global items
+    Item.objects.create(nombre="d1")
+    Item.objects.create(nombre="d2")
+    Item.objects.create(nombre="d3")
+
+    test_user_1.get_vivienda().add_global_items()
+    test_user_3.get_vivienda().add_global_items()
+
+    item_1 = Item.objects.get(nombre="d1", vivienda=test_user_1.get_vivienda())
+    item_2 = Item.objects.get(nombre="d2", vivienda=test_user_1.get_vivienda())
+    item_3 = Item.objects.get(nombre="d3", vivienda=test_user_3.get_vivienda())
 
     lista_1 = ListaCompras.objects.create(
         usuario_creacion=test_user_1.get_vu())
@@ -1319,7 +1337,7 @@ def get_setup_with_gastos_items_and_listas(test):
         item=item_2, lista=lista_1, cantidad_solicitada=2)
 
     il_3 = ItemLista.objects.create(
-        item=item_1, lista=lista_2, cantidad_solicitada=3)
+        item=item_3, lista=lista_2, cantidad_solicitada=3)
 
     return test_user_1
 
@@ -2192,7 +2210,7 @@ class ListaPendingViewTest(TestCase):
                     usuario_creacion__vivienda=vivienda).first())
             .count(),
             1)
-        self.assertEqual(Item.objects.count(), 3)
+        self.assertEqual(Item.objects.filter(vivienda=vivienda).count(), 3)
 
     def test_not_logged_user_cant_see_lista(self):
         test_user = get_setup_with_gastos_items_and_listas(self)

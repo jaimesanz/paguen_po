@@ -84,7 +84,9 @@ def get_gastos_graph(request):
 @login_required
 def get_items_autocomplete(request):
     if 'term' in request.GET:
-        items = Item.objects.filter(nombre__istartswith=request.GET['term'])
+        items = Item.objects.filter(
+            vivienda=request.user.get_vivienda(),
+            nombre__istartswith=request.GET['term'])
         return HttpResponse(
             json.dumps(
                 [(item.nombre, item.unidad_medida) for item in items]))

@@ -10,6 +10,8 @@ def create_new_vivienda(form):
         Categoria.objects.create(
             nombre=cat.nombre,
             vivienda=new_viv)
+    # add initial Item instances
+    new_viv.add_global_items()
     return new_viv
 
 

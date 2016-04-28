@@ -137,6 +137,22 @@ class ProxyUser(User):
 class Vivienda(models.Model):
     alias = models.CharField(max_length=200)
 
+    def add_global_items(self):
+        """
+        For each global Item (an Item with no related Vivienda),
+        creates an Item instance with that Items fields,
+        but with a foreign key to this Vivienda.
+        If the global item already exists, it doesn't create it again.
+        """
+        global_items = Item.objects.filter(vivienda=None)
+        for item in global_items:
+            global_item_this_viv, __ = Item.objects.get_or_create(
+                nombre=item.nombre,
+                unidad_medida=item.unidad_medida,
+                descripcion=item.descripcion,
+                vivienda=self)
+
+
     def get_gastos_pendientes(self):
         """
         Returns a QuerySet with the Gastos associated with the Vivienda,
@@ -599,9 +615,12 @@ class ListaCompras(models.Model):
 
     def get_item_by_name(self, item_name):
         """
-        Given an item name, returns the Item instance
+        Given an item name, returns the Item instance with that name that is
+        related to this Lista's Vivienda
         """
-        return Item.objects.filter(nombre=item_name).first()
+        return Item.objects.filter(
+            nombre=item_name,
+            vivienda=self.usuario_creacion.vivienda).first()
 
     def add_item(self, item, quantity):
         """
