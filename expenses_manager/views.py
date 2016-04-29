@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from expenses_manager.forms import *
@@ -396,7 +396,17 @@ def edit_item(request, item_name):
         Item,
         nombre=item_name,
         vivienda=request.user.get_vivienda())
-    return HttpResponseRedirect("/error")
+    form = ItemForm(request.POST or None, instance=item)
+    if request.POST:
+        if form.is_valid():
+            form.save()
+            return redirect("items")
+        else:
+            messages.error(
+                request,
+                "Se produjo un error procesando la solicitud")
+            return redirect("/vivienda/item/%s/" % (item_name))
+    return render(request, "vivienda/edit_item.html", locals())
 
 @login_required
 def nuevo_gasto(request):

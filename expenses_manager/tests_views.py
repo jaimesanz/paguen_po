@@ -3131,7 +3131,125 @@ class EditItemViewTest(TestCase):
 
 
     def test_user_can_edit_item_of_own_vivienda(self):
-        self.fail()
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
+        other_vivienda = Vivienda.objects.exclude(id=vivienda.id).first()
+        # both Viviendas just happened to create a custom item with the
+        # same name
+        my_custom_item = Item.objects.create(
+            nombre="customizimo",
+            unidad_medida="kg",
+            vivienda=vivienda)
+        others_custom_item = Item.objects.create(
+            nombre="customizimo",
+            unidad_medida="kg",
+            vivienda=other_vivienda)
+        url = "/vivienda/item/%s/" % (my_custom_item.nombre)
+
+        response = self.client.post(
+            url,
+            data={
+                "nombre": "new_name",
+                "unidad_medida": "litros",
+                "descripcion": "asdf"
+            },
+            follow=True)
+
+        # only 'my_custom_item' should've been modified
+        self.assertRedirects(response, "/vivienda/items/")
+        self.assertEqual(
+            Item.objects.get(id=my_custom_item.id).nombre,
+            "new_name")
+        self.assertEqual(
+            Item.objects.get(id=my_custom_item.id).unidad_medida,
+            "litros")
+        self.assertEqual(
+            Item.objects.get(id=my_custom_item.id).descripcion,
+            "asdf")
+        # 'others_custom_item' shouldn't have changed
+        self.assertEqual(
+            Item.objects.get(id=others_custom_item.id).nombre,
+            "customizimo")
+        self.assertEqual(
+            Item.objects.get(id=others_custom_item.id).unidad_medida,
+            "kg")
+        self.assertEqual(
+            Item.objects.get(id=others_custom_item.id).descripcion,
+            "")
+
 
     def test_user_cant_edit_item_with_broken_POST(self):
-        self.fail()
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
+        custom_item = Item.objects.create(
+            nombre="customizimo",
+            unidad_medida="kg",
+            vivienda=vivienda)
+        url = "/vivienda/item/%s/" % (custom_item.nombre)
+
+        response = self.client.post(
+            url,
+            data={
+                "nombre": "new_name",
+                # "unidad_medida": "litros",
+                "descripcion": "asdf"
+            },
+            follow=True)
+
+        self.assertRedirects(response, url)
+        self.assertContains(
+            response,
+            "Se produjo un error procesando la solicitud")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).nombre,
+            "customizimo")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).unidad_medida,
+            "kg")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).descripcion,
+            "")
+
+        response = self.client.post(
+            url,
+            data={
+                # "nombre": "new_name",
+                "unidad_medida": "litros",
+                "descripcion": "asdf"
+            },
+            follow=True)
+
+        self.assertRedirects(response, url)
+        self.assertContains(
+            response,
+            "Se produjo un error procesando la solicitud")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).nombre,
+            "customizimo")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).unidad_medida,
+            "kg")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).descripcion,
+            "")
+
+        response = self.client.post(
+            url,
+            data={
+                "nombre": "new_name",
+                "unidad_medida": "litros"
+                # "descripcion": "asdf"
+            },
+            follow=True)
+
+        self.assertRedirects(response, "/vivienda/items/")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).nombre,
+            "new_name")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).unidad_medida,
+            "litros")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).descripcion,
+            "")
+
