@@ -392,6 +392,10 @@ def new_item(request):
                      login_url="/error/",
                      redirect_field_name=None)
 def edit_item(request, item_name):
+    item = get_object_or_404(
+        Item,
+        nombre=item_name,
+        vivienda=request.user.get_vivienda())
     return HttpResponseRedirect("/error")
 
 @login_required

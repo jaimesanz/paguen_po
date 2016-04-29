@@ -3094,7 +3094,41 @@ class EditItemViewTest(TestCase):
 
 
     def test_user_cant_edit_item_of_other_vivienda(self):
-        self.fail()
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
+        other_vivienda = Vivienda.objects.exclude(id=vivienda.id).first()
+        custom_item = Item.objects.create(
+            nombre="customizimo",
+            unidad_medida="kg",
+            vivienda=other_vivienda)
+        url = "/vivienda/item/%s/" % (custom_item.nombre)
+
+        response = self.client.post(
+            url,
+            data={
+                "nombre": "new_name",
+                "unidad_medida": "litros",
+                "descripcion": "asdf"
+            },
+            follow=True)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).nombre,
+            "customizimo")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).unidad_medida,
+            "kg")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).descripcion,
+            "")
+        self.assertEqual(Item.objects.filter(
+            nombre="customizimo",
+            unidad_medida="kg",
+            descripcion="",
+            vivienda=other_vivienda).count(),
+            1)
+
 
     def test_user_can_edit_item_of_own_vivienda(self):
         self.fail()
