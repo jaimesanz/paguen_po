@@ -134,25 +134,21 @@ class ProxyUser(User):
         """
         return invite.invitado_por.user == self
 
-    def go_on_vacation(self, end_date=None):
+    def go_on_vacation(self,
+                       end_date=timezone.now() + timezone.timedelta(
+                           weeks=9999)):
         """
         If the user is not already on vacation, creates a new instance of
         UserIsOut with this user's ViviendaUsuario, the current date for
         the "fecha_inicio" field and the given end_date parameter for
         the "fecha_fin" field.
         """
-        # TODO end_date should default to timezone.MAXDATE or something
-        # like that
         if self.has_vivienda() and not self.is_out():
-            if end_date is not None:
-                user_is_out = UserIsOut.objects.create(
-                    vivienda_usuario=self.get_vu(),
-                    fecha_fin=end_date)
-            else:
-                user_is_out = UserIsOut.objects.create(
-                    vivienda_usuario=self.get_vu(),
-                    fecha_fin=timezone.now() + timezone.timedelta(weeks=9999))
+            user_is_out = UserIsOut.objects.create(
+                vivienda_usuario=self.get_vu(),
+                fecha_fin=end_date)
             return user_is_out
+        return False
 
     def is_out(self):
         """
@@ -168,6 +164,7 @@ class ProxyUser(User):
             vivienda_usuario=self.get_vu(),
             fecha_inicio__lt=today,
             fecha_fin__gt=today).exists()
+
 
 class Vivienda(models.Model):
     alias = models.CharField(max_length=200)

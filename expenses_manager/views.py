@@ -13,6 +13,7 @@ from expenses_manager.helper_functions import *
 from expenses_manager.custom_decorators import request_passes_test
 from django.db import IntegrityError
 
+
 def home(request):
     return render(request, 'general/home.html', locals())
 
@@ -492,17 +493,17 @@ def graph_gastos(request):
         request,
         "vivienda/graphs/gastos.html",
         {
-            "periods":json.dumps(periods),
-            "periods_indexes":json.dumps(
-                [i for i in range(1,len(periods)+1)]),
-            "periods_indexes_max":len(periods),
-            "vivienda":vivienda,
-            "today":today,
-            "current_year_month":current_year_month,
-            "total_this_period":total_this_period,
-            "categorias":categorias,
-            "categoria_total":categoria_total,
-            "window":window
+            "periods": json.dumps(periods),
+            "periods_indexes": json.dumps(
+                [i for i in range(1, len(periods) + 1)]),
+            "periods_indexes_max": len(periods),
+            "vivienda": vivienda,
+            "today": today,
+            "current_year_month": current_year_month,
+            "total_this_period": total_this_period,
+            "categorias": categorias,
+            "categoria_total": categoria_total,
+            "window": window
         })
 
 
