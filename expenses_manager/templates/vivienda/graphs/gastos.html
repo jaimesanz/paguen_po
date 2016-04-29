@@ -39,12 +39,12 @@
 	<hr>
 	<input id="ex19" type="text"
 		data-provide="slider"
-		data-slider-ticks="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]"
+		data-slider-ticks="{{periods_indexes}}"
 		data-slider-ticks-labels="{{periods}}"
 		data-slider-min="1"
-		data-slider-max="13"
+		data-slider-max="{{periods_indexes_max}}"
 		data-slider-step="1"
-		data-slider-value="[12,13]"
+		data-slider-value='[{{periods_indexes_max|add:"-1"}},{{periods_indexes_max}}]'
 		data-slider-tooltip="hide" />
 	<br>
 	<div class="btn-group" id="categorias_checkbox" data-toggle="buttons">
@@ -90,7 +90,7 @@
 			// get the range of periods (the labels, NOT the indexes)
 			var range_periods_labels = JSON.parse($("#ex19").attr("data-slider-ticks-labels"))
 
-			// this is to display the numbers in a human-readable way. 
+			// this is to display the numbers in a human-readable way.
 			// For example: 23.145.222 instead of 23145222
 			$.format.locale({
 			    number: {
@@ -202,7 +202,7 @@
 					}
 				});
 			});
-			
+
 		});
 	</script>
 {% endblock %}

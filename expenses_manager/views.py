@@ -482,12 +482,28 @@ def graph_gastos(request):
     # it's set to 12 months, but in the future must be customizable
     # by the user. Also, the window should be measured in months
     window = 1  # year
-    periods = json.dumps(["%d-%d" % (y, m) for y, m in get_periods(
+    periods = ["%d-%d" % (y, m) for y, m in get_periods(
         today.year - window,
         today.month,
         today.year,
-        today.month)])
-    return render(request, "vivienda/graphs/gastos.html", locals())
+        today.month)]
+
+    return render(
+        request,
+        "vivienda/graphs/gastos.html",
+        {
+            "periods":json.dumps(periods),
+            "periods_indexes":json.dumps(
+                [i for i in range(1,len(periods)+1)]),
+            "periods_indexes_max":len(periods),
+            "vivienda":vivienda,
+            "today":today,
+            "current_year_month":current_year_month,
+            "total_this_period":total_this_period,
+            "categorias":categorias,
+            "categoria_total":categoria_total,
+            "window":window
+        })
 
 
 @login_required
