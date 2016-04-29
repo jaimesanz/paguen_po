@@ -518,6 +518,10 @@ class Categoria(models.Model):
 
 
 class Item(models.Model):
+
+    class Meta:
+        unique_together = ('nombre', 'vivienda')
+
     nombre = models.CharField(max_length=255)
     descripcion = models.CharField(
         max_length=255,

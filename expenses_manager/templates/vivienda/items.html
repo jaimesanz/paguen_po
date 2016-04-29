@@ -1,13 +1,45 @@
 {% extends "base.html" %}
+{% load bootstrap3 %}
+
+{% block custom_head %}
+    {% include "general/datatables.html" %}
+{% endblock %}
 
 {% block content_title %}{{request.user.get_vivienda}}{% endblock %}
 {% block content %}
     <h3>Items</h3>
-    {% for item in items %}
-        <p>
-            {{item}}
-        </p>
-    {% empty %}
-        <p>No hay items definidos para la vivienda.</p>
-    {% endfor %}
+    <a href="/vivienda/items/new/" class="btn btn-warning" role="button">
+        {% bootstrap_icon "plus" %} Nuevo Item
+    </a>
+    <hr>
+    <table id="items_table" class="table table-striped table-bordered" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Unidad</th>
+                <th>Descripción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>
+                    <a href="/vivienda/item/{{item.nombre}}">
+                        {{item.nombre}}
+                    </a>
+                </td>
+                <td>{{item.unidad_medida}}</td>
+                <td>{{item.descripcion}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('#items_table').DataTable({
+                // paging: false,
+                // filter: false
+            });
+        });
+    </script>
 {% endblock %}

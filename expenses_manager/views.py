@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.contrib import messages
 from expenses_manager.helper_functions import *
 from expenses_manager.custom_decorators import request_passes_test
-
+from django.db import IntegrityError
 
 def home(request):
     return render(request, 'general/home.html', locals())
@@ -375,10 +375,16 @@ def new_item(request):
     if request.POST:
         form = ItemForm(request.POST)
         if form.is_valid():
-            new_item = form.save(commit=False)
-            new_item.vivienda = request.user.get_vivienda()
-            new_item.save()
-            return HttpResponseRedirect("/vivienda/items")
+            try:
+                new_item = form.save(commit=False)
+                new_item.vivienda = request.user.get_vivienda()
+                new_item.save()
+                return HttpResponseRedirect("/vivienda/items")
+            except IntegrityError as e:
+                messages.error(
+                    request,
+                    "Ya existe el Item '%s'" % (request.POST.get("nombre")))
+                return redirect("/vivienda/items/new/")
         else:
             messages.error(
                 request,
@@ -400,8 +406,14 @@ def edit_item(request, item_name):
     form = ItemForm(request.POST or None, instance=item)
     if request.POST:
         if form.is_valid():
-            form.save()
-            return redirect("items")
+            try:
+                form.save()
+                return redirect("items")
+            except IntegrityError as e:
+                messages.error(
+                    request,
+                    "Ya existe el Item '%s'" % (request.POST.get("nombre")))
+                return redirect("/vivienda/item/%s/" % (item_name))
         else:
             messages.error(
                 request,
