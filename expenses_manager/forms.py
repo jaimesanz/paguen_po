@@ -53,6 +53,7 @@ class CategoriaForm(forms.ModelForm):
         model = Categoria
         fields = ("nombre",)
 
+
 class ItemForm(forms.ModelForm):
 
     class Meta:

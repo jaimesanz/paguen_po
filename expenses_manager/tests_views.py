@@ -2929,7 +2929,7 @@ class NewItemTest(TestCase):
             self.url,
             data={
                 "nombre": "customizimo",
-                "unidad_medida" : "kg"
+                "unidad_medida": "kg"
             },
             follow=True)
 
@@ -2945,7 +2945,7 @@ class NewItemTest(TestCase):
             self.url,
             data={
                 "nombre": "customizimo",
-                "unidad_medida" : "kg"
+                "unidad_medida": "kg"
             },
             follow=True)
 
@@ -2968,7 +2968,7 @@ class NewItemTest(TestCase):
             self.url,
             data={
                 "nombre": "customizimo",
-                "unidad_medida" : "kg"
+                "unidad_medida": "kg"
             },
             follow=True)
 
@@ -2995,7 +2995,7 @@ class NewItemTest(TestCase):
             self.url,
             data={
                 "weird_key": "SQLInj",
-                "unidad_medida" : "kg"
+                "unidad_medida": "kg"
             },
             follow=True)
 
@@ -3092,7 +3092,6 @@ class EditItemViewTest(TestCase):
             vivienda=vivienda).count(),
             1)
 
-
     def test_user_cant_edit_item_of_other_vivienda(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
         vivienda = test_user.get_vivienda()
@@ -3128,7 +3127,6 @@ class EditItemViewTest(TestCase):
             descripcion="",
             vivienda=other_vivienda).count(),
             1)
-
 
     def test_user_can_edit_item_of_own_vivienda(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -3176,7 +3174,6 @@ class EditItemViewTest(TestCase):
         self.assertEqual(
             Item.objects.get(id=others_custom_item.id).descripcion,
             "")
-
 
     def test_user_cant_edit_item_with_broken_POST(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -3252,4 +3249,3 @@ class EditItemViewTest(TestCase):
         self.assertEqual(
             Item.objects.get(id=custom_item.id).descripcion,
             "")
-

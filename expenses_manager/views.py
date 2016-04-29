@@ -387,6 +387,7 @@ def new_item(request):
     form = ItemForm()
     return render(request, "vivienda/new_item.html", locals())
 
+
 @login_required
 @request_passes_test(user_has_vivienda,
                      login_url="/error/",
@@ -407,6 +408,7 @@ def edit_item(request, item_name):
                 "Se produjo un error procesando la solicitud")
             return redirect("/vivienda/item/%s/" % (item_name))
     return render(request, "vivienda/edit_item.html", locals())
+
 
 @login_required
 def nuevo_gasto(request):
