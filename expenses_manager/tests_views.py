@@ -1,7 +1,4 @@
-from django.core.urlresolvers import resolve, reverse
 from django.test import TestCase
-from django.http import HttpRequest
-from django.template.loader import render_to_string
 from expenses_manager.models import *
 from django.utils import timezone
 from expenses_manager.views import *
