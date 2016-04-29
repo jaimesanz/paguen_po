@@ -3014,10 +3014,84 @@ class NewItemTest(TestCase):
 class EditItemViewTest(TestCase):
 
     def test_not_logged_user_cant_edit_item(self):
-        self.fail()
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
+        custom_item = Item.objects.create(
+            nombre="customizimo",
+            unidad_medida="kg",
+            vivienda=vivienda)
+        url = "/vivienda/item/%s/" % (custom_item.nombre)
+
+        self.client.logout()
+        response = self.client.post(
+            url,
+            data={
+                "nombre": "new_name",
+                "unidad_medida": "litros",
+                "descripcion": "asdf"
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=%s" % (url))
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).nombre,
+            "customizimo")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).unidad_medida,
+            "kg")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).descripcion,
+            "")
+        self.assertEqual(Item.objects.filter(
+            nombre="customizimo",
+            unidad_medida="kg",
+            descripcion="",
+            vivienda=vivienda).count(),
+            1)
 
     def test_homeless_user_cant_edit_item(self):
-        self.fail()
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
+        custom_item = Item.objects.create(
+            nombre="customizimo",
+            unidad_medida="kg",
+            vivienda=vivienda)
+        url = "/vivienda/item/%s/" % (custom_item.nombre)
+
+        test_user.get_vu().leave()
+        response = self.client.post(
+            url,
+            data={
+                "nombre": "new_name",
+                "unidad_medida": "litros",
+                "descripcion": "asdf"
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/error/")
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).nombre,
+            "customizimo")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).unidad_medida,
+            "kg")
+        self.assertEqual(
+            Item.objects.get(id=custom_item.id).descripcion,
+            "")
+        self.assertEqual(Item.objects.filter(
+            nombre="customizimo",
+            unidad_medida="kg",
+            descripcion="",
+            vivienda=vivienda).count(),
+            1)
+
 
     def test_user_cant_edit_item_of_other_vivienda(self):
         self.fail()

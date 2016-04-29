@@ -519,7 +519,11 @@ class Categoria(models.Model):
 
 class Item(models.Model):
     nombre = models.CharField(max_length=255)
-    descripcion = models.CharField(max_length=255, blank=True, null=True)
+    descripcion = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        default="")
     unidad_medida = models.CharField(max_length=255, default="unidad")
     vivienda = models.ForeignKey(
         Vivienda,

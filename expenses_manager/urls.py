@@ -43,6 +43,7 @@ urlpatterns = [
     # items
     url(r'^vivienda/items/$', views.items, name='items'),
     url(r'^vivienda/items/new/$', views.new_item, name='new_item'),
+    url(r'^vivienda/item/(.+)/$', views.edit_item, name='edit_item'),
 
     # gastos
     url(r'^gastos/$', views.gastos, name='gastos'),
