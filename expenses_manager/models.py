@@ -57,11 +57,12 @@ def get_pending_estadoGasto():
 def get_default_others_categoria():
     return Categoria.objects.get_or_create(nombre="Otros", vivienda=None)[0]
 
-# proxy user. This is used to add methods to the default django User class
-# without altering it
-
 
 class ProxyUser(User):
+    """
+    This is used to add methods to the default django User class
+    without altering it
+    """
 
     class Meta:
         proxy = True
@@ -133,6 +134,40 @@ class ProxyUser(User):
         """
         return invite.invitado_por.user == self
 
+    def go_on_vacation(self, end_date=None):
+        """
+        If the user is not already on vacation, creates a new instance of
+        UserIsOut with this user's ViviendaUsuario, the current date for
+        the "fecha_inicio" field and the given end_date parameter for
+        the "fecha_fin" field.
+        """
+        # TODO end_date should default to timezone.MAXDATE or something
+        # like that
+        if self.has_vivienda() and not self.is_out():
+            if end_date is not None:
+                user_is_out = UserIsOut.objects.create(
+                    vivienda_usuario=self.get_vu(),
+                    fecha_fin=end_date)
+            else:
+                user_is_out = UserIsOut.objects.create(
+                    vivienda_usuario=self.get_vu(),
+                    fecha_fin=timezone.now() + timezone.timedelta(weeks=9999))
+            return user_is_out
+
+    def is_out(self):
+        """
+        Returns True if today's date falls within the range of any
+        UserIsOut instance realted to this user's ViviendaUsuario.
+        If this doesn't heppen, or if the user doesn't have a Vivienda,
+        returns False.
+        """
+        if not self.has_vivienda():
+            return False
+        today = timezone.now()
+        return UserIsOut.objects.filter(
+            vivienda_usuario=self.get_vu(),
+            fecha_inicio__lt=today,
+            fecha_fin__gt=today).exists()
 
 class Vivienda(models.Model):
     alias = models.CharField(max_length=200)
@@ -385,6 +420,15 @@ class ViviendaUsuario(models.Model):
         User, or False otherwise.
         """
         return invite.invitado_por.user == self.user
+
+
+class UserIsOut(models.Model):
+
+    vivienda_usuario = models.ForeignKey(
+        ViviendaUsuario,
+        on_delete=models.CASCADE)
+    fecha_inicio = models.DateTimeField(auto_now_add=True)
+    fecha_fin = models.DateTimeField(null=True, blank=True, default=None)
 
 
 class Invitacion(models.Model):

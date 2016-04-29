@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.utils import timezone
 from expenses_manager.models import *
 from .helper_functions_tests import *
 
@@ -186,6 +187,37 @@ class ProxyUserModelTest(TestCase):
         self.assertTrue(gasto.is_paid())
         self.assertTrue(gasto.allow_user(user1))
 
+    def test_user_can_leave_with_finite_period(self):
+        (user1,
+         user2,
+         correct_vivienda,
+         user1_viv,
+         user2_viv) = get_vivienda_with_2_users()
+
+        self.assertFalse(user1.is_out())
+        self.assertFalse(user2.is_out())
+
+        user1.go_on_vacation(
+            end_date=timezone.now() + timezone.timedelta(weeks=2))
+
+        self.assertTrue(user1.is_out())
+        self.assertFalse(user2.is_out())
+
+    def test_user_can_leave_with_no_end_date(self):
+        (user1,
+         user2,
+         correct_vivienda,
+         user1_viv,
+         user2_viv) = get_vivienda_with_2_users()
+
+        self.assertFalse(user1.is_out())
+        self.assertFalse(user2.is_out())
+
+        user1.go_on_vacation()
+
+        self.assertTrue(user1.is_out())
+        self.assertFalse(user2.is_out())
+
 
 class ViviendaModelTest(TestCase):
 
@@ -316,6 +348,12 @@ class ViviendaUsuarioModelTest(TestCase):
             invitado=user2, invitado_por=user1_viv, email="b@b.com")
 
         self.assertTrue(user1_viv.sent_invite(invite))
+
+
+class UserIsOutModelTest(TestCase):
+
+    def test_pass(self):
+        pass
 
 
 class InvitacionModelTest(TestCase):
