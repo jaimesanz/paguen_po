@@ -2928,7 +2928,8 @@ class NewItemTest(TestCase):
         response = self.client.post(
             self.url,
             data={
-                "nombre": "customizimo"
+                "nombre": "customizimo",
+                "unidad_medida" : "kg"
             },
             follow=True)
 
@@ -2943,7 +2944,8 @@ class NewItemTest(TestCase):
         response = self.client.post(
             self.url,
             data={
-                "nombre": "customizimo"
+                "nombre": "customizimo",
+                "unidad_medida" : "kg"
             },
             follow=True)
 
@@ -2965,7 +2967,8 @@ class NewItemTest(TestCase):
         response = self.client.post(
             self.url,
             data={
-                "nombre": "customizimo"
+                "nombre": "customizimo",
+                "unidad_medida" : "kg"
             },
             follow=True)
 
@@ -2991,7 +2994,8 @@ class NewItemTest(TestCase):
         response = self.client.post(
             self.url,
             data={
-                "weird_key": "SQLInj"
+                "weird_key": "SQLInj",
+                "unidad_medida" : "kg"
             },
             follow=True)
 

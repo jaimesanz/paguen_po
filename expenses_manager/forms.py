@@ -52,3 +52,9 @@ class CategoriaForm(forms.ModelForm):
     class Meta:
         model = Categoria
         fields = ("nombre",)
+
+class ItemForm(forms.ModelForm):
+
+    class Meta:
+        model = Item
+        fields = ("nombre", "unidad_medida", "descripcion")

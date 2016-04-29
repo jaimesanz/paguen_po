@@ -373,18 +373,19 @@ def items(request):
                      redirect_field_name=None)
 def new_item(request):
     if request.POST:
-        new_item_name = request.POST.get("nombre", None)
-        if new_item_name:
-            new_item = Item.objects.create(
-                nombre=new_item_name,
-                vivienda=request.user.get_vivienda())
+        form = ItemForm(request.POST)
+        if form.is_valid():
+            new_item = form.save(commit=False)
+            new_item.vivienda = request.user.get_vivienda()
+            new_item.save()
             return HttpResponseRedirect("/vivienda/items")
         else:
             messages.error(
                 request,
                 "Se produjo un error procesando los datos ingresados")
             return HttpResponseRedirect("/vivienda/items")
-    return HttpResponseRedirect("/error")
+    form = ItemForm()
+    return render(request, "vivienda/new_item.html", locals())
 
 
 @login_required
