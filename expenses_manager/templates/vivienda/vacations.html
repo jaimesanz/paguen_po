@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+
+{% block custom_head %}
+    {% include "general/datatables.html" %}
+{% endblock %}
+
+{% block content_title %}{{vivienda}}{% endblock %}
+{% block content %}
+    <h3>Vacaciones</h3>
+    <a href="/vivienda/vacaciones/new/" class="btn btn-warning" role="button">
+        {% bootstrap_icon "plus" %} Agregar nuevo
+    </a>
+    <hr>
+    <table id="vacations_table" class="table table-striped table-bordered" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Inicio</th>
+                <th>Fin</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for vacation in vacations %}
+            <tr>
+                <td>
+                    <a href="/vivienda/vacaciones/{{vacation.id}}/">
+                        {{vacation.vivienda_usuario.user}}
+                    </a>
+                </td>
+                <td>{{vacation.fecha_inicio.date}}</td>
+                <td>{{vacation.fecha_fin.date}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('#vacations_table').DataTable({
+                // paging: false,
+                // filter: false
+            });
+        });
+    </script>
+{% endblock %}

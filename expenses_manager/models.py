@@ -85,6 +85,17 @@ class ProxyUser(User):
             user=self,
             estado="activo").exists()
 
+    def leave(self):
+        """
+        Changes the state of the related ViviendaUsuario to "inactivo",
+        and sets the "fecha_abandono" as the current datetime.
+        If the user doesn't currently have a Vivienda, returns False and
+        does nothing.
+        """
+        if self.has_vivienda():
+            return self.get_vu().leave()
+        return False
+
     def get_vivienda(self):
         """
         Returns the active vivienda of the user, or None if it doesn't
@@ -367,12 +378,15 @@ class ViviendaUsuario(models.Model):
     def leave(self):
         """
         Changes the state of the ViviendaUsuario to "inactivo", and sets the
-        "fecha_abandono" as the current datetime.
+        "fecha_abandono" as the current datetime, and then returns True.
+        If this ViviendaUsuario was not active, does nothing and returns False
         """
         if self.is_active():
             self.estado = "inactivo"
             self.fecha_abandono = timezone.now()
             self.save()
+            return True
+        return False
 
     def is_active(self):
         """

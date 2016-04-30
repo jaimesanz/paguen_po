@@ -3246,3 +3246,178 @@ class EditItemViewTest(TestCase):
         self.assertEqual(
             Item.objects.get(id=custom_item.id).descripcion,
             "")
+
+
+class UserIsOutListViewTest(TestCase):
+
+    url = "/vivienda/vacaciones/"
+    url_new = "/vivienda/vacaciones/new/"
+
+    def test_not_logged_user_cant_see_vacation_list(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        self.client.logout()
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=%s" % (self.url))
+
+    def test_homeless_user_cant_see_vacation_list(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        test_user.get_vu().leave()
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/error/")
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+
+    def test_user_can_see_link_to_new_vacation(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertContains(
+            response,
+            self.url_new)
+
+    def test_user_can_see_vacations_of_active_users_only(self):
+        # create vivienda with 2 users
+        (test_user_1,
+            test_user_2,
+            test_user_3,
+            dummy_categoria,
+            gasto_1,
+            gasto_2,
+            gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+        # create vacation for user
+        vacation_1 = test_user_1.go_on_vacation()
+        # create vacation for roommate
+        vacation_2 = test_user_2.go_on_vacation(
+            end_date=timezone.now() + timezone.timedelta(weeks=48))
+        # roommate leaves
+        test_user_2.leave()
+
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertContains(
+            response,
+            vacation_1.fecha_inicio.year)
+        # month number doen't appear, what apperas is "April"
+        # self.assertContains(
+        #     response,
+        #     vacation_1.fecha_inicio.month)
+        self.assertContains(
+            response,
+            vacation_1.fecha_inicio.day)
+        self.assertContains(
+            response,
+            vacation_1.vivienda_usuario.user)
+
+        self.assertNotContains(
+            response,
+            vacation_2.fecha_fin.year)
+        self.assertNotContains(
+            response,
+            vacation_2.vivienda_usuario.user)
+
+    def test_user_can_see_vacations_of_active_vivienda_only(self):
+        (test_user_1,
+            test_user_2,
+            test_user_3,
+            dummy_categoria,
+            gasto_1,
+            gasto_2,
+            gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+        today = timezone.now()
+        # create vacations for old vivienda
+        vacation_1 = test_user_1.go_on_vacation(
+            end_date=today + timezone.timedelta(weeks=48))
+        # 48 weeks ensure a 1-year difference
+        # leave old vivienda
+        test_user_1.leave()
+        new_viv = Vivienda.objects.create(alias="newest_viv")
+        new_user_viv = ViviendaUsuario.objects.create(
+            user=test_user_1,
+            vivienda=new_viv)
+        # create vacation (diferent) for new vivienda
+        vacation_2 = test_user_1.go_on_vacation(
+            end_date=today + timezone.timedelta(weeks=2))
+
+        self.assertEqual(test_user_1.get_vivienda().alias, "newest_viv")
+
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertContains(
+            response,
+            vacation_2.fecha_fin.year)
+        self.assertContains(
+            response,
+            vacation_2.fecha_fin.day)
+        self.assertNotContains(
+            response,
+            vacation_1.fecha_fin.year)
+
+    def test_user_cant_see_vacations_of_other_vivienda(self):
+        # create another vivienda with other users
+        (test_user_1,
+            test_user_2,
+            test_user_3,
+            dummy_categoria,
+            gasto_1,
+            gasto_2,
+            gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+        today = timezone.now()
+        # create vacations for other user
+        other_vacation = test_user_3.go_on_vacation(
+            end_date=today + timezone.timedelta(weeks=48))
+        # create vacations for this user
+        this_vacation = test_user_1.go_on_vacation(
+            end_date=today + timezone.timedelta(weeks=2))
+
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertContains(
+            response,
+            this_vacation.fecha_fin.year)
+        self.assertContains(
+            response,
+            this_vacation.fecha_fin.day)
+        self.assertNotContains(
+            response,
+            other_vacation.fecha_fin.year)
+
+    def test_user_can_see_link_to_edit_vacation(self):
+        (test_user_1,
+            test_user_2,
+            test_user_3,
+            dummy_categoria,
+            gasto_1,
+            gasto_2,
+            gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
+        vacation = test_user_1.go_on_vacation(
+            end_date=timezone.now() + timezone.timedelta(weeks=4))
+
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertContains(
+            response,
+            "/vivienda/vacaciones/%d/" % (vacation.id))

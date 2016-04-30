@@ -127,6 +127,15 @@ def login_post_process(request):
 def user_info(request):
     return render(request, "user_info.html", locals())
 
+@login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
+def vacations(request):
+    vacations = UserIsOut.objects.filter(
+        vivienda_usuario__vivienda=request.user.get_vivienda(),
+        vivienda_usuario__estado="activo")
+    return render(request, "vivienda/vacations.html", locals())
 
 @login_required
 def invites_list(request):

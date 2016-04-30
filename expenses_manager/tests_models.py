@@ -218,6 +218,24 @@ class ProxyUserModelTest(TestCase):
         self.assertTrue(user1.is_out())
         self.assertFalse(user2.is_out())
 
+    def test_method_leave(self):
+        user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
+
+        self.assertTrue(ViviendaUsuario.objects.get(
+            user=user1,
+            vivienda=correct_vivienda).is_active())
+
+        user1.leave()
+
+        self.assertFalse(ViviendaUsuario.objects.get(
+            user=user1,
+            vivienda=correct_vivienda).is_active())
+        self.assertEqual(
+            ViviendaUsuario.objects.filter(
+                vivienda=correct_vivienda,
+                estado="activo").count(),
+            0)
+
 
 class ViviendaModelTest(TestCase):
 
