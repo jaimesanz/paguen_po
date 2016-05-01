@@ -59,3 +59,10 @@ class ItemForm(forms.ModelForm):
     class Meta:
         model = Item
         fields = ("nombre", "unidad_medida", "descripcion")
+
+
+class UserIsOutForm(forms.ModelForm):
+
+    class Meta:
+        model = UserIsOut
+        fields = ("fecha_fin", "fecha_inicio")

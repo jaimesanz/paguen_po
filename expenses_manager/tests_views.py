@@ -2093,8 +2093,15 @@ class EditPresupuestoTest(TestCase):
         test_user = get_setup_with_gastos_items_and_listas(self)
         other_vivienda = Vivienda.objects.exclude(
             id=test_user.get_vivienda().id).first()
+        Categoria.objects.create(nombre="asdf")
+        my_cat = Categoria.objects.create(
+            nombre="asdf",
+            vivienda=test_user.get_vivienda())
+        other_cat = Categoria.objects.create(
+            nombre="asdf",
+            vivienda=other_vivienda)
         my_presupuesto = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=my_cat,
             vivienda=test_user.get_vivienda(),
             monto=12345)
         url = "/presupuestos/%d/%d/%s/" % (
@@ -2103,7 +2110,7 @@ class EditPresupuestoTest(TestCase):
             my_presupuesto.categoria)
 
         other_presupuesto = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
+            categoria=other_cat,
             vivienda=other_vivienda,
             monto=54321)
         response = self.client.get(
@@ -2167,9 +2174,10 @@ class EditPresupuestoTest(TestCase):
 
     def test_user_can_see_edit_presupuesto_form(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
         presupuesto = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
-            vivienda=test_user.get_vivienda(),
+            categoria=vivienda.get_categorias().first(),
+            vivienda=vivienda,
             monto=12345)
         url = "/presupuestos/%d/%d/%s/" % (
             presupuesto.year_month.year,
@@ -2337,9 +2345,10 @@ class EditPresupuestoTest(TestCase):
 
     def test_user_cant_edit_presupuesto_with_broken_POST(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
         presupuesto = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
-            vivienda=test_user.get_vivienda(),
+            categoria=vivienda.get_categorias().first(),
+            vivienda=vivienda,
             monto=300)
         url = "/presupuestos/%d/%d/%s/" % (
             presupuesto.year_month.year,
@@ -2387,9 +2396,10 @@ class EditPresupuestoTest(TestCase):
 
     def test_user_can_edit_presupuesto(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
+        vivienda = test_user.get_vivienda()
         presupuesto = Presupuesto.objects.create(
-            categoria=Categoria.objects.all().first(),
-            vivienda=test_user.get_vivienda(),
+            categoria=vivienda.get_categorias().first(),
+            vivienda=vivienda,
             monto=100)
         url = "/presupuestos/%d/%d/%s/" % (
             presupuesto.year_month.year,
@@ -3301,9 +3311,9 @@ class UserIsOutListViewTest(TestCase):
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
         # create vacation for user
-        vacation_1 = test_user_1.go_on_vacation()
+        vacation_1, __ = test_user_1.go_on_vacation()
         # create vacation for roommate
-        vacation_2 = test_user_2.go_on_vacation(
+        vacation_2, __ = test_user_2.go_on_vacation(
             end_date=timezone.now() + timezone.timedelta(weeks=48))
         # roommate leaves
         test_user_2.leave()
@@ -3343,7 +3353,7 @@ class UserIsOutListViewTest(TestCase):
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
         today = timezone.now()
         # create vacations for old vivienda
-        vacation_1 = test_user_1.go_on_vacation(
+        vacation_1, __ = test_user_1.go_on_vacation(
             end_date=today + timezone.timedelta(weeks=48))
         # 48 weeks ensure a 1-year difference
         # leave old vivienda
@@ -3353,7 +3363,7 @@ class UserIsOutListViewTest(TestCase):
             user=test_user_1,
             vivienda=new_viv)
         # create vacation (diferent) for new vivienda
-        vacation_2 = test_user_1.go_on_vacation(
+        vacation_2, __ = test_user_1.go_on_vacation(
             end_date=today + timezone.timedelta(weeks=2))
 
         self.assertEqual(test_user_1.get_vivienda().alias, "newest_viv")
@@ -3383,10 +3393,10 @@ class UserIsOutListViewTest(TestCase):
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
         today = timezone.now()
         # create vacations for other user
-        other_vacation = test_user_3.go_on_vacation(
+        other_vacation, __ = test_user_3.go_on_vacation(
             end_date=today + timezone.timedelta(weeks=48))
         # create vacations for this user
-        this_vacation = test_user_1.go_on_vacation(
+        this_vacation, __ = test_user_1.go_on_vacation(
             end_date=today + timezone.timedelta(weeks=2))
 
         response = self.client.get(
@@ -3411,7 +3421,7 @@ class UserIsOutListViewTest(TestCase):
             gasto_1,
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
-        vacation = test_user_1.go_on_vacation(
+        vacation, __ = test_user_1.go_on_vacation(
             end_date=timezone.now() + timezone.timedelta(weeks=4))
 
         response = self.client.get(
@@ -3421,3 +3431,201 @@ class UserIsOutListViewTest(TestCase):
         self.assertContains(
             response,
             "/vivienda/vacaciones/%d/" % (vacation.id))
+
+
+class NewUserIsOutTest(TestCase):
+
+    url = "/vivienda/vacaciones/new/"
+
+    def test_not_logged_user_cant_create_vacation(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        self.client.logout()
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=%s" % (self.url))
+
+    def test_homeless_user_cant_create_vacation(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        test_user.get_vu().leave()
+        response = self.client.get(
+            self.url,
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/error/")
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+
+    def test_user_can_create_vacation_without_start_nor_end_date_defined(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        self.assertFalse(UserIsOut.objects.filter(
+            vivienda_usuario__user=test_user).exists())
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish"
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/vivienda/vacaciones/")
+        self.assertTrue(UserIsOut.objects.filter(
+            vivienda_usuario__user=test_user).exists())
+
+    def test_user_can_create_vacation_with_defined_end_date_only(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        self.assertFalse(UserIsOut.objects.filter(
+            vivienda_usuario__user=test_user).exists())
+
+        end_date = timezone.now() + timezone.timedelta(weeks=4)
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "end_date": end_date
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/vivienda/vacaciones/")
+        self.assertTrue(UserIsOut.objects.filter(
+            vivienda_usuario__user=test_user,
+            fecha_fin=end_date).exists())
+
+    def test_user_can_create_vacation_with_defined_start_date_only(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        self.assertFalse(UserIsOut.objects.filter(
+            vivienda_usuario__user=test_user).exists())
+
+        start_date = timezone.now() + timezone.timedelta(weeks=4)
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "start_date": start_date
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/vivienda/vacaciones/")
+        self.assertTrue(UserIsOut.objects.filter(
+            vivienda_usuario__user=test_user,
+            fecha_inicio=start_date).exists())
+
+    def test_user_can_create_vacation_with_defined_start_and_end_date(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        self.assertFalse(UserIsOut.objects.filter(
+            vivienda_usuario__user=test_user).exists())
+
+        start_date = timezone.now() + timezone.timedelta(weeks=4)
+        end_date = timezone.now() + timezone.timedelta(weeks=10)
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "start_date": start_date,
+                "end_date": end_date
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/vivienda/vacaciones/")
+        self.assertTrue(UserIsOut.objects.filter(
+            vivienda_usuario__user=test_user,
+            fecha_inicio=start_date,
+            fecha_fin=end_date).exists())
+
+    def test_user_cant_create_vacation_with_start_date_after_end_date(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        self.assertFalse(UserIsOut.objects.filter(
+            vivienda_usuario__user=test_user).exists())
+
+        start_date = timezone.now() + timezone.timedelta(weeks=10)
+        end_date = timezone.now() + timezone.timedelta(weeks=4)
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "start_date": start_date,
+                "end_date": end_date
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            self.url)
+        self.assertFalse(UserIsOut.objects.filter(
+            vivienda_usuario__user=test_user).exists())
+        self.assertContains(
+            response,
+            "La fecha final debe ser posterior a la fecha inicial.")
+
+    def test_user_cant_create_vacation_that_overlaps_with_another(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        vacation_1, __ = test_user.go_on_vacation(
+            start_date=timezone.now() + timezone.timedelta(weeks=1),
+            end_date=timezone.now() + timezone.timedelta(weeks=4))
+
+        today = timezone.now()
+        # contained in vacation_1
+        case1 = (today + timezone.timedelta(weeks=2),
+                 today + timezone.timedelta(weeks=3))
+        # contains vacation_1
+        case2 = (today,
+                 today + timezone.timedelta(weeks=5))
+        # finishes too soon
+        case3 = (today,
+                 today + timezone.timedelta(weeks=3))
+        # starts too late
+        case4 = (today + timezone.timedelta(weeks=2),
+                 today + timezone.timedelta(weeks=6))
+
+        # dates that overlap with vacation_1
+        for start_date, end_date in [case1, case2, case3, case4]:
+
+            response = self.client.post(
+                self.url,
+                data={
+                    "csrfmiddlewaretoken": "rubbish",
+                    "start_date": start_date,
+                    "end_date": end_date
+                },
+                follow=True)
+
+            self.assertRedirects(
+                response,
+                self.url)
+            self.assertEqual(
+                UserIsOut.objects.filter(
+                    vivienda_usuario__user=test_user).count(),
+                1)
+            self.assertEqual(
+                UserIsOut.objects.get(
+                    vivienda_usuario__user=test_user).id,
+                vacation_1.id)
+            self.assertContains(
+                response,
+                "¡Las fechas indicadas topan con otra salida programada!")

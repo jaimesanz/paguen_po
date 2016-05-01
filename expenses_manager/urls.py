@@ -28,6 +28,9 @@ urlpatterns = [
 
     # vacations
     url(r'^vivienda/vacaciones/$', views.vacations, name='vacations'),
+    url(r'^vivienda/vacaciones/new/$',
+        views.new_vacation,
+        name='new_vacation'),
 
     # invites
     url(r'^invites_list/$', views.invites_list, name='invites_list'),

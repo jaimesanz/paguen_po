@@ -146,6 +146,7 @@ class ProxyUser(User):
         return invite.invitado_por.user == self
 
     def go_on_vacation(self,
+                       start_date=timezone.now(),
                        end_date=timezone.now() + timezone.timedelta(
                            weeks=9999)):
         """
@@ -153,13 +154,39 @@ class ProxyUser(User):
         UserIsOut with this user's ViviendaUsuario, the current date for
         the "fecha_inicio" field and the given end_date parameter for
         the "fecha_fin" field.
+        If there are no errors, returns the newly created UserIsOut, and
+        a message saying everything went well.
+        If there were errors, it does nothing and returns False plus a
+        message with the error.
         """
         if self.has_vivienda() and not self.is_out():
+            if start_date > end_date:
+                return (
+                    False,
+                    "La fecha final debe ser posterior a la fecha inicial.")
+
+            # check that it doesn't overlap with existing UserIsOut related
+            # to this user. Logic was taken from Charles Bretana's
+            # answer in SO:
+            # http://stackoverflow.com/a/325964
+            for vac in UserIsOut.objects.filter(
+                    vivienda_usuario__user=self,
+                    vivienda_usuario__estado="activo"):
+                vac_starts_early = vac.fecha_inicio <= end_date
+                vac_ends_late = vac.fecha_fin >= start_date
+                if (vac_starts_early) and (vac_ends_late):
+                    return (
+                        False,
+                        """
+                        ¡Las fechas indicadas topan con otra salida programada!
+                        """)
             user_is_out = UserIsOut.objects.create(
                 vivienda_usuario=self.get_vu(),
-                fecha_fin=end_date)
-            return user_is_out
-        return False
+                fecha_fin=end_date,
+                fecha_inicio=start_date)
+
+            return (user_is_out, "¡Salida creada correctamente!")
+        return (False, "Debe pertenecer a una vivienda para crear una salida")
 
     def is_out(self):
         """
@@ -438,8 +465,8 @@ class UserIsOut(models.Model):
     vivienda_usuario = models.ForeignKey(
         ViviendaUsuario,
         on_delete=models.CASCADE)
-    fecha_inicio = models.DateTimeField(auto_now_add=True)
-    fecha_fin = models.DateTimeField(null=True, blank=True, default=None)
+    fecha_inicio = models.DateTimeField()
+    fecha_fin = models.DateTimeField()
 
 
 class Invitacion(models.Model):

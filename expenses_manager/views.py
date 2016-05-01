@@ -12,6 +12,7 @@ from django.contrib import messages
 from expenses_manager.helper_functions import *
 from expenses_manager.custom_decorators import request_passes_test
 from django.db import IntegrityError
+from django.utils.dateparse import parse_datetime
 
 
 def home(request):
@@ -127,6 +128,7 @@ def login_post_process(request):
 def user_info(request):
     return render(request, "user_info.html", locals())
 
+
 @login_required
 @request_passes_test(user_has_vivienda,
                      login_url="/error/",
@@ -136,6 +138,37 @@ def vacations(request):
         vivienda_usuario__vivienda=request.user.get_vivienda(),
         vivienda_usuario__estado="activo")
     return render(request, "vivienda/vacations.html", locals())
+
+
+@login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
+def new_vacation(request):
+    """
+    Displays new UserIsOut form. If it receives a post request, checks
+    that it's valid, and creates a new UserIsOut instance if the POST
+    is indeed valid. Otherwise, redirects to the same page and shows an error
+    message.
+    """
+    if request.POST:
+        start_date = request.POST.get("start_date", None)
+        end_date = request.POST.get("end_date", None)
+        kwargs = {}
+        if start_date is not None:
+            kwargs['start_date'] = parse_datetime(start_date)
+        if end_date is not None:
+            kwargs['end_date'] = parse_datetime(end_date)
+        vacation, msg = request.user.go_on_vacation(**kwargs)
+        if not vacation:
+            messages.error(request, msg)
+            return redirect("new_vacation")
+        else:
+            messages.success(request, msg)
+            return redirect("vacations")
+    form = UserIsOutForm()
+    return render(request, "vivienda/nueva_vacacion.html", locals())
+
 
 @login_required
 def invites_list(request):
