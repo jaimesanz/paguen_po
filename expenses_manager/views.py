@@ -155,24 +155,24 @@ def new_vacation(request):
         start_date = request.POST.get("fecha_inicio", None)
         end_date = request.POST.get("fecha_fin", None)
         kwargs = {}
+        bad_format_error = False
         if start_date is not None:
             parsed_start_date = parse_date(start_date)
-            if parsed_start_date is None:
-                # the given string was an invalid date format
-                messages.error(
-                    request,
-                    "Las fechas ingresadas no son válidas.")
-                return redirect("new_vacation")
+            bad_format_error = bad_format_error or parsed_start_date is None
             kwargs['start_date'] = parsed_start_date
         if end_date is not None:
             parsed_end_date = parse_date(end_date)
-            if parsed_end_date is None:
-                # the given string was an invalid date format
-                messages.error(
-                    request,
-                    "Las fechas ingresadas no son válidas.")
-                return redirect("new_vacation")
+            bad_format_error = bad_format_error or parsed_end_date is None
             kwargs['end_date'] = parsed_end_date
+
+        if bad_format_error:
+            # at least one of the given date strings has an invalid
+            # date format
+            messages.error(
+                request,
+                "Las fechas ingresadas no son válidas.")
+            return redirect("new_vacation")
+
         vacation, msg = request.user.go_on_vacation(**kwargs)
         if not vacation:
             messages.error(request, msg)
