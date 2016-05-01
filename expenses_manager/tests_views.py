@@ -3537,7 +3537,6 @@ class NewUserIsOutTest(TestCase):
 
         start_date = timezone.now().date() + timezone.timedelta(weeks=4)
         end_date = timezone.now().date() + timezone.timedelta(weeks=10)
-        print(start_date)
 
         response = self.client.post(
             self.url,

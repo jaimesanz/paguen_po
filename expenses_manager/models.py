@@ -159,8 +159,6 @@ class ProxyUser(User):
         If there were errors, it does nothing and returns False plus a
         message with the error.
         """
-        print(start_date)
-        print(end_date)
         if self.has_vivienda():
             if start_date > end_date:
                 return (

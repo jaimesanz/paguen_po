@@ -152,18 +152,13 @@ def new_vacation(request):
     message.
     """
     if request.POST:
-        print(request.POST)
         start_date = request.POST.get("fecha_inicio", None)
         end_date = request.POST.get("fecha_fin", None)
         kwargs = {}
-        print(start_date)
-        print(end_date)
         if start_date is not None:
             kwargs['start_date'] = parse_date(start_date)
-            print(kwargs['start_date'])
         if end_date is not None:
             kwargs['end_date'] = parse_date(end_date)
-            print(kwargs['end_date'])
         vacation, msg = request.user.go_on_vacation(**kwargs)
         if not vacation:
             messages.error(request, msg)
