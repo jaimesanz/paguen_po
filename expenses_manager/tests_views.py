@@ -3630,6 +3630,48 @@ class NewUserIsOutTest(TestCase):
                 response,
                 "¡Las fechas indicadas topan con otra salida programada!")
 
+    def test_user_cant_create_vacation_with_broken_POST(self):
+        """
+        Test that the user can't send a string that IS NOT a date in the post.
+        Foe example, if the user sends "fecha_inicio":9999, it should show
+        an error message and not create anything
+        """
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        self.assertFalse(UserIsOut.objects.filter(
+            vivienda_usuario__user=test_user).exists())
+
+        today = timezone.now().date()
+
+        case1 = (today + timezone.timedelta(weeks=2),
+                 9999)
+        case2 = (9999,
+                 today + timezone.timedelta(weeks=5))
+        case3 = ("invalid_string",
+                 today + timezone.timedelta(weeks=3))
+        case4 = (today + timezone.timedelta(weeks=2),
+                 "invalid_string")
+        case5 = (9999,
+                 "invalid_string")
+
+        for start_date, end_date in [case1, case2, case3, case4, case5]:
+            response = self.client.post(
+                self.url,
+                data={
+                    "csrfmiddlewaretoken": "rubbish",
+                    "fecha_inicio": start_date,
+                    "fecha_fin": end_date
+                },
+                follow=True)
+            self.assertRedirects(
+                response,
+                self.url)
+            self.assertFalse(UserIsOut.objects.filter(
+                vivienda_usuario__user=test_user).exists())
+            self.assertContains(
+                response,
+                "Las fechas ingresadas no son válidas.")
+
 
 class UserIsOutEditViewTest(TestCase):
 
