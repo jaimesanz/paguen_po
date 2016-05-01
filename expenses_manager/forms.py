@@ -65,4 +65,4 @@ class UserIsOutForm(forms.ModelForm):
 
     class Meta:
         model = UserIsOut
-        fields = ("fecha_fin", "fecha_inicio")
+        fields = ("fecha_inicio", "fecha_fin")
