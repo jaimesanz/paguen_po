@@ -198,7 +198,7 @@ class ProxyUserModelTest(TestCase):
         self.assertFalse(user2.is_out())
 
         user1.go_on_vacation(
-            end_date=timezone.now() + timezone.timedelta(weeks=2))
+            end_date=timezone.now().date() + timezone.timedelta(weeks=2))
 
         self.assertTrue(user1.is_out())
         self.assertFalse(user2.is_out())

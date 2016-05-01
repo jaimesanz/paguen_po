@@ -146,8 +146,8 @@ class ProxyUser(User):
         return invite.invitado_por.user == self
 
     def go_on_vacation(self,
-                       start_date=timezone.now(),
-                       end_date=timezone.now() + timezone.timedelta(
+                       start_date=timezone.now().date(),
+                       end_date=timezone.now().date() + timezone.timedelta(
                            weeks=9999)):
         """
         If the user is not already on vacation, creates a new instance of
@@ -159,7 +159,9 @@ class ProxyUser(User):
         If there were errors, it does nothing and returns False plus a
         message with the error.
         """
-        if self.has_vivienda() and not self.is_out():
+        print(start_date)
+        print(end_date)
+        if self.has_vivienda():
             if start_date > end_date:
                 return (
                     False,
@@ -197,11 +199,11 @@ class ProxyUser(User):
         """
         if not self.has_vivienda():
             return False
-        today = timezone.now()
+        today = timezone.now().date()
         return UserIsOut.objects.filter(
             vivienda_usuario=self.get_vu(),
-            fecha_inicio__lt=today,
-            fecha_fin__gt=today).exists()
+            fecha_inicio__lte=today,
+            fecha_fin__gte=today).exists()
 
 
 class Vivienda(models.Model):
@@ -465,8 +467,8 @@ class UserIsOut(models.Model):
     vivienda_usuario = models.ForeignKey(
         ViviendaUsuario,
         on_delete=models.CASCADE)
-    fecha_inicio = models.DateTimeField()
-    fecha_fin = models.DateTimeField()
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField()
 
 
 class Invitacion(models.Model):

@@ -12,7 +12,7 @@ from django.contrib import messages
 from expenses_manager.helper_functions import *
 from expenses_manager.custom_decorators import request_passes_test
 from django.db import IntegrityError
-from django.utils.dateparse import parse_datetime
+from django.utils.dateparse import parse_date
 
 
 def home(request):
@@ -152,13 +152,18 @@ def new_vacation(request):
     message.
     """
     if request.POST:
-        start_date = request.POST.get("start_date", None)
-        end_date = request.POST.get("end_date", None)
+        print(request.POST)
+        start_date = request.POST.get("fecha_inicio", None)
+        end_date = request.POST.get("fecha_fin", None)
         kwargs = {}
+        print(start_date)
+        print(end_date)
         if start_date is not None:
-            kwargs['start_date'] = parse_datetime(start_date)
+            kwargs['start_date'] = parse_date(start_date)
+            print(kwargs['start_date'])
         if end_date is not None:
-            kwargs['end_date'] = parse_datetime(end_date)
+            kwargs['end_date'] = parse_date(end_date)
+            print(kwargs['end_date'])
         vacation, msg = request.user.go_on_vacation(**kwargs)
         if not vacation:
             messages.error(request, msg)

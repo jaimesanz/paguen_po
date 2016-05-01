@@ -3314,7 +3314,7 @@ class UserIsOutListViewTest(TestCase):
         vacation_1, __ = test_user_1.go_on_vacation()
         # create vacation for roommate
         vacation_2, __ = test_user_2.go_on_vacation(
-            end_date=timezone.now() + timezone.timedelta(weeks=48))
+            end_date=timezone.now().date() + timezone.timedelta(weeks=48))
         # roommate leaves
         test_user_2.leave()
 
@@ -3351,7 +3351,7 @@ class UserIsOutListViewTest(TestCase):
             gasto_1,
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
-        today = timezone.now()
+        today = timezone.now().date()
         # create vacations for old vivienda
         vacation_1, __ = test_user_1.go_on_vacation(
             end_date=today + timezone.timedelta(weeks=48))
@@ -3391,7 +3391,7 @@ class UserIsOutListViewTest(TestCase):
             gasto_1,
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
-        today = timezone.now()
+        today = timezone.now().date()
         # create vacations for other user
         other_vacation, __ = test_user_3.go_on_vacation(
             end_date=today + timezone.timedelta(weeks=48))
@@ -3422,7 +3422,7 @@ class UserIsOutListViewTest(TestCase):
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
         vacation, __ = test_user_1.go_on_vacation(
-            end_date=timezone.now() + timezone.timedelta(weeks=4))
+            end_date=timezone.now().date() + timezone.timedelta(weeks=4))
 
         response = self.client.get(
             self.url,
@@ -3489,13 +3489,13 @@ class NewUserIsOutTest(TestCase):
         self.assertFalse(UserIsOut.objects.filter(
             vivienda_usuario__user=test_user).exists())
 
-        end_date = timezone.now() + timezone.timedelta(weeks=4)
+        end_date = timezone.now().date() + timezone.timedelta(weeks=4)
 
         response = self.client.post(
             self.url,
             data={
                 "csrfmiddlewaretoken": "rubbish",
-                "end_date": end_date
+                "fecha_fin": end_date
             },
             follow=True)
 
@@ -3512,13 +3512,13 @@ class NewUserIsOutTest(TestCase):
         self.assertFalse(UserIsOut.objects.filter(
             vivienda_usuario__user=test_user).exists())
 
-        start_date = timezone.now() + timezone.timedelta(weeks=4)
+        start_date = timezone.now().date() + timezone.timedelta(weeks=4)
 
         response = self.client.post(
             self.url,
             data={
                 "csrfmiddlewaretoken": "rubbish",
-                "start_date": start_date
+                "fecha_inicio": start_date
             },
             follow=True)
 
@@ -3535,15 +3535,16 @@ class NewUserIsOutTest(TestCase):
         self.assertFalse(UserIsOut.objects.filter(
             vivienda_usuario__user=test_user).exists())
 
-        start_date = timezone.now() + timezone.timedelta(weeks=4)
-        end_date = timezone.now() + timezone.timedelta(weeks=10)
+        start_date = timezone.now().date() + timezone.timedelta(weeks=4)
+        end_date = timezone.now().date() + timezone.timedelta(weeks=10)
+        print(start_date)
 
         response = self.client.post(
             self.url,
             data={
                 "csrfmiddlewaretoken": "rubbish",
-                "start_date": start_date,
-                "end_date": end_date
+                "fecha_inicio": start_date,
+                "fecha_fin": end_date
             },
             follow=True)
 
@@ -3561,15 +3562,15 @@ class NewUserIsOutTest(TestCase):
         self.assertFalse(UserIsOut.objects.filter(
             vivienda_usuario__user=test_user).exists())
 
-        start_date = timezone.now() + timezone.timedelta(weeks=10)
-        end_date = timezone.now() + timezone.timedelta(weeks=4)
+        start_date = timezone.now().date() + timezone.timedelta(weeks=10)
+        end_date = timezone.now().date() + timezone.timedelta(weeks=4)
 
         response = self.client.post(
             self.url,
             data={
                 "csrfmiddlewaretoken": "rubbish",
-                "start_date": start_date,
-                "end_date": end_date
+                "fecha_inicio": start_date,
+                "fecha_fin": end_date
             },
             follow=True)
 
@@ -3589,7 +3590,7 @@ class NewUserIsOutTest(TestCase):
             start_date=timezone.now() + timezone.timedelta(weeks=1),
             end_date=timezone.now() + timezone.timedelta(weeks=4))
 
-        today = timezone.now()
+        today = timezone.now().date()
         # contained in vacation_1
         case1 = (today + timezone.timedelta(weeks=2),
                  today + timezone.timedelta(weeks=3))
@@ -3610,8 +3611,8 @@ class NewUserIsOutTest(TestCase):
                 self.url,
                 data={
                     "csrfmiddlewaretoken": "rubbish",
-                    "start_date": start_date,
-                    "end_date": end_date
+                    "fecha_inicio": start_date,
+                    "fecha_fin": end_date
                 },
                 follow=True)
 
