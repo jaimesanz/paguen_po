@@ -3629,3 +3629,9 @@ class NewUserIsOutTest(TestCase):
             self.assertContains(
                 response,
                 "¡Las fechas indicadas topan con otra salida programada!")
+
+
+class UserIsOutEditViewTest(TestCase):
+
+    def test_fail(self):
+        self.fail()
