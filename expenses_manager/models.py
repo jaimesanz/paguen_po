@@ -582,6 +582,8 @@ class Categoria(models.Model):
         blank=True,
         default=None)
     hidden = models.BooleanField(default=False)
+    is_shared = models.BooleanField(default=True)
+    is_shared_on_leave = models.BooleanField(default=True)
 
     def is_global(self):
         """
