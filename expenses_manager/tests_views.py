@@ -4,7 +4,6 @@ from django.utils import timezone
 from expenses_manager.views import *
 from .helper_functions_tests import *
 
-
 class HomePageTest(TestCase):
 
     def test_basics_root_url(self):
@@ -3325,7 +3324,7 @@ class UserIsOutListViewTest(TestCase):
         self.assertContains(
             response,
             vacation_1.fecha_inicio.year)
-        # month number doen't appear, what apperas is "April"
+        # month number doesn't appear, what apperas is "April"
         # self.assertContains(
         #     response,
         #     vacation_1.fecha_inicio.month)
@@ -3675,5 +3674,389 @@ class NewUserIsOutTest(TestCase):
 
 class UserIsOutEditViewTest(TestCase):
 
-    def test_fail(self):
-        self.fail()
+
+    def test_not_logged_user_cant_edit_vacation(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vacation, __ = test_user.go_on_vacation()
+        url = "/vivienda/vacaciones/%d/" % (vacation.id)
+
+        self.client.logout()
+
+        start_date = timezone.now().date() + timezone.timedelta(weeks=1)
+        end_date = timezone.now().date() + timezone.timedelta(weeks=3)
+
+        response = self.client.post(
+            url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "fecha_inicio": start_date,
+                "fecha_fin": end_date
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=%s" % (url))
+        self.assertEqual(
+            UserIsOut.objects.filter(
+                vivienda_usuario__user=test_user).count(),
+            1)
+        self.assertEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_fin,
+            vacation.fecha_fin)
+        self.assertNotEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_fin,
+            end_date)
+
+    def test_homeless_user_cant_edit_vacation(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vacation, __ = test_user.go_on_vacation()
+        url = "/vivienda/vacaciones/%d/" % (vacation.id)
+
+        test_user.get_vu().leave()
+
+        start_date = timezone.now().date() + timezone.timedelta(weeks=1)
+        end_date = timezone.now().date() + timezone.timedelta(weeks=3)
+
+        response = self.client.post(
+            url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "fecha_inicio": start_date,
+                "fecha_fin": end_date
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/error/")
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+        self.assertEqual(
+            UserIsOut.objects.filter(
+                vivienda_usuario__user=test_user).count(),
+            1)
+        self.assertEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_fin,
+            vacation.fecha_fin)
+        self.assertNotEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_fin,
+            end_date)
+
+    def test_user_can_edit_vacation_with_only_end_date(self):
+        """
+        The user can specify only a new end date. This should change the
+        "fecha_fin" field, but not the "fecha_inicio" date! The latter field
+        should stay the same, ie, not be changed to today.
+        """
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vacation, __ = test_user.go_on_vacation()
+        url = "/vivienda/vacaciones/%d/" % (vacation.id)
+
+        end_date = timezone.now().date() + timezone.timedelta(weeks=3)
+
+        response = self.client.post(
+            url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "fecha_fin": end_date
+            },
+            follow=True)
+
+        self.assertRedirects(response, "/vivienda/vacaciones/")
+        self.assertEqual(
+            UserIsOut.objects.filter(
+                vivienda_usuario__user=test_user).count(),
+            1)
+        # "fecha_inicio" field did NOT change
+        self.assertEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_inicio,
+            vacation.fecha_inicio)
+        # "fecha_fin" field DID change
+        self.assertNotEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_fin,
+            vacation.fecha_fin)
+        self.assertEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_fin,
+            end_date)
+
+    def test_user_can_edit_vacation_with_only_start_date(self):
+        """
+        The user can specify only a new start date. This should change the
+        "fecha_inicio" field, but not the "fecha_fin" date! The latter field
+        should stay the same, ie, not be changed to the year ~2200.
+        """
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vacation, __ = test_user.go_on_vacation()
+        url = "/vivienda/vacaciones/%d/" % (vacation.id)
+
+        start_date = timezone.now().date() + timezone.timedelta(weeks=3)
+
+        response = self.client.post(
+            url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "fecha_inicio": start_date
+            },
+            follow=True)
+
+        self.assertRedirects(response, "/vivienda/vacaciones/")
+        self.assertEqual(
+            UserIsOut.objects.filter(
+                vivienda_usuario__user=test_user).count(),
+            1)
+
+        # "fecha_inicio" field DID change
+        self.assertEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_inicio,
+            start_date)
+        self.assertNotEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_inicio,
+            vacation.fecha_inicio)
+        # "fecha_fin" field did NOT change
+        self.assertEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_fin,
+            vacation.fecha_fin)
+
+    def test_user_can_edit_vacation_with_both_start_and_end_date(self):
+        """
+        The user can specify both new dates in the POST request.
+        """
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vacation, __ = test_user.go_on_vacation()
+        url = "/vivienda/vacaciones/%d/" % (vacation.id)
+
+        start_date = timezone.now().date() + timezone.timedelta(weeks=3)
+        end_date = timezone.now().date() + timezone.timedelta(weeks=6)
+
+        response = self.client.post(
+            url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "fecha_inicio": start_date,
+                "fecha_fin": end_date
+            },
+            follow=True)
+
+        self.assertRedirects(response, "/vivienda/vacaciones/")
+        self.assertEqual(
+            UserIsOut.objects.filter(
+                vivienda_usuario__user=test_user).count(),
+            1)
+
+        # "fecha_inicio" field changed
+        self.assertEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_inicio,
+            start_date)
+        self.assertNotEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_inicio,
+            vacation.fecha_inicio)
+        # "fecha_fin" field changed
+        self.assertEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_fin,
+            end_date)
+        self.assertNotEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_fin,
+            vacation.fecha_fin)
+
+    def test_user_cant_edit_vacation_without_giving_any_date(self):
+        """
+        The user shouldn't be able to edit a UserIsOut instance if
+        he/she doesn't provide any dates. This would alter the UserIsOut's
+        fields to the default values: (today - the year ~2200). This clearly
+        isn't the desired behaviour!
+        """
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        start_date = timezone.now().date() + timezone.timedelta(weeks=3)
+        end_date = timezone.now().date() + timezone.timedelta(weeks=6)
+        vacation, __ = test_user.go_on_vacation(
+            start_date=start_date,
+            end_date=end_date)
+        url = "/vivienda/vacaciones/%d/" % (vacation.id)
+
+
+        response = self.client.post(
+            url,
+            data={
+                "csrfmiddlewaretoken": "rubbish"
+            },
+            follow=True)
+
+        self.assertRedirects(response, url)
+        self.assertContains(
+            response,
+            "Debe especificar al menos una de las fechas.")
+        self.assertEqual(
+            UserIsOut.objects.filter(
+                vivienda_usuario__user=test_user).count(),
+            1)
+        # neither field changed
+        self.assertEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_fin,
+            vacation.fecha_fin)
+        self.assertEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_inicio,
+            vacation.fecha_inicio)
+
+    def test_user_cant_edit_vacation_if_vals_overlap_w_other_vacation(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        today = timezone.now().date()
+        vacation_1, __ = test_user.go_on_vacation(
+            start_date=today + timezone.timedelta(weeks=1),
+            end_date=today + timezone.timedelta(weeks=4))
+        vacation_2, __ = test_user.go_on_vacation(
+            start_date=today + timezone.timedelta(weeks=6),
+            end_date=today + timezone.timedelta(weeks=8))
+
+        # contained in vacation_1
+        case1 = (today + timezone.timedelta(weeks=2),
+                 today + timezone.timedelta(weeks=3))
+        # contains vacation_1
+        case2 = (today,
+                 today + timezone.timedelta(weeks=5))
+        # finishes too soon
+        case3 = (today,
+                 today + timezone.timedelta(weeks=3))
+        # starts too late
+        case4 = (today + timezone.timedelta(weeks=2),
+                 today + timezone.timedelta(weeks=6))
+
+        url = "/vivienda/vacaciones/%d/" % (vacation_2.id)
+
+        for start_date, end_date in [case1, case2, case3, case4]:
+
+            response = self.client.post(
+                url,
+                data={
+                    "csrfmiddlewaretoken": "rubbish",
+                    "fecha_inicio": start_date,
+                    "fecha_fin": end_date
+                },
+                follow=True)
+
+            self.assertRedirects(
+                response,
+                url)
+            self.assertEqual(
+                UserIsOut.objects.filter(
+                    vivienda_usuario__user=test_user).count(),
+                2)
+            # neither field changed
+            self.assertEqual(
+                UserIsOut.objects.get(id=vacation_2.id).fecha_fin,
+                vacation_2.fecha_fin)
+            self.assertEqual(
+                UserIsOut.objects.get(id=vacation_2.id).fecha_inicio,
+                vacation_2.fecha_inicio)
+            self.assertContains(
+                response,
+                "¡Las fechas indicadas topan con otra salida programada!")
+
+
+    def test_user_cant_edit_vacation_if_start_date_after_end_date(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        vacation, __ = test_user.go_on_vacation()
+        url = "/vivienda/vacaciones/%d/" % (vacation.id)
+
+        start_date = timezone.now().date() + timezone.timedelta(weeks=6)
+        end_date = timezone.now().date() + timezone.timedelta(weeks=3)
+
+        response = self.client.post(
+            url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "fecha_inicio": start_date,
+                "fecha_fin": end_date
+            },
+            follow=True)
+
+        self.assertRedirects(response, url)
+        self.assertEqual(
+            UserIsOut.objects.filter(
+                vivienda_usuario__user=test_user).count(),
+            1)
+        # neither field changed
+        self.assertEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_fin,
+            vacation.fecha_fin)
+        self.assertEqual(
+            UserIsOut.objects.get(id=vacation.id).fecha_inicio,
+            vacation.fecha_inicio)
+        self.assertContains(
+            response,
+            "La fecha final debe ser posterior a la fecha inicial.")
+
+    def test_user_cant_edit_other_users_vacation(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        other_user = ProxyUser.objects.get(username="test_user_3")
+        other_vacation, __ = other_user.go_on_vacation()
+        url = "/vivienda/vacaciones/%d/" % (other_vacation.id)
+
+        start_date = timezone.now().date() + timezone.timedelta(weeks=6)
+        end_date = timezone.now().date() + timezone.timedelta(weeks=3)
+
+        response = self.client.post(
+            url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "fecha_inicio": start_date,
+                "fecha_fin": end_date
+            },
+            follow=True)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            UserIsOut.objects.filter(
+                vivienda_usuario__user=other_user).count(),
+            1)
+        self.assertEqual(
+            UserIsOut.objects.filter(
+                vivienda_usuario__user=test_user).count(),
+            0)
+        # neither field changed
+        self.assertEqual(
+            UserIsOut.objects.get(id=other_vacation.id).fecha_fin,
+            other_vacation.fecha_fin)
+        self.assertEqual(
+            UserIsOut.objects.get(id=other_vacation.id).fecha_inicio,
+            other_vacation.fecha_inicio)
+
+    def test_user_cant_edit_roommates_vacation(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        roommate = ProxyUser.objects.get(username="test_user_2")
+        roommate_vacation, __ = roommate.go_on_vacation()
+        url = "/vivienda/vacaciones/%d/" % (roommate_vacation.id)
+
+        start_date = timezone.now().date() + timezone.timedelta(weeks=6)
+        end_date = timezone.now().date() + timezone.timedelta(weeks=3)
+
+        response = self.client.post(
+            url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "fecha_inicio": start_date,
+                "fecha_fin": end_date
+            },
+            follow=True)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            UserIsOut.objects.filter(
+                vivienda_usuario__user=roommate).count(),
+            1)
+        self.assertEqual(
+            UserIsOut.objects.filter(
+                vivienda_usuario__user=test_user).count(),
+            0)
+        # neither field changed
+        self.assertEqual(
+            UserIsOut.objects.get(id=roommate_vacation.id).fecha_fin,
+            roommate_vacation.fecha_fin)
+        self.assertEqual(
+            UserIsOut.objects.get(id=roommate_vacation.id).fecha_inicio,
+            roommate_vacation.fecha_inicio)
+

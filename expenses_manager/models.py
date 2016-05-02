@@ -188,6 +188,40 @@ class ProxyUser(User):
             return (user_is_out, "¡Salida creada correctamente!")
         return (False, "Debe pertenecer a una vivienda para crear una salida")
 
+    def update_vacation(self, vacation, start_date=None, end_date=None):
+        """
+        Checks that the new period is a valid one. If
+        it's not, returns False and an error message. If it is valid,
+        changes the given fields with the given values.
+        If the user only provides one of the fields, only that field is
+        changed.
+        """
+        if start_date is None and end_date is None:
+            return False, "Debe especificar al menos una de las fechas."
+        if end_date is not None:
+            vacation.fecha_fin = end_date
+        if start_date is not None:
+            vacation.fecha_inicio = start_date
+
+        if vacation.fecha_inicio > vacation.fecha_fin:
+            return (
+                False,
+                "La fecha final debe ser posterior a la fecha inicial.")
+
+        for vac in UserIsOut.objects.exclude(id=vacation.id).filter(
+                vivienda_usuario__user=self,
+                vivienda_usuario__estado="activo"):
+            vac_starts_early = vac.fecha_inicio <= vacation.fecha_fin
+            vac_ends_late = vac.fecha_fin >= vacation.fecha_inicio
+            if vac_starts_early and vac_ends_late:
+                return (
+                    False,
+                    "¡Las fechas indicadas topan con otra salida programada!")
+
+        vacation.save()
+        return vacation, "¡Vacación actualizada!"
+
+
     def is_out(self):
         """
         Returns True if today's date falls within the range of any

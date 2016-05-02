@@ -7,13 +7,13 @@ from django.contrib.auth.decorators import login_required
 from expenses_manager.models import *
 from django.forms.models import model_to_dict
 import json
-from django.utils import timezone
 from django.contrib import messages
 from expenses_manager.helper_functions import *
 from expenses_manager.custom_decorators import request_passes_test
 from django.db import IntegrityError
-from django.utils.dateparse import parse_date
-
+from datetime import datetime
+from django.utils import timezone
+from django.conf import settings
 
 def home(request):
     return render(request, 'general/home.html', locals())
@@ -157,13 +157,22 @@ def new_vacation(request):
         kwargs = {}
         bad_format_error = False
         if start_date is not None:
-            parsed_start_date = parse_date(start_date)
-            bad_format_error = bad_format_error or parsed_start_date is None
-            kwargs['start_date'] = parsed_start_date
+            try:
+                parsed_start_date = datetime.strptime(
+                    start_date,
+                    settings.DATE_FORMAT).date()
+                kwargs['start_date'] = parsed_start_date
+            except ValueError:
+                bad_format_error = True
+
         if end_date is not None:
-            parsed_end_date = parse_date(end_date)
-            bad_format_error = bad_format_error or parsed_end_date is None
-            kwargs['end_date'] = parsed_end_date
+            try:
+                parsed_end_date = datetime.strptime(
+                    end_date,
+                    settings.DATE_FORMAT).date()
+                kwargs['end_date'] = parsed_end_date
+            except ValueError:
+                bad_format_error = True
 
         if bad_format_error:
             # at least one of the given date strings has an invalid
@@ -182,6 +191,49 @@ def new_vacation(request):
             return redirect("vacations")
     form = UserIsOutForm()
     return render(request, "vivienda/nueva_vacacion.html", locals())
+
+@login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
+def edit_vacation(request, vacation_id):
+    vacation = get_object_or_404(
+        UserIsOut,
+        id=vacation_id,
+        vivienda_usuario__user=request.user)
+    if request.POST:
+        start_date = request.POST.get("fecha_inicio", None)
+        end_date = request.POST.get("fecha_fin", None)
+        kwargs = {}
+        bad_format_error = False
+        if start_date is not None:
+            parsed_start_date = datetime.strptime(start_date, settings.DATE_FORMAT).date()
+            bad_format_error = bad_format_error or parsed_start_date is None
+            kwargs['start_date'] = parsed_start_date
+        if end_date is not None:
+            parsed_end_date = datetime.strptime(end_date, settings.DATE_FORMAT).date()
+            bad_format_error = bad_format_error or parsed_end_date is None
+            kwargs['end_date'] = parsed_end_date
+
+        if bad_format_error:
+            # at least one of the given date strings has an invalid
+            # date format
+            messages.error(
+                request,
+                "Las fechas ingresadas no son válidas.")
+            return redirect("edit_vacation", vacation_id=int(vacation_id))
+
+        # edit vacation
+        edited_vacation, msg =request.user.update_vacation(vacation, **kwargs)
+        if not edited_vacation:
+            messages.error(request, msg)
+            return redirect("edit_vacation", vacation_id=int(vacation_id))
+        else:
+            messages.success(request, msg)
+            return redirect("vacations")
+
+    form = UserIsOutForm(request.POST or None, instance=vacation)
+    return render(request, "vivienda/editar_vacacion.html", locals())
 
 
 @login_required

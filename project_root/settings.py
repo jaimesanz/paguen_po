@@ -117,6 +117,16 @@ USE_L10N = True
 
 USE_TZ = True
 
+# TODO this is hardcoded to match:
+# - the date format in static/js/jquery.ui.datepicker-es
+# - the way django prints a timezone instance. For example,
+# print(timezone.now().date()) prints something like "2016-9-26". Because
+# of this, if the format is changed, the tests won't pass, since django prints
+# dates in this format. Can this be changed?
+# Question: Is it posible to match jqueryUI datepicker,
+# datetime's strptime and the way python prints dates with no harcoding
+# involved? ie, just using the magic of locale?
+DATE_FORMAT = "%Y-%m-%d"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/

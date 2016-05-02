@@ -42,6 +42,9 @@ urlpatterns = [
     url(r'^vivienda/vacaciones/new/$',
         views.new_vacation,
         name='new_vacation'),
+    url(r'^vivienda/vacaciones/(?P<vacation_id>\d+)/$',
+        views.edit_vacation,
+        name='edit_vacation'),
 
     # invites
     url(r'^invites_list/$', views.invites_list, name='invites_list'),

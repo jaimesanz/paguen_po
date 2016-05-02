@@ -2,7 +2,7 @@
 from django import forms
 from .models import *
 from django.contrib.auth.models import User, Group
-
+from django.conf import settings
 
 class UserForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput())
@@ -66,3 +66,7 @@ class UserIsOutForm(forms.ModelForm):
     class Meta:
         model = UserIsOut
         fields = ("fecha_inicio", "fecha_fin")
+        widgets = {
+            'fecha_inicio': forms.DateInput(format=settings.DATE_FORMAT),
+            'fecha_fin': forms.DateInput(format=settings.DATE_FORMAT),
+        }
