@@ -2,7 +2,7 @@
 from django.conf.urls import include, url
 from django.contrib import admin
 from registration.forms import RegistrationFormUniqueEmail
-from registration.views import RegistrationView
+from registration.backends.hmac.views import RegistrationView
 from . import views
 
 
