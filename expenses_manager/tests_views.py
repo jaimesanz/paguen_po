@@ -4,6 +4,7 @@ from django.utils import timezone
 from expenses_manager.views import *
 from .helper_functions_tests import *
 
+
 class HomePageTest(TestCase):
 
     def test_basics_root_url(self):
@@ -3674,7 +3675,6 @@ class NewUserIsOutTest(TestCase):
 
 class UserIsOutEditViewTest(TestCase):
 
-
     def test_not_logged_user_cant_edit_vacation(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
         vacation, __ = test_user.go_on_vacation()
@@ -3875,7 +3875,6 @@ class UserIsOutEditViewTest(TestCase):
             end_date=end_date)
         url = "/vivienda/vacaciones/%d/" % (vacation.id)
 
-
         response = self.client.post(
             url,
             data={
@@ -3953,7 +3952,6 @@ class UserIsOutEditViewTest(TestCase):
             self.assertContains(
                 response,
                 "¡Las fechas indicadas topan con otra salida programada!")
-
 
     def test_user_cant_edit_vacation_if_start_date_after_end_date(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -4059,4 +4057,3 @@ class UserIsOutEditViewTest(TestCase):
         self.assertEqual(
             UserIsOut.objects.get(id=roommate_vacation.id).fecha_inicio,
             roommate_vacation.fecha_inicio)
-

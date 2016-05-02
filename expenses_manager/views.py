@@ -15,6 +15,7 @@ from datetime import datetime
 from django.utils import timezone
 from django.conf import settings
 
+
 def home(request):
     return render(request, 'general/home.html', locals())
 
@@ -192,6 +193,7 @@ def new_vacation(request):
     form = UserIsOutForm()
     return render(request, "vivienda/nueva_vacacion.html", locals())
 
+
 @login_required
 @request_passes_test(user_has_vivienda,
                      login_url="/error/",
@@ -207,11 +209,13 @@ def edit_vacation(request, vacation_id):
         kwargs = {}
         bad_format_error = False
         if start_date is not None:
-            parsed_start_date = datetime.strptime(start_date, settings.DATE_FORMAT).date()
+            parsed_start_date = datetime.strptime(
+                start_date, settings.DATE_FORMAT).date()
             bad_format_error = bad_format_error or parsed_start_date is None
             kwargs['start_date'] = parsed_start_date
         if end_date is not None:
-            parsed_end_date = datetime.strptime(end_date, settings.DATE_FORMAT).date()
+            parsed_end_date = datetime.strptime(
+                end_date, settings.DATE_FORMAT).date()
             bad_format_error = bad_format_error or parsed_end_date is None
             kwargs['end_date'] = parsed_end_date
 
@@ -224,7 +228,7 @@ def edit_vacation(request, vacation_id):
             return redirect("edit_vacation", vacation_id=int(vacation_id))
 
         # edit vacation
-        edited_vacation, msg =request.user.update_vacation(vacation, **kwargs)
+        edited_vacation, msg = request.user.update_vacation(vacation, **kwargs)
         if not edited_vacation:
             messages.error(request, msg)
             return redirect("edit_vacation", vacation_id=int(vacation_id))

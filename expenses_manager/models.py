@@ -221,7 +221,6 @@ class ProxyUser(User):
         vacation.save()
         return vacation, "¡Vacación actualizada!"
 
-
     def is_out(self):
         """
         Returns True if today's date falls within the range of any
