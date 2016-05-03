@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load bootstrap3 %}
 {% load static %}
 
 
@@ -11,11 +12,36 @@
 {% block content_title %}{{vivienda}}{% endblock %}
 {% block content %}
 	<h3>Balance de Gastos</h3>
-
+	{% bootstrap_button "Transferir" icon="share-alt" name="transfer_button" button_class="btn-warning" %}
+	<div id="transfer_modal" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Transferir Monto a otro Ususario</h4>
+				</div>
+				<div class="modal-body">
+					<form method="post" action="/transfer/">
+					  {% csrf_token %}
+					  {% bootstrap_form form %}
+					  {% bootstrap_button "Transferir" button_type="submit" button_class="btn-primary" %}
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+				</div>
+			</div>
+		</div>
+	</div>
 	<hr>
 	<canvas id="user_expenses_chart"></canvas>
 	<script type="text/javascript">
 		$(document).ready(function(){
+			$("button[name=transfer_button]").click(function(){
+				transfer_modal = $("#transfer_modal");
+				transfer_modal.modal("toggle");
+			});
 			$.format.locale({
 			    number: {
 			        groupingSeparator: '.',

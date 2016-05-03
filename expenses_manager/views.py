@@ -279,6 +279,8 @@ def manage_users(request):
 def balance(request):
     vivienda = request.user.get_vivienda()
     user_expenses = vivienda.get_active_users_balance()
+    form = TransferForm()
+    form.fields["user"].queryset = request.user.get_roommates_users()
     return render(request, "vivienda/balance.html", locals())
 
 
