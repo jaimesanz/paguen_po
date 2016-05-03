@@ -1,1 +1,1 @@
-{% load i18n %}Activar cuenta de {{ site.name }}
+Activar cuenta de {{ site.name }}

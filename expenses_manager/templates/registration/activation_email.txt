@@ -1,6 +1,5 @@
-{% load i18n %}
-Activar cuenta de {{ site.name }}:
+Alguien ha registrado este correo electrónico en PaguenPo ({{ site.name }}). Para activar la cuenta, haz click en el siguiente link:
 
 http://{{ site.domain }}{% url 'registration_activate' activation_key %}
 
-{% blocktrans %}Este link es válido por {{ expiration_days }} días.{% endblocktrans %}
+Este link es válido por {{ expiration_days }} días. Si no fuiste tú quien registró esta dirección de correo, simplemente ignora este mensaje (O aprovecha de echarle un vistazo a la página, ¡Quizás sea justo lo que estás buscándo!).
