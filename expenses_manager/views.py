@@ -8,7 +8,7 @@ from expenses_manager.models import *
 from django.forms.models import model_to_dict
 import json
 from django.contrib import messages
-from expenses_manager.custom_decorators import request_passes_test
+from expenses_manager.helper_functions.custom_decorators import *
 from django.db import IntegrityError
 from datetime import datetime
 from django.utils import timezone
