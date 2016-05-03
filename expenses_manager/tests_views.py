@@ -2,7 +2,7 @@ from django.test import TestCase
 from expenses_manager.models import *
 from django.utils import timezone
 from expenses_manager.views import *
-from .helper_functions_tests import *
+from expenses_manager.helper_functions.tests import *
 
 
 class HomePageTest(TestCase):
