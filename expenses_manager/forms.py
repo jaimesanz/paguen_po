@@ -31,7 +31,7 @@ class GastoForm(forms.ModelForm):
 
     class Meta:
         model = Gasto
-        fields = ('monto', 'categoria')
+        fields = ('categoria', 'monto')
 
 
 class PresupuestoForm(forms.ModelForm):

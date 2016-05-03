@@ -511,7 +511,8 @@ class ViviendaModelTest(TestCase):
 
         gastos_pendientes_direct = correct_vivienda.get_gastos_pendientes()
         gastos_pagados_direct = correct_vivienda.get_gastos_pagados()
-        gastos_pendientes, gastos_pagados = correct_vivienda.get_gastos()
+        gastos_pendientes = correct_vivienda.get_gastos_pendientes()
+        gastos_pagados = correct_vivienda.get_gastos_pagados()
 
         self.assertEqual(gastos_pendientes.count(), 0)
         self.assertEqual(gastos_pagados.count(), 0)
@@ -524,7 +525,8 @@ class ViviendaModelTest(TestCase):
 
         gastos_pendientes_direct = correct_vivienda.get_gastos_pendientes()
         gastos_pagados_direct = correct_vivienda.get_gastos_pagados()
-        gastos_pendientes, gastos_pagados = correct_vivienda.get_gastos()
+        gastos_pendientes = correct_vivienda.get_gastos_pendientes()
+        gastos_pagados = correct_vivienda.get_gastos_pagados()
 
         self.assertEqual(gastos_pendientes.count(), 1)
         self.assertEqual(gastos_pagados.count(), 0)
@@ -538,7 +540,8 @@ class ViviendaModelTest(TestCase):
 
         gastos_pendientes_direct = correct_vivienda.get_gastos_pendientes()
         gastos_pagados_direct = correct_vivienda.get_gastos_pagados()
-        gastos_pendientes, gastos_pagados = correct_vivienda.get_gastos()
+        gastos_pendientes = correct_vivienda.get_gastos_pendientes()
+        gastos_pagados = correct_vivienda.get_gastos_pagados()
 
         self.assertEqual(gastos_pendientes.count(), 0)
         self.assertEqual(gastos_pagados.count(), 1)

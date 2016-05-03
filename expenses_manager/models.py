@@ -270,7 +270,8 @@ class ProxyUser(User):
         if is_valid_transfer:
             transfer_categoria, __ = Categoria.objects.get_or_create(
                 nombre="Transferencia",
-                vivienda=self.get_vivienda())
+                vivienda=self.get_vivienda(),
+                is_transfer=True)
 
             transfer_pos = Gasto.objects.create(
                 monto=monto,
@@ -312,7 +313,8 @@ class Vivienda(models.Model):
         """
         return Gasto.objects.filter(
             creado_por__vivienda=self,
-            estado=get_pending_estadoGasto())
+            estado=get_pending_estadoGasto(),
+            categoria__is_transfer=False)
 
     def get_gastos_pagados(self):
         """
@@ -321,17 +323,8 @@ class Vivienda(models.Model):
         """
         return Gasto.objects.filter(
             creado_por__vivienda=self,
-            estado=get_done_estadoGato())
-
-    def get_gastos(self):
-        """
-        Returns a Tuple with:
-        - QuerySet with the Gastos associated with the Vivienda,
-        and with a pending state
-        - QuerySet with the Gastos associated with the Vivienda,
-        and with a paid state
-        """
-        return self.get_gastos_pendientes(), self.get_gastos_pagados()
+            estado=get_done_estadoGato(),
+            categoria__is_transfer=False)
 
     def get_categorias(self):
         """
@@ -340,7 +333,8 @@ class Vivienda(models.Model):
         """
         return Categoria.objects.filter(
             vivienda=self,
-            hidden=False)
+            hidden=False,
+            is_transfer=False)
 
     def get_items(self):
         """
@@ -353,7 +347,7 @@ class Vivienda(models.Model):
         Returns a QuerySet with all Categoria objects related to the Vivienda,
         including the hidden categorias
         """
-        return Categoria.objects.filter(vivienda=self)
+        return Categoria.objects.filter(vivienda=self, is_transfer=False)
 
     def get_hidden_total(self, year_month):
         """
@@ -364,6 +358,7 @@ class Vivienda(models.Model):
             creado_por__vivienda=self,
             year_month=year_month,
             categoria__vivienda=self,
+            categoria__is_transfer=False,
             categoria__hidden=True,
             estado__estado="pagado").values("monto")
         total = 0
@@ -382,6 +377,9 @@ class Vivienda(models.Model):
             nombre=categoria,
             vivienda=self)
         if categoria.nombre == get_default_others_categoria().nombre:
+            # TODO it's not adding the Gastos with "Otros" as categoria,
+            # because it's just adding up the Categorias that are hidden,
+            # and "Otros" is not always hidden!
             return self.get_hidden_total(year_month)
         if categoria.is_hidden():
             return 0
@@ -403,11 +401,23 @@ class Vivienda(models.Model):
         montos = Gasto.objects.filter(
             creado_por__vivienda=self,
             year_month=year_month,
-            estado__estado="pagado").values("monto")
+            estado__estado="pagado",
+            categoria__is_transfer=False).values("monto")
         total = 0
         for d in montos:
             total += d["monto"]
         return total
+
+    def get_transferencias(self):
+        """
+        Returns all Gasto instances that:
+        - it's Categoria's is_transfer field is True
+        - were created by active users
+        """
+        return Gasto.objects.filter(
+            categoria__is_transfer=True,
+            creado_por__vivienda=self,
+            creado_por__estado="activo")
 
     def get_total_expenses_per_active_user(self):
         """
@@ -424,6 +434,10 @@ class Vivienda(models.Model):
         for gasto in gastos_pagados:
             user_that_paid = gasto.usuario.user
             user_expenses[user_that_paid] += gasto.monto
+        transferencias = self.get_transferencias()
+        for t in transferencias:
+            user_that_paid = t.usuario.user
+            user_expenses[user_that_paid] += t.monto
         return user_expenses
 
     def add_categoria(self, nombre):
@@ -516,7 +530,8 @@ class ViviendaUsuario(models.Model):
         If the user is not active, returns a Tuple of empty QuerySets
         """
         if self.is_active():
-            return self.vivienda.get_gastos()
+            return (self.vivienda.get_gastos_pendientes(),
+                self.vivienda.get_gastos_pagados())
         else:
             # returns empty queryset
             empty_queryset = Gasto.objects.none()
@@ -634,6 +649,7 @@ class Categoria(models.Model):
     hidden = models.BooleanField(default=False)
     is_shared = models.BooleanField(default=True)
     is_shared_on_leave = models.BooleanField(default=True)
+    is_transfer = models.BooleanField(default=False)
 
     def is_global(self):
         """

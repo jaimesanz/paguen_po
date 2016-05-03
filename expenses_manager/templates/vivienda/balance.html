@@ -24,16 +24,12 @@
 			Chart.defaults.global.responsive = true;
 
 			var ctx = $("#user_expenses_chart").get(0).getContext("2d");
-			var myNewChart = new Chart(ctx);
-			var options = {
-				multiTooltipTemplate: "$<%= $.format.number(value, '#,##0.#') %>",
-				tooltipTemplate : "<%=label%>: $<%= $.format.number(value, '#,##0.#') %>"
-			}
 			labels = []
 			values = []
+			var myChart = null
 			{% for u,m in user_expenses.items %}
 				labels.push("{{u}}");
-				values.push("{{m}}");
+				values.push(parseInt("{{m}}"));
 			{% endfor %}
 			color = getRandomColor()
 			var data = {
@@ -51,7 +47,12 @@
 			        }
 			    ]
 			};
-			var myRadarChart = new Chart(ctx).Bar(data, options);
+			console.log(data)
+			var options = {
+				multiTooltipTemplate: "$<%= $.format.number(value, '#,##0.#') %>",
+				tooltipTemplate : "<%=label%>: $<%= $.format.number(value, '#,##0.#') %>"
+			}
+			myChart = new Chart(ctx).Bar(data, options);
 		});
 	</script>
 {% endblock %}
