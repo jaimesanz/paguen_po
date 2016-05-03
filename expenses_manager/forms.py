@@ -71,3 +71,10 @@ class UserIsOutForm(forms.ModelForm):
             'fecha_inicio': forms.DateInput(format=settings.DATE_FORMAT),
             'fecha_fin': forms.DateInput(format=settings.DATE_FORMAT),
         }
+
+
+class TransferForm(forms.Form):
+    monto = forms.IntegerField(label='Monto')
+    user = forms.ModelChoiceField(
+        label="Usuario",
+        queryset=User.objects.none())

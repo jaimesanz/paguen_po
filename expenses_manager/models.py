@@ -117,6 +117,14 @@ class ProxyUser(User):
             vivienda=self.get_vivienda(),
             estado="activo")
 
+    def get_roommates_users(self):
+        """
+        Returns a QuerySet with all User instances that have a related
+        active ViviendaUsuario
+        """
+        roommates = self.get_roommates().values("user")
+        return User.objects.filter(id__in=roommates).exclude(id=self.id)
+
     def get_invites(self):
         """
         Returns a Tuple consisting of:

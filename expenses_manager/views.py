@@ -2,17 +2,17 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth import authenticate, login, logout
-from .forms import *
 from django.contrib.auth.decorators import login_required
-from .models import *
 from django.forms.models import model_to_dict
 from django.contrib import messages
-from .helper_functions.custom_decorators import *
 from django.db import IntegrityError
-from datetime import datetime
 from django.utils import timezone
 from django.conf import settings
+from .forms import *
+from .models import *
+from .helper_functions.custom_decorators import *
 from .helper_functions.views import *
+from datetime import datetime
 import json
 
 
@@ -868,4 +868,7 @@ def transfer(request):
                 request,
                 "se produjo un error procesando la transferencia.")
             return redirect("transfer")
+
+    form = TransferForm()
+    form.fields["user"].queryset = request.user.get_roommates_users()
     return render(request, "transfer.html", locals())

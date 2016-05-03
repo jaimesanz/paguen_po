@@ -5,7 +5,9 @@
 {% block content %}
     <h3>Transferencias</h3>
     <hr>
-    <p>
-        Holiwi
-    </p>
+    <form method="post" action=".">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+      {% bootstrap_button "Transferir" button_type="submit" button_class="btn-primary" %}
+    </form>
 {% endblock %}
