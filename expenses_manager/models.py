@@ -236,6 +236,42 @@ class ProxyUser(User):
             fecha_inicio__lte=today,
             fecha_fin__gte=today).exists()
 
+    def transfer(self, user, monto):
+        """
+        If the given User and this User belong to the same Vivienda, and both
+        Users are active in this Vivienda, this method creates 2 new
+        Gasto instances with a paid state and Caetgoria "Transferencia", and
+        returns a tuple with both new Gastos.
+
+        The first Gasto has a positive "monto" field equal to the given monto,
+        and is linked to this User (self).
+        The second Gasto has a NEGATIVE "monto" field equal to -1 times the
+        given monto, and is linked to the given User (parameter).
+        This way, this User effectively "transfered" a given monto to the
+        given User.
+        """
+        users_have_vivienda = self.has_vivienda() and user.has_vivienda()
+        users_are_roommates = self.get_vivienda()==user.get_vivienda()
+        user_is_self = self==user
+        if users_have_vivienda and users_are_roommates and not user_is_self:
+
+            transfer_categoria, __ = Categoria.objects.get_or_create(
+                nombre="Transferencia",
+                vivienda=self.get_vivienda())
+
+            transfer_pos = Gasto.objects.create(
+                monto=monto,
+                creado_por=self.get_vu(),
+                categoria=transfer_categoria)
+            self.pagar(transfer_pos)
+            transfer_neg = Gasto.objects.create(
+                monto=monto * -1,
+                creado_por=user.get_vu(),
+                categoria=transfer_categoria)
+            user.pagar(transfer_neg)
+            return (transfer_pos, transfer_neg)
+        # user can't transfer
+        return (None, None)
 
 class Vivienda(models.Model):
     alias = models.CharField(max_length=200)

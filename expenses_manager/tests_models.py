@@ -236,6 +236,254 @@ class ProxyUserModelTest(TestCase):
                 estado="activo").count(),
             0)
 
+    def test_method_transfer(self):
+        # create vivienda with 3 users
+        (user1,
+         user2,
+         vivienda,
+         user1_viv,
+         user2_viv) = get_vivienda_with_2_users()
+        user3 = ProxyUser.objects.create(username="us3", email="c@c.com")
+        user3_viv = ViviendaUsuario.objects.create(
+            vivienda=vivienda, user=user3)
+        # create 2 categorias A, B
+        cat_1 = Categoria.objects.create(
+            nombre="cat_1",
+            vivienda=vivienda)
+        cat_2 = Categoria.objects.create(
+            nombre="cat_2",
+            vivienda=vivienda)
+        # create 2 periods P1, P2
+        p1 = YearMonth.objects.create(year=2016, month=1)
+        p2 = YearMonth.objects.create(year=2016, month=2)
+        # create 2 gastos per user, using different combinations
+        # of A,B and P1, P2
+        estado_pagado = EstadoGasto.objects.create(estado="pagado")
+        # gastos user1
+        g1_1 = Gasto.objects.create(
+            monto=1000,
+            creado_por=user1.get_vu(),
+            usuario=user1.get_vu(),
+            categoria=cat_1,
+            year_month=p1,
+            estado=estado_pagado)
+        g1_2 = Gasto.objects.create(
+            monto=2000,
+            creado_por=user1.get_vu(),
+            usuario=user1.get_vu(),
+            categoria=cat_2,
+            year_month=p1,
+            estado=estado_pagado)
+        # gastos user2
+        g2_1 = Gasto.objects.create(
+            monto=500,
+            creado_por=user2.get_vu(),
+            usuario=user2.get_vu(),
+            categoria=cat_1,
+            year_month=p1,
+            estado=estado_pagado)
+        g2_2 = Gasto.objects.create(
+            monto=1700,
+            creado_por=user2.get_vu(),
+            usuario=user2.get_vu(),
+            categoria=cat_2,
+            year_month=p2,
+            estado=estado_pagado)
+        # gastos user3
+        g3_1 = Gasto.objects.create(
+            monto=1200,
+            creado_por=user3.get_vu(),
+            usuario=user3.get_vu(),
+            categoria=cat_1,
+            year_month=p1,
+            estado=estado_pagado)
+        g3_2 = Gasto.objects.create(
+            monto=700,
+            creado_por=user3.get_vu(),
+            usuario=user3.get_vu(),
+            categoria=cat_1,
+            year_month=p1,
+            estado=estado_pagado)
+
+        # create presupuesto for each categoria
+        presupuesto_1_p1 = Presupuesto.objects.create(
+            categoria=cat_1,
+            vivienda=vivienda,
+            year_month=p1,
+            monto=5000)
+        presupuesto_1_p2 = Presupuesto.objects.create(
+            categoria=cat_1,
+            vivienda=vivienda,
+            year_month=p2,
+            monto=6000)
+        presupuesto_2_p1 = Presupuesto.objects.create(
+            categoria=cat_2,
+            vivienda=vivienda,
+            year_month=p1,
+            monto=4500)
+        presupuesto_2_p2 = Presupuesto.objects.create(
+            categoria=cat_2,
+            vivienda=vivienda,
+            year_month=p2,
+            monto=4000)
+
+        # get total so far for each presupuesto
+        total_presupuesto_1_p1 = presupuesto_1_p1.get_total_expenses()
+        total_presupuesto_1_p2 = presupuesto_1_p2.get_total_expenses()
+        total_presupuesto_2_p1 = presupuesto_2_p1.get_total_expenses()
+        total_presupuesto_2_p2 = presupuesto_2_p2.get_total_expenses()
+        # get total_per_user
+        total_per_user = vivienda.get_total_expenses_per_active_user()
+        # get total_per_period
+        total_p1 = vivienda.get_total_expenses_period(p1)
+        total_p2 = vivienda.get_total_expenses_period(p2)
+        # get total_per_categoria_per_period
+        # cat_1
+        total_ca1_p1 = vivienda.get_total_expenses_categoria_period(cat_1, p1)
+        total_ca1_p2 = vivienda.get_total_expenses_categoria_period(cat_1, p2)
+        # cat_2
+        total_ca2_p1 = vivienda.get_total_expenses_categoria_period(cat_2, p1)
+        total_ca2_p2 = vivienda.get_total_expenses_categoria_period(cat_2, p2)
+
+        self.assertEqual(Gasto.objects.count(), 6)
+
+        # user1 should have 3000 total
+        self.assertEqual(total_per_user[user1], 3000)
+        # user2 should have 2200 total
+        self.assertEqual(total_per_user[user2], 2200)
+        # user3 should have 1900 total
+        self.assertEqual(total_per_user[user3], 1900)
+
+
+        ######## TRANSFER METHOD CALL!!  ########
+        # user1 has spent way too much money! He can't even buy lunch anymore!
+        # let's have user2 transfer him some money to balance things up a bit
+        transfer_pos, transfer_neg = user2.transfer(user1, 400)
+
+        # there are 2 new Gastos
+        self.assertEqual(Gasto.objects.count(), 8)
+        # the new Gastos' categoria is "Transferencia"
+        self.assertEqual(transfer_pos.categoria.nombre, "Transferencia")
+        self.assertEqual(transfer_neg.categoria.nombre, "Transferencia")
+        # both new Gastos' monto's absolute value is 400
+        self.assertEqual(abs(transfer_pos.monto), 400)
+        self.assertEqual(abs(transfer_neg.monto), 400)
+        # transfer_pos's monto is positive, and transfer_neg is negative
+        self.assertTrue(transfer_pos.monto > 0)
+        self.assertTrue(transfer_neg.monto < 0)
+
+        # total_per_period did NOT change
+        self.assertEqual(total_p1, vivienda.get_total_expenses_period(p1))
+        self.assertEqual(total_p2, vivienda.get_total_expenses_period(p2))
+
+        # total_per_categoria_per_period did NOT change
+        # cat_1
+        self.assertEqual(
+            total_ca1_p1,
+            vivienda.get_total_expenses_categoria_period(cat_1, p1))
+        self.assertEqual(
+            total_ca1_p2,
+            vivienda.get_total_expenses_categoria_period(cat_1, p2))
+        # cat_2
+        self.assertEqual(
+            total_ca2_p1,
+            vivienda.get_total_expenses_categoria_period(cat_2, p1))
+        self.assertEqual(
+            total_ca2_p2,
+            vivienda.get_total_expenses_categoria_period(cat_2, p2))
+
+        # total_per_user DID change
+        new_total_per_user = vivienda.get_total_expenses_per_active_user()
+        # user1 should now have 2600 total
+        self.assertNotEqual(total_per_user[user1], new_total_per_user[user1])
+        self.assertEqual(new_total_per_user[user1], 2600)
+        # user2 should now have 2600 total
+        self.assertNotEqual(total_per_user[user2], new_total_per_user[user2])
+        self.assertEqual(new_total_per_user[user2], 2600)
+        # user3 should still have 1900 total
+        self.assertEqual(total_per_user[user3], new_total_per_user[user3])
+        self.assertEqual(new_total_per_user[user3], 1900)
+
+        # the total of presupuestos did NOT change
+        self.assertEqual(
+            total_presupuesto_1_p1,
+            presupuesto_1_p1.get_total_expenses())
+        self.assertEqual(
+            total_presupuesto_1_p2,
+            presupuesto_1_p2.get_total_expenses())
+        self.assertEqual(
+            total_presupuesto_2_p1,
+            presupuesto_2_p1.get_total_expenses())
+        self.assertEqual(
+            total_presupuesto_2_p2,
+            presupuesto_2_p2.get_total_expenses())
+
+        # the sum of each total_per_user is the SAME as the original sum of
+        # each total_per_user
+        original_sum = sum([v for k,v in total_per_user.items()])
+        new_sum = sum([v for k,v in new_total_per_user.items()])
+        self.assertEqual(original_sum, new_sum)
+
+    def test_user_cant_transfer_to_himself(self):
+        (user1,
+         user2,
+         vivienda,
+         user1_viv,
+         user2_viv) = get_vivienda_with_2_users()
+
+        self.assertEqual(Gasto.objects.count(), 0)
+
+        transfer_pos, transfer_neg = user1.transfer(user1, 10000)
+
+        self.assertEqual(Gasto.objects.count(), 0)
+        self.assertEqual(transfer_pos, None)
+        self.assertEqual(transfer_neg, None)
+
+    def test_user_cant_transfer_to_non_roommate(self):
+        (user1,
+         user2,
+         vivienda,
+         user1_viv,
+         user2_viv) = get_vivienda_with_2_users()
+
+        user1_viv.leave()
+
+        transfer_pos, transfer_neg = user2.transfer(user1, 10000)
+
+        self.assertEqual(Gasto.objects.count(), 0)
+        self.assertEqual(transfer_pos, None)
+        self.assertEqual(transfer_neg, None)
+
+    def test_homeless_user_cant_transfer(self):
+        (user1,
+         user2,
+         vivienda,
+         user1_viv,
+         user2_viv) = get_vivienda_with_2_users()
+
+        user1_viv.leave()
+
+        transfer_pos, transfer_neg = user1.transfer(user2, 10000)
+
+        self.assertEqual(Gasto.objects.count(), 0)
+        self.assertEqual(transfer_pos, None)
+        self.assertEqual(transfer_neg, None)
+
+    def test_homeless_user_cant_transfer_to_homeless(self):
+        (user1,
+         user2,
+         vivienda,
+         user1_viv,
+         user2_viv) = get_vivienda_with_2_users()
+
+        user1_viv.leave()
+        user2_viv.leave()
+
+        transfer_pos, transfer_neg = user1.transfer(user2, 10000)
+
+        self.assertEqual(Gasto.objects.count(), 0)
+        self.assertEqual(transfer_pos, None)
+        self.assertEqual(transfer_neg, None)
 
 class ViviendaModelTest(TestCase):
 
