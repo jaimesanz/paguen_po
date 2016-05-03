@@ -4,7 +4,7 @@ from django.contrib import admin
 from registration.forms import RegistrationFormUniqueEmail
 from registration.backends.hmac.views import RegistrationView
 from . import views
-
+from . import ajax_dispatchers
 
 class RegistrationViewUniqueEmail(RegistrationView):
     """
@@ -97,11 +97,11 @@ urlpatterns = [
         name='nuevo_presupuesto'),
 
     # AJAX urls
-    url(r'^get_items_autocomplete/$', views.get_items_autocomplete,
+    url(r'^get_items_autocomplete/$', ajax_dispatchers.get_items_autocomplete,
         name='get_items_autocomplete'),
-    url(r'^get_old_presupuesto/$', views.get_old_presupuesto,
+    url(r'^get_old_presupuesto/$', ajax_dispatchers.get_old_presupuesto,
         name='get_old_presupuesto'),
-    url(r'^get_gastos_graph/$', views.get_gastos_graph,
+    url(r'^get_gastos_graph/$', ajax_dispatchers.get_gastos_graph,
         name='get_gastos_graph'),
 
     # default to home
