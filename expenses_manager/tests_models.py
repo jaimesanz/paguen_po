@@ -354,8 +354,7 @@ class ProxyUserModelTest(TestCase):
         # user3 should have 1900 total
         self.assertEqual(total_per_user[user3], 1900)
 
-
-        ######## TRANSFER METHOD CALL!!  ########
+        # TRANSFER METHOD CALL!!
         # user1 has spent way too much money! He can't even buy lunch anymore!
         # let's have user2 transfer him some money to balance things up a bit
         transfer_pos, transfer_neg = user2.transfer(user1, 400)
@@ -420,8 +419,8 @@ class ProxyUserModelTest(TestCase):
 
         # the sum of each total_per_user is the SAME as the original sum of
         # each total_per_user
-        original_sum = sum([v for k,v in total_per_user.items()])
-        new_sum = sum([v for k,v in new_total_per_user.items()])
+        original_sum = sum([v for k, v in total_per_user.items()])
+        new_sum = sum([v for k, v in new_total_per_user.items()])
         self.assertEqual(original_sum, new_sum)
 
     def test_user_cant_transfer_to_himself(self):
@@ -484,6 +483,26 @@ class ProxyUserModelTest(TestCase):
         self.assertEqual(Gasto.objects.count(), 0)
         self.assertEqual(transfer_pos, None)
         self.assertEqual(transfer_neg, None)
+
+    def test_transfer_monto_must_be_positive_integer(self):
+        (user1,
+         user2,
+         vivienda,
+         user1_viv,
+         user2_viv) = get_vivienda_with_2_users()
+
+        transfer_pos, transfer_neg = user1.transfer(user2, -1000)
+
+        self.assertEqual(Gasto.objects.count(), 0)
+        self.assertEqual(transfer_pos, None)
+        self.assertEqual(transfer_neg, None)
+
+        transfer_pos, transfer_neg = user1.transfer(user2, 0)
+
+        self.assertEqual(Gasto.objects.count(), 0)
+        self.assertEqual(transfer_pos, None)
+        self.assertEqual(transfer_neg, None)
+
 
 class ViviendaModelTest(TestCase):
 

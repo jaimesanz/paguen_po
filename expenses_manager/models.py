@@ -251,10 +251,15 @@ class ProxyUser(User):
         given User.
         """
         users_have_vivienda = self.has_vivienda() and user.has_vivienda()
-        users_are_roommates = self.get_vivienda()==user.get_vivienda()
-        user_is_self = self==user
-        if users_have_vivienda and users_are_roommates and not user_is_self:
+        users_are_roommates = self.get_vivienda() == user.get_vivienda()
+        user_is_self = self == user
+        monto_is_positive = monto > 0
+        is_valid_transfer = (users_have_vivienda and
+                             users_are_roommates and
+                             not user_is_self and
+                             monto_is_positive)
 
+        if is_valid_transfer:
             transfer_categoria, __ = Categoria.objects.get_or_create(
                 nombre="Transferencia",
                 vivienda=self.get_vivienda())
@@ -272,6 +277,7 @@ class ProxyUser(User):
             return (transfer_pos, transfer_neg)
         # user can't transfer
         return (None, None)
+
 
 class Vivienda(models.Model):
     alias = models.CharField(max_length=200)
