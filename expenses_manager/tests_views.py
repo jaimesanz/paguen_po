@@ -71,14 +71,7 @@ class NuevaViviendaViewTest(TestCase):
         self.assertTrue(test_user.has_vivienda())
         self.assertContains(response, "TestVivienda")
 
-        self.assertContains(response, "Vivienda")
-        self.assertContains(response, "Gastos")
-        self.assertContains(response, "Listas")
-        self.assertContains(response, test_user.username)
-        self.assertContains(response, "Salir")
-        self.assertNotContains(response, "Crear Vivienda")
-        self.assertNotContains(response, "Invitaciones")
-        self.assertNotContains(response, "Entrar")
+        has_logged_navbar_with_viv(self, response, test_user)
 
 
 class ManageUsersViewTest(TestCase):

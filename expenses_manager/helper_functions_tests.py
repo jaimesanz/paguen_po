@@ -210,16 +210,13 @@ def has_navbar_with_vivienda(test, response, status_code=200):
 
 
 def has_not_logged_navbar(test, response, status_code=200):
-    test.assertNotContains(response, "Salir", status_code=status_code)
     test.assertContains(response, "Entrar", status_code=status_code)
     test.assertContains(response, "Registrarse", status_code=status_code)
 
 
 def has_logged_navbar(test, response, test_user, status_code=200):
-    test.assertContains(response, "Salir", status_code=status_code)
     test.assertNotContains(response, "Entrar", status_code=status_code)
     test.assertNotContains(response, "Registrarse", status_code=status_code)
-    test.assertContains(response, test_user.username, status_code=status_code)
 
 
 def has_logged_navbar_without_viv(test, response, test_user, status_code=200):
@@ -263,8 +260,6 @@ def execute_test_the_basics_logged_in(test, url, template_name, view_func):
     test.assertNotContains(response, "Entrar")
     test.assertNotContains(response, "Registrarse")
     test.assertNotContains(response, "Inicio")
-    test.assertContains(response, user.username)
-    test.assertContains(response, "Salir")
     if user.has_vivienda():
         test.assertContains(response, "Gastos")
         test.assertContains(response, "Listas")
@@ -280,8 +275,6 @@ def execute_test_basics_logged_with_viv(test, url, template_name, view_func):
     test.assertNotContains(response, "Entrar")
     test.assertNotContains(response, "Registrarse")
     test.assertNotContains(response, "Inicio")
-    test.assertContains(response, user.username)
-    test.assertContains(response, "Salir")
     if user.has_vivienda():
         test.assertContains(response, "Gastos")
         test.assertContains(response, "Listas")
