@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.conf import settings
 from expenses_manager.helper_functions.views import *
 
+
 def home(request):
     return render(request, 'general/home.html', locals())
 
@@ -915,6 +916,7 @@ def edit_presupuesto(request, year, month, categoria):
 
     form = PresupuestoEditForm(initial=presupuesto.__dict__)
     return render(request, "vivienda/edit_presupuesto.html", locals())
+
 
 @login_required
 @request_passes_test(user_has_vivienda,
