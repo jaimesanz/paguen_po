@@ -1106,4 +1106,5 @@ class Gasto(models.Model):
         to the Gasto
         """
         return (user.has_vivienda() and
+                not self.categoria.is_transfer and
                 user.get_vivienda() == self.creado_por.vivienda)
