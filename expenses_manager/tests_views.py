@@ -3433,9 +3433,18 @@ class NewUserIsOutTest(TestCase):
     def test_not_logged_user_cant_create_vacation(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
 
+        start_date = timezone.now().date() + timezone.timedelta(weeks=4)
+        end_date = timezone.now().date() + timezone.timedelta(weeks=10)
+
         self.client.logout()
-        response = self.client.get(
+
+        response = self.client.post(
             self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "fecha_inicio": start_date,
+                "fecha_fin": end_date
+            },
             follow=True)
 
         self.assertRedirects(
@@ -3445,9 +3454,18 @@ class NewUserIsOutTest(TestCase):
     def test_homeless_user_cant_create_vacation(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
 
+        start_date = timezone.now().date() + timezone.timedelta(weeks=4)
+        end_date = timezone.now().date() + timezone.timedelta(weeks=10)
+
         test_user.get_vu().leave()
-        response = self.client.get(
+
+        response = self.client.post(
             self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "fecha_inicio": start_date,
+                "fecha_fin": end_date
+            },
             follow=True)
 
         self.assertRedirects(
@@ -4050,3 +4068,262 @@ class UserIsOutEditViewTest(TestCase):
         self.assertEqual(
             UserIsOut.objects.get(id=roommate_vacation.id).fecha_inicio,
             roommate_vacation.fecha_inicio)
+
+
+class NewTransferViewTest(TestCase):
+
+    url = "/transfer/"
+
+    def test_not_logged_user_cant_create_transfer(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        roommate = ProxyUser.objects.get(username="test_user_2")
+
+        self.client.logout()
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "user": roommate.id,
+                "monto": 10000
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=%s" % (self.url))
+        self.assertEqual(Gasto.objects.count(), 3)
+
+    def test_cant_transfer_to_homeless(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        roommate = ProxyUser.objects.get(username="test_user_2")
+
+        roommate.leave()
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "user": roommate.id,
+                "monto": 10000
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            self.url)
+        self.assertContains(
+            response,
+            "El usuario indicado no pertenece a su Vivienda.")
+        self.assertEqual(Gasto.objects.count(), 3)
+
+    def test_homeless_cant_transfer(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        roommate = ProxyUser.objects.get(username="test_user_2")
+
+        test_user.leave()
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "user": roommate.id,
+                "monto": 10000
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/error/")
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+        self.assertEqual(Gasto.objects.count(), 3)
+
+    def test_homeless_cant_transfer_to_homeless(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        roommate = ProxyUser.objects.get(username="test_user_2")
+
+        test_user.leave()
+        roommate.leave()
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "user": roommate.id,
+                "monto": 10000
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/error/")
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+        self.assertEqual(Gasto.objects.count(), 3)
+
+    def test_transfer_monto_must_be_positive_integer(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        roommate = ProxyUser.objects.get(username="test_user_2")
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "user": roommate.id,
+                "monto": -10000
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            self.url)
+        self.assertContains(
+            response,
+            "Debe ingresar un monto mayor que 0.")
+        self.assertEqual(Gasto.objects.count(), 3)
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "user": roommate.id,
+                "monto": 0
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            self.url)
+        self.assertContains(
+            response,
+            "Debe ingresar un monto mayor que 0.")
+        self.assertEqual(Gasto.objects.count(), 3)
+
+    def test_cant_transfer_with_broken_POST(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        roommate = ProxyUser.objects.get(username="test_user_2")
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "monto": 10000
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            self.url)
+        self.assertContains(
+            response,
+            "Debe especificar un usuario a quien transferirle.")
+        self.assertEqual(Gasto.objects.count(), 3)
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "user": "",
+                "monto": 10000
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            self.url)
+        self.assertContains(
+            response,
+            "Debe especificar un usuario a quien transferirle.")
+        self.assertEqual(Gasto.objects.count(), 3)
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "user": roommate.id
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            self.url)
+        self.assertContains(
+            response,
+            "Debe ingresar un monto mayor que 0.")
+        self.assertEqual(Gasto.objects.count(), 3)
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "user": roommate.id,
+                "monto": ""
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            self.url)
+        self.assertContains(
+            response,
+            "Debe ingresar un monto mayor que 0.")
+        self.assertEqual(Gasto.objects.count(), 3)
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish"
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            self.url)
+        self.assertContains(
+            response,
+            "Debe especificar un usuario a quien transferirle.")
+        self.assertEqual(Gasto.objects.count(), 3)
+
+    def test_cant_transfer_to_self(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "user": test_user.id,
+                "monto": 10000
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            self.url)
+        self.assertContains(
+            response,
+            "¡No puede transferirse fondos a sí mismo!")
+        self.assertEqual(Gasto.objects.count(), 3)
+
+    def test_logged_user_w_vivivenda_can_transfer_to_roommate(self):
+        test_user = get_setup_with_gastos_items_and_listas(self)
+        roommate = ProxyUser.objects.get(username="test_user_2")
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "user": roommate.id,
+                "monto": 10000
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/vivienda/")
+        self.assertContains(
+            response,
+            "Transferencia realizada con éxito.")
+        self.assertEqual(Gasto.objects.count(), 5)

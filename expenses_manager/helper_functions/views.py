@@ -1,5 +1,5 @@
 from django.contrib import messages
-from .models import Categoria
+from expenses_manager.models import Categoria, ProxyUser
 
 
 def create_new_vivienda(form):
@@ -65,3 +65,51 @@ def user_has_vivienda(request):
             "Para tener acceso a esta página debe pertenecer a una vivienda")
         return False
     return True
+
+
+def is_valid_transfer_to_user(user_id_raw, this_user):
+    """
+    Returns a tuple where:
+    - if the user given by user_id_raw is a valid user for
+    this_user to transfer to, the first element of the tuple
+    is the User instance, and the second is an empty String.
+    - if not, the first element is None and the second is an
+    error message.
+    """
+    msg = ""
+    try:
+        user_id = int(user_id_raw)
+    except (ValueError, TypeError):
+        msg = "Debe especificar un usuario a quien transferirle."
+        return (None, msg)
+
+    user = ProxyUser.objects.filter(id=user_id).first()
+    if user is None:
+        msg = "Debe especificar un usuario a quien transferirle."
+    elif user.get_vivienda()!=this_user.get_vivienda():
+        msg = "El usuario indicado no pertenece a su Vivienda."
+    elif user==this_user:
+        msg = "¡No puede transferirse fondos a sí mismo!"
+
+    if len(msg)>0:
+        return (None, msg)
+    return (user, "")
+
+def is_valid_transfer_monto(monto_raw):
+    """
+    Returns a tuple where:
+    - if the monto given by monto_raw is a valid monto, the
+    first element of the tuple is the monto as an Integer,
+    and the second is an empty String.
+    - if not, the first element is None and the second is an
+    error message.
+    """
+    try:
+        monto = int(monto_raw)
+        if monto<=0:
+            msg = "Debe ingresar un monto mayor que 0."
+            return (None, msg)
+    except (ValueError, TypeError):
+        msg = "Debe ingresar un monto mayor que 0."
+        return (None, msg)
+    return (monto, "")

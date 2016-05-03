@@ -8,13 +8,12 @@ from expenses_manager.models import *
 from django.forms.models import model_to_dict
 import json
 from django.contrib import messages
-from expenses_manager.helper_functions import *
 from expenses_manager.custom_decorators import request_passes_test
 from django.db import IntegrityError
 from datetime import datetime
 from django.utils import timezone
 from django.conf import settings
-
+from expenses_manager.helper_functions.views import *
 
 def home(request):
     return render(request, 'general/home.html', locals())
@@ -916,3 +915,40 @@ def edit_presupuesto(request, year, month, categoria):
 
     form = PresupuestoEditForm(initial=presupuesto.__dict__)
     return render(request, "vivienda/edit_presupuesto.html", locals())
+
+@login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
+def transfer(request):
+    if request.POST:
+
+        # validate user_id in POST
+        user, msg = is_valid_transfer_to_user(
+            request.POST.get("user", None),
+            request.user)
+
+        if user is None:
+            # there are errors
+            messages.error(request, msg)
+            return redirect("transfer")
+
+        # validate monto_raw in POST
+        monto, msg = is_valid_transfer_monto(request.POST.get("monto", None))
+        if monto is None:
+            # there are errors
+            messages.error(request, msg)
+            return redirect("transfer")
+
+        pos, neg = request.user.transfer(user, monto)
+        if pos is not None and neg is not None:
+            messages.success(
+                request,
+                "Transferencia realizada con éxito.")
+            return redirect("vivienda")
+        else:
+            messages.error(
+                request,
+                "se produjo un error procesando la transferencia.")
+            return redirect("transfer")
+    return render(request, "transfer.html", locals())

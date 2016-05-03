@@ -36,6 +36,7 @@ urlpatterns = [
     url(r'^manage_users/$', views.manage_users, name='manage_users'),
     url(r'^abandon/$', views.abandon, name='abandon'),
     url(r'^vivienda/balance/$', views.balance, name='balance'),
+    url(r'^transfer/$', views.transfer, name='transfer'),
 
     # vacations
     url(r'^vivienda/vacaciones/$', views.vacations, name='vacations'),
