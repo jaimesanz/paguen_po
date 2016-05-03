@@ -3,6 +3,7 @@ from .models import *
 from django.http import HttpResponseRedirect, HttpResponse
 import json
 
+
 @login_required
 def get_gastos_graph(request):
     """
@@ -78,4 +79,3 @@ def get_old_presupuesto(request):
                 presupuesto.year_month.id,
                 presupuesto.monto))
     return HttpResponse(json.dumps(ans))
-

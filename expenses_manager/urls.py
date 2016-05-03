@@ -6,6 +6,7 @@ from registration.backends.hmac.views import RegistrationView
 from . import views
 from . import ajax_dispatchers
 
+
 class RegistrationViewUniqueEmail(RegistrationView):
     """
     Override default django-registration "register" view so that it enforces a
