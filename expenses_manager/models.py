@@ -440,6 +440,19 @@ class Vivienda(models.Model):
             user_expenses[user_that_paid] += t.monto
         return user_expenses
 
+    def get_active_users_balance(self):
+        """
+        Returns a dict where the keys are the names of the users
+        and the values are the difference bewtween that user's total
+        expenses and the user that has spent the least amount of money.
+        Note: the latter will always have a value of 0.
+        """
+        total_expenses_per_user = self.get_total_expenses_per_active_user()
+        smallest_total = min([v for k, v in total_expenses_per_user.items()])
+        for k, v in total_expenses_per_user.items():
+            total_expenses_per_user[k] -= smallest_total
+        return total_expenses_per_user
+
     def add_categoria(self, nombre):
         """
         Takes a String representing the name of a new custom Categoria
@@ -531,7 +544,7 @@ class ViviendaUsuario(models.Model):
         """
         if self.is_active():
             return (self.vivienda.get_gastos_pendientes(),
-                self.vivienda.get_gastos_pagados())
+                    self.vivienda.get_gastos_pagados())
         else:
             # returns empty queryset
             empty_queryset = Gasto.objects.none()

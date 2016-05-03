@@ -2501,8 +2501,9 @@ class BalanceViewTest(TestCase):
             self.url,
             follow=True)
 
-        self.assertContains(response, gasto_1.monto)
-        self.assertContains(response, gasto_2.monto)
+        smallest_total = min([gasto_1.monto, gasto_2.monto])
+        self.assertContains(response, gasto_1.monto - smallest_total)
+        self.assertContains(response, gasto_2.monto - smallest_total)
 
 
 class CategoriaListViewTest(TestCase):
@@ -4322,7 +4323,7 @@ class NewTransferViewTest(TestCase):
 
         self.assertRedirects(
             response,
-            "/vivienda/")
+            "/vivienda/balance/")
         self.assertContains(
             response,
             "Transferencia realizada con éxito.")

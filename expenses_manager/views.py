@@ -278,7 +278,7 @@ def manage_users(request):
                      redirect_field_name=None)
 def balance(request):
     vivienda = request.user.get_vivienda()
-    user_expenses = vivienda.get_total_expenses_per_active_user()
+    user_expenses = vivienda.get_active_users_balance()
     return render(request, "vivienda/balance.html", locals())
 
 
@@ -862,7 +862,7 @@ def transfer(request):
             messages.success(
                 request,
                 "Transferencia realizada con éxito.")
-            return redirect("vivienda")
+            return redirect("balance")
         else:
             messages.error(
                 request,

@@ -99,7 +99,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LOGIN_URL = '/accounts/login/'
 
-ACCOUNT_ACTIVATION_DAYS = 7 # One-week activation window;
+ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window;
 LOGIN_REDIRECT_URL = '/login_post_process/'
 
 AUTHENTICATION_BACKENDS = ('expenses_manager.backends.ModelBackend',)
@@ -133,4 +133,4 @@ DATE_FORMAT = "%Y-%m-%d"
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'static'))
-NOSE_ARGS = ['--nocapture','--nologcapture',]
+NOSE_ARGS = ['--nocapture', '--nologcapture', ]
