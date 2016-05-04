@@ -356,12 +356,15 @@ class NewGastoViewTest(TestCase):
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
             self)
 
+        not_today = timezone.now().date() - timezone.timedelta(weeks=20)
+
         response = self.client.post(
             "/nuevo_gasto/",
             data={
                 "categoria": dummy_categoria.id,
                 "monto": 232,
-                "is_paid": "no"
+                "is_paid": "no",
+                "fecha_pago": not_today
             },
             follow=True)
 
@@ -386,12 +389,16 @@ class NewGastoViewTest(TestCase):
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
             self)
+
+        today = timezone.now().date()
+
         response = self.client.post(
             "/nuevo_gasto/",
             data={
                 "categoria": dummy_categoria.id,
                 "monto": 232,
-                "is_paid": "yes"
+                "is_paid": "yes",
+                "fecha_pago": today
             },
             follow=True)
 
@@ -406,6 +413,75 @@ class NewGastoViewTest(TestCase):
         self.assertNotContains(response, gasto_3.monto)
         self.assertNotContains(
             response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+
+    def test_user_can_create_paid_gasto_with_custom_old_fecha_pago(self):
+        (test_user_1,
+            test_user_2,
+            test_user_3,
+            dummy_categoria,
+            gasto_1,
+            gasto_2,
+            gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+
+        not_today = timezone.now().date() - timezone.timedelta(weeks=20)
+        not_this_period, __ = YearMonth.objects.get_or_create(
+            year=not_today.year,
+            month=not_today.month)
+        unique_categoria = Categoria.objects.create(
+            nombre="oldies_cat",
+            vivienda=test_user_1.get_vivienda())
+
+        response = self.client.post(
+            "/nuevo_gasto/",
+            data={
+                "categoria": unique_categoria.id,
+                "monto": 232,
+                "is_paid": "yes",
+                "fecha_pago": not_today
+            },
+            follow=True)
+
+        self.assertRedirects(response, "/gastos/")
+        new_gasto = Gasto.objects.get(categoria=unique_categoria)
+        self.assertEqual(new_gasto.fecha_pago, not_today)
+        self.assertEqual(new_gasto.year_month, not_this_period)
+        self.assertTrue(new_gasto.is_paid())
+
+    def test_user_CANT_create_paid_gasto_with_custom_future_fecha_pago(self):
+        (test_user_1,
+            test_user_2,
+            test_user_3,
+            dummy_categoria,
+            gasto_1,
+            gasto_2,
+            gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+
+        not_today = timezone.now().date() + timezone.timedelta(weeks=20)
+        not_this_period, __ = YearMonth.objects.get_or_create(
+            year=not_today.year,
+            month=not_today.month)
+        unique_categoria = Categoria.objects.create(
+            nombre="future_cat",
+            vivienda=test_user_1.get_vivienda())
+
+        response = self.client.post(
+            "/nuevo_gasto/",
+            data={
+                "categoria": unique_categoria.id,
+                "monto": 232,
+                "is_paid": "yes",
+                "fecha_pago": not_today
+            },
+            follow=True)
+
+        self.assertRedirects(response, "/gastos/")
+        self.assertFalse(Gasto.objects.filter(
+            categoria=unique_categoria).exists())
+        self.assertContains(
+            response,
+            "No puede crear un Gasto para una fecha futura.")
 
 
 class GastoViviendaPendingListViewTest(TestCase):
@@ -1085,7 +1161,7 @@ class PayListaViewTest(TestCase):
                 str(item_lista_2.id): 2
             },
             follow=True)
-        gasto = Gasto.objects.latest("fecha_creacion")
+        gasto = Gasto.objects.get(lista_compras=lista)
         self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto.id))
 
     def test_user_cant_pay_lista_without_monto_no_recicle(self):
@@ -1136,7 +1212,7 @@ class PayListaViewTest(TestCase):
                 str(item_lista_2.id): 2
             },
             follow=True)
-        gasto = Gasto.objects.latest("fecha_creacion")
+        gasto = Gasto.objects.get(lista_compras=lista)
         self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto.id))
 
         # old lista only has item_2, and is paid
@@ -1174,7 +1250,7 @@ class PayListaViewTest(TestCase):
         self.assertEqual(
             Gasto.objects.count(),
             original_gasto_count + 1)
-        gasto = Gasto.objects.latest("fecha_creacion")
+        gasto = Gasto.objects.get(lista_compras=lista)
         self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto.id))
 
         # created new lista with item_2

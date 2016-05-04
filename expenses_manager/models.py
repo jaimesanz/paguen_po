@@ -137,14 +137,14 @@ class ProxyUser(User):
             invitado_por__user=self, estado="pendiente")
         return invites_in, invites_out
 
-    def pagar(self, gasto):
+    def pagar(self, gasto, fecha_pago=timezone.now().date()):
         """
         Sets the state of the given Gasto as "pagado", and it's usuario field
         as the User's active ViviendaUsuario.
         If the user has no active Vivienda, returns None and does nothing.
         """
         if self.has_vivienda():
-            self.get_vu().pagar(gasto)
+            self.get_vu().pagar(gasto, fecha_pago)
 
     def sent_invite(self, invite):
         """
@@ -550,14 +550,17 @@ class ViviendaUsuario(models.Model):
             empty_queryset = Gasto.objects.none()
             return (empty_queryset, empty_queryset)
 
-    def pagar(self, gasto):
+    def pagar(self, gasto, fecha_pago=timezone.now().date()):
         """
         Sets the state of the given Gasto as "pagado", and it's usuario field
         as the ViviendaUsuario.
         """
         gasto.usuario = self
-        gasto.fecha_pago = timezone.now()
-        gasto.year_month = get_current_yearMonth_obj()
+        gasto.fecha_pago = fecha_pago
+        ym, __ = YearMonth.objects.get_or_create(
+            year=fecha_pago.year,
+            month=fecha_pago.month)
+        gasto.year_month = ym
         estado_gasto, created = EstadoGasto.objects.get_or_create(
             estado="pagado")
         gasto.estado = estado_gasto
@@ -1060,8 +1063,8 @@ class Gasto(models.Model):
         ViviendaUsuario, on_delete=models.CASCADE, null=True, blank=True)
     # TODO categoria should default to "Supermercado"
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_pago = models.DateTimeField(null=True, blank=True)
+    fecha_creacion = models.DateField(auto_now_add=True)
+    fecha_pago = models.DateField(null=True, blank=True)
     year_month = models.ForeignKey(YearMonth,
                                    on_delete=models.CASCADE,
                                    null=True,
@@ -1081,12 +1084,12 @@ class Gasto(models.Model):
                         "__",
                         str(self.year_month)))
 
-    def pagar(self, user):
+    def pagar(self, user, fecha_pago=timezone.now().date()):
         """
         It receives a User or a ViviendaUsuario object and changes the
         state of the Gasto to "pagado" by the given User/ViviendaUsuario.
         """
-        user.pagar(self)
+        user.pagar(self, fecha_pago)
 
     def is_pending(self):
         """

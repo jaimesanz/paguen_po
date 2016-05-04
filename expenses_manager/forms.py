@@ -29,9 +29,11 @@ class InvitacionForm(forms.ModelForm):
 
 class GastoForm(forms.ModelForm):
 
+    fecha_pago = forms.DateInput(format=settings.DATE_FORMAT)
+
     class Meta:
         model = Gasto
-        fields = ('categoria', 'monto')
+        fields = ('categoria', 'monto', 'fecha_pago')
 
 
 class PresupuestoForm(forms.ModelForm):

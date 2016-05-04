@@ -458,6 +458,25 @@ def nuevo_gasto(request):
     if request.POST:
         form = GastoForm(request.POST)
         if form.is_valid():
+            # if fecha_pago is a future one, dont create Gasto
+            # and inform
+            kwargs = {}
+            fecha_pago_raw = request.POST.get("fecha_pago", None)
+            if fecha_pago_raw is not None:
+                try:
+                    fecha_pago = datetime.strptime(
+                        fecha_pago_raw,
+                        settings.DATE_FORMAT).date()
+                    if fecha_pago <= timezone.now().date():
+                        kwargs["fecha_pago"] = fecha_pago
+                    else:
+                        messages.error(
+                            request,
+                            "No puede crear un Gasto para una fecha futura.")
+                        return HttpResponseRedirect("/gastos")
+                except ValueError:
+                    # can't parse date, invalid format!
+                    pass
             # set the user who created this
             nuevo_gasto = form.save(commit=False)
             nuevo_gasto.creado_por = request.user.get_vu()
@@ -468,7 +487,7 @@ def nuevo_gasto(request):
             # check if it's paid
             is_paid = request.POST.get("is_paid", None)
             if is_paid == "yes":
-                nuevo_gasto.pagar(request.user)
+                nuevo_gasto.pagar(request.user, **kwargs)
                 return HttpResponseRedirect("/gastos")
             elif is_paid == "no":
                 return HttpResponseRedirect("/gastos")
@@ -486,6 +505,8 @@ def gastos(request):
     gastos_pendientes_list, gastos_pagados_list = vu.get_gastos_vivienda()
     gasto_form = GastoForm()
     gasto_form.fields["categoria"].queryset = vu.vivienda.get_categorias()
+    today = timezone.now().date().strftime(settings.DATE_FORMAT)
+    gasto_form.fields["fecha_pago"].initial = today
     return render(request, "gastos/gastos.html", locals())
 
 
