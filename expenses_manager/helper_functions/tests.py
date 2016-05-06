@@ -237,6 +237,226 @@ def get_setup_w_vivienda_3_users_and_periods():
     return db
 
 
+
+def get_HARDEST_balance_test_database():
+    """
+    Creates complex database case for balancing Gastos:
+    - users have left
+    - users had vacations
+    - users have vacations
+    - some gastos are shared on vacation, others are not
+    """
+    # inb4: this test is highly read only xD
+    # get vivienda with many users and create gastos
+    db = get_setup_w_vivienda_3_users_and_periods()
+    user1 = db["user1"]
+    user2 = db["user2"]
+    user3 = db["user3"]
+    user1_viv = db["user1_viv"]
+    user2_viv = db["user2_viv"]
+    user3_viv = db["user3_viv"]
+    vivienda = db["vivienda"]
+    # create all neccesary periods. last period of dict is today -> "n"
+    p = dict()
+    today = timezone.now().date()
+    step = 2 # in weeks
+    delta = 0 # start today
+    for period_label in "nmlkjihgfedcba":
+        p[period_label] = today - timezone.timedelta(weeks=delta)
+        delta+=step
+
+    # need 2 more users
+    user4 = ProxyUser.objects.create(username="us4", email="d@d.com")
+    user4_viv = ViviendaUsuario.objects.create(
+        vivienda=vivienda, user=user4)
+    user5 = ProxyUser.objects.create(username="us5", email="e@e.com")
+    user5_viv = ViviendaUsuario.objects.create(
+        vivienda=vivienda, user=user5)
+
+    # define periods on which users were actually active
+    # user1 still acitve
+    user1_viv.fecha_creacion = p["a"]
+    # user2 not active anymore
+    user2_viv.fecha_creacion = p["a"]
+    user2_viv.fecha_abandono = p["f"]
+    user2_viv.estado = "inactivo"
+    # user3 not active anymore
+    user3_viv.fecha_creacion = p["c"]
+    user3_viv.fecha_abandono = p["j"]
+    user3_viv.estado = "inactivo"
+    # user4 still acitve
+    user4_viv.fecha_creacion = p["b"]
+    # user5 still acitve
+    user5_viv.fecha_creacion = p["k"]
+
+    # this table shows the users vs periods
+    # users join vivienda in "s", and leave it on "e"
+    # users with an "e" in column infinity means they are still active,
+    # ie, they haven't left yet
+    # u/p |a|b|c|d|e|f|g|h|i|j|k|l|m|n| ... | infinity
+    # ----------------------------------------
+    # 1   |s| | | | | | | | | | | | | | ... | e
+    # 2   |s| | | | |e| | | | | | | | | ... |
+    # 3   | | |s| | | | | | |e| | | | | ... |
+    # 4   | |s| | | | | | | | | | | | | ... | e
+    # 5   | | | | | | | | | | |s| | | | ... | e
+
+    # define periods on which users were on vacations
+    # user1
+    user1.go_on_vacation(start_date=p["e"], end_date=p["g"])
+    user1.go_on_vacation(start_date=p["k"], end_date=p["m"])
+    # user2
+    user2.go_on_vacation(start_date=p["b"], end_date=p["d"])
+    # user3
+    user3.go_on_vacation(start_date=p["e"], end_date=p["g"])
+    # user4
+    user4.go_on_vacation(start_date=p["h"], end_date=p["i"])
+    user4.go_on_vacation(start_date=p["l"], end_date=p["m"])
+    # user5 has no vacations
+
+    # save all these changes
+    user1_viv.save()
+    user2_viv.save()
+    user3_viv.save()
+    user4_viv.save()
+    user5_viv.save()
+
+    # now we add vacations to the table; an "A" means the user starts
+    # a vacation, and a "Z" means the user came back from that vacation
+
+    # u/p |a|b|c|d|e|f|g|h|i|j|k|l|m|n| ... | infinity
+    # ----------------------------------------
+    # 1   |s| | | |A| |Z| | | |A| |Z| | ... | e
+    # 2   |s|A| |Z| |e| | | | | | | | | ... |
+    # 3   | | |s| |A| |Z| | |e| | | | | ... |
+    # 4   | |s| | | | | |A|Z| | |A|Z| | ... | e
+    # 5   | | | | | | | | | | |s| | | | ... | e
+    # --------------------------------------------------
+    # u/p |a|b|c|d|e|f|g|h|i|j|k|l|m|n| ... | infinity
+
+    # Now, an "x" means the user was active in that date, and
+    # a "-" means he/she was on vacation. Removed periods where the user
+    # was not active at all.
+
+    # u/p |a|b|c|d|e|f|g|h|i|j|k|l|m|n| ... | infinity
+    # ----------------------------------------
+    # 1   |x|x|x|x|-|-|-|x|x|x|-|-|-|x| ... | e
+    # 2   |x|-|-|-|x|x|
+    # 3       |x|x|-|-|-|x|x|x|
+    # 4     |x|x|x|x|x|x|-|-|x|x|-|-|x| ... | e
+    # 5                       |x|x|x|x| ... | e
+    # --------------------------------------------------
+    # u/p |a|b|c|d|e|f|g|h|i|j|k|l|m|n| ... | infinity
+
+    cat_not_shared_on_leave = db["cat_not_shared_on_leave"]
+    cat_shared_on_leave = db["cat_shared_on_leave"]
+    def N(user, monto, p):
+        gasto = Gasto.objects.create(
+            monto=monto,
+            creado_por=user,
+            categoria=cat_not_shared_on_leave)
+        user.pagar(gasto, fecha_pago=p)
+    def S(user, monto, p):
+        gasto = Gasto.objects.create(
+            monto=monto,
+            creado_por=user,
+            categoria=cat_shared_on_leave)
+        user.pagar(gasto, fecha_pago=p)
+    # create gastos per period
+    # import random
+    # dummy_monto = random.randint(10000, 50000)
+    # print(dummy_monto)
+    dummy_monto = 1000
+    # a
+    N(user1_viv, dummy_monto, p["a"]) # 1 2
+    N(user1_viv, dummy_monto, p["a"]) # 1 2
+    N(user2_viv, dummy_monto, p["a"]) # 1 2
+    # b
+    N(user1_viv, dummy_monto, p["b"]) # 1 4
+    N(user4_viv, dummy_monto, p["b"]) # 1 4
+
+    S(user1_viv, dummy_monto, p["b"]) # 1 2 4
+    # c
+    N(user1_viv, dummy_monto, p["c"]) # 1 3 4
+    N(user2_viv, dummy_monto, p["c"]) # 1 3 4
+    N(user2_viv, dummy_monto, p["c"]) # 1 3 4
+    N(user3_viv, dummy_monto, p["c"]) # 1 3 4
+
+    S(user1_viv, dummy_monto, p["c"]) # 1 2 3 4
+    S(user3_viv, dummy_monto, p["c"]) # 1 2 3 4
+    # d
+    N(user1_viv, dummy_monto, p["d"]) # 1 3 4
+    N(user1_viv, dummy_monto, p["d"]) # 1 3 4
+    N(user3_viv, dummy_monto, p["d"]) # 1 3 4
+
+    S(user2_viv, dummy_monto, p["d"]) # 1 2 3 4
+    S(user2_viv, dummy_monto, p["d"]) # 1 2 3 4
+    S(user3_viv, dummy_monto, p["d"]) # 1 2 3 4
+    # e
+    N(user2_viv, dummy_monto, p["e"]) # 2 4
+
+    S(user2_viv, dummy_monto, p["e"]) # 1 2 3 4
+    S(user4_viv, dummy_monto, p["e"]) # 1 2 3 4
+    S(user4_viv, dummy_monto, p["e"]) # 1 2 3 4
+    # f
+    # g
+    N(user4_viv, dummy_monto, p["g"]) # 4
+    N(user4_viv, dummy_monto, p["g"]) # 4
+    N(user4_viv, dummy_monto, p["g"]) # 4
+
+    S(user4_viv, dummy_monto, p["g"]) # 1 3 4
+    # h
+    N(user1_viv, dummy_monto, p["h"]) # 1 3
+
+    S(user1_viv, dummy_monto, p["h"]) # 1 3 4
+    S(user3_viv, dummy_monto, p["h"]) # 1 3 4
+    S(user3_viv, dummy_monto, p["h"]) # 1 3 4
+    # i
+    # j
+    N(user1_viv, dummy_monto, p["j"]) # 1 3 4
+    N(user4_viv, dummy_monto, p["j"]) # 1 3 4
+    N(user4_viv, dummy_monto, p["j"]) # 1 3 4
+
+    S(user1_viv, dummy_monto, p["j"]) # 1 3 4
+    S(user3_viv, dummy_monto, p["j"]) # 1 3 4
+    S(user3_viv, dummy_monto, p["j"]) # 1 3 4
+    # k
+    N(user5_viv, dummy_monto, p["k"]) # 4 5
+
+    S(user4_viv, dummy_monto, p["k"]) # 1 4 5
+    S(user4_viv, dummy_monto, p["k"]) # 1 4 5
+    S(user5_viv, dummy_monto, p["k"]) # 1 4 5
+    # l
+    N(user5_viv, dummy_monto, p["l"]) # 5
+    N(user5_viv, dummy_monto, p["l"]) # 5
+    N(user5_viv, dummy_monto, p["l"]) # 5
+
+    S(user5_viv, dummy_monto, p["l"]) # 1 4 5
+    # m
+    N(user5_viv, dummy_monto, p["m"]) # 5
+
+    S(user5_viv, dummy_monto, p["m"]) # 1 4 5
+    S(user5_viv, dummy_monto, p["m"]) # 1 4 5
+    S(user5_viv, dummy_monto, p["m"]) # 1 4 5
+    # n
+    N(user1_viv, dummy_monto, p["n"]) # 1 4 5
+    N(user4_viv, dummy_monto, p["n"]) # 1 4 5
+
+    S(user1_viv, dummy_monto, p["n"]) # 1 4 5
+    S(user4_viv, dummy_monto, p["n"]) # 1 4 5
+    S(user5_viv, dummy_monto, p["n"]) # 1 4 5
+    S(user5_viv, dummy_monto, p["n"]) # 1 4 5
+
+    return {
+        "user1" : user1,
+        "user2" : user2,
+        "user3" : user3,
+        "user4" : user4,
+        "user5" : user5,
+        "vivienda" : vivienda
+    }
+
+
 def has_navbar_without_vivienda(test, response, status_code=200):
     test.assertContains(response, "Crear Vivienda")
     test.assertContains(response, "Invitaciones")

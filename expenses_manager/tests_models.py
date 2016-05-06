@@ -577,7 +577,7 @@ class ViviendaModelTest(TestCase):
         for item in other_vivienda.get_items():
             self.assertNotEqual(item.vivienda, vivienda)
 
-    def get_total_expenses_per_active_user_with_vacations(self):
+    def test_get_total_expenses_per_active_user_with_vacations(self):
         db = get_setup_w_vivienda_3_users_and_periods()
         # user1 is out from period B-D
         user1 = db["user1"]
@@ -763,20 +763,132 @@ class ViviendaModelTest(TestCase):
             set([(user1, 300), (user3, 600)])
         )
 
-    def test_get_balance_with_vacations_method_hardest(self):
-        # get vivienda with many users and create gastos
-        # make some users leave
-        # make some users go on vacations
-        # create more gastos
-        # add new users
-        # make more gastos
-        # make some users leave
-        # make some users go on vacations
-        # make sure balance is a horrible and hopefully
-        # not-easily-divisible number
-        # get balance
-        # ???
-        # profit
+    def test_get_total_expenses_per_active_user_method_complex_DB(self):
+        db = get_HARDEST_balance_test_database()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user4 = db["user4"]
+        user5 = db["user5"]
+        vivienda = db["vivienda"]
+
+        # NAIVE totals per user
+        # 1: N:9000 S:5000 -> 14000
+        # 2: N:4000 S:3000 -> 7000
+        # 3: N:2000 S:6000 -> 8000
+        # 4: N:7000 S:6000 -> 13000
+        # 5: N:5000 S:7000 -> 12000
+        # total:
+        # 9000 + 5000 + 4000 + 3000 + 2000 + 6000 + 7000 + 6000 + 5000 + 7000
+        # = 54000
+
+        # IMPORTANT Explanation:
+        # this is NAIVE because there was a time when user1 was spending
+        # money for himself and user2, but user5 was not a part of
+        # the Vivienda. user2 is no longer a part of the Vivienda, meaning
+        # that user5 should not PERCEIVE that user1 spent that money.
+
+        # If he did perceive this, it would unbalance the amounts spent
+        # by each user (1 and 5), thus creating an error:
+        # user5 is not responsable for balancing THOSE Gastos,
+        # because he was not even there.
+
+        total_per_user = vivienda.get_total_expenses_per_active_user()
+
+        self.assertEqual(total_per_user[user1], 14000)
+        self.assertEqual(total_per_user.get(user2, None), None)
+        self.assertEqual(total_per_user.get(user3, None), None)
+        self.assertEqual(total_per_user[user4], 13000)
+        self.assertEqual(total_per_user[user5], 12000)
+
+    def test_total_per_user_active_share_only_complex_DB(self):
+        db = get_HARDEST_balance_test_database()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user4 = db["user4"]
+        user5 = db["user5"]
+        vivienda = db["vivienda"]
+
+
+        tot_p_user_active_share = vivienda.total_per_user_active_share_only()
+        # adding everything "by hand"
+        # yields this:
+        # {
+        #     1: 8166.666666666666,
+        #     4: 7333.333333333332,
+        #     5: 6833.333333333331
+        # }
+
+
+        # IMPORTANT Explanation:
+        # Q: why is this LESS than the NAIVE method?
+
+        # A: Supose there was a time when users 1 and 2 were sharing expenses,
+        # but user 5 was not a part of the Vivienda yet. Furthermore, user2
+        # is no longer a part of the vivienda. Thus, if user1 spent money when
+        # only 1 and 2 were roommates, user5 should not PERCEIVE this Gasto.
+        # If user1 was awarded that whole Gasto's monto, then
+        # this would unbalance the total amounts per user, because this would
+        # mean user5 is ALSO responsable for a portion of that Gasto.
+
+        # user5 should perceive that user1 spent that money at the time,
+        # but only half of it was for himself (because it was shared with
+        # user2). user1 should be awarded part of that expense: the portion
+        # of it that was shared with users that are still active TODAY.
+
+        # For instance, suppose there was a time when users 1,2 and 4 shared
+        # the Vivienda, and user1 made a Gasto for 1000. However, today only
+        # 1,4 and 5 share the Vivienda. This would mean that 2/3 of that
+        # Gasto's monto should be added to the total of user1.
+        # Why?
+        # Because user1 and user4 (2 users) perceived that gasto, but it was
+        # also split with user2 at the time (3 users), meaning it was split
+        # into 3 parts. However, only 2 of those 3 users are still active
+        # => only 2/3 parts of the monto should be added to user1.
+        # The ther 1/3 part is assumed to have been balanced with user2 before
+        # she/he left.
+
+        self.assertEqual(int(tot_p_user_active_share[user1]), 8166)
+        self.assertEqual(tot_p_user_active_share.get(user2, None), None)
+        self.assertEqual(tot_p_user_active_share.get(user3, None), None)
+        self.assertEqual(int(tot_p_user_active_share[user4]), 7333)
+        self.assertEqual(int(tot_p_user_active_share[user5]), 6833)
+
+    def test_get_balance_with_vacations_method_complex_DB(self):
+        db = get_HARDEST_balance_test_database()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user4 = db["user4"]
+        user5 = db["user5"]
+        vivienda = db["vivienda"]
+
+        expected = vivienda.get_expected_total_per_active_user_with_vacations()
+
+        # adding everything "by hand"
+        # yields this:
+        # {
+        #     1: 15333.333333333345,
+        #     2: 4333.333333333333,
+        #     3: 8166.666666666664,
+        #     4: 17333.333333333343,
+        #     5: 8833.333333333332
+        # }
+        # sum is 54000.000000000015 (close enough)
+
+        self.assertEqual(int(expected[user1]), 15333)
+        self.assertEqual(expected.get(user2, None), None)
+        self.assertEqual(expected.get(user3, None), None)
+        self.assertEqual(int(expected[user4]), 17333)
+        self.assertEqual(int(expected[user5]), 8833)
+
+        balance = vivienda.get_balance_with_vacations()
+
+        self.assertNotEqual(balance, None)
         self.fail()
 
 class ViviendaUsuarioModelTest(TestCase):

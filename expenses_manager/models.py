@@ -433,11 +433,13 @@ class Vivienda(models.Model):
         gastos_pagados = self.get_gastos_pagados()
         for gasto in gastos_pagados:
             user_that_paid = gasto.usuario.user
-            user_expenses[user_that_paid] += gasto.monto
+            if gasto.usuario.estado=="activo":
+                user_expenses[user_that_paid] += gasto.monto
         transferencias = self.get_transferencias()
         for t in transferencias:
             user_that_paid = t.usuario.user
-            user_expenses[user_that_paid] += t.monto
+            if t.usuario.estado=="activo":
+                user_expenses[user_that_paid] += t.monto
         return user_expenses
 
     def get_active_users_balance(self):
@@ -513,29 +515,23 @@ class Vivienda(models.Model):
         gastos = Gasto.objects.filter(
             creado_por__vivienda=self,
             estado=get_done_estadoGato(),
-            categoria__is_transfer=False,
             categoria__is_shared=True)
         for gasto in gastos:
             fecha_gasto = gasto.fecha_pago
             candidates = self.get_active_users_at_date(fecha_gasto)
-            cand_user = [c.user for c in candidates]
             # check if gasto is shared on leave
-            if gasto.categoria.is_shared_on_leave:
-                # easy case: if it is, add the corresponding part to each
-                # candidate
-                for candidate in candidates:
-                    share = gasto.monto / len(candidates)
-                    user_expenses[candidate.user] += share
-            else:
+            if not gasto.categoria.is_shared_on_leave:
                 # hard case: if not, check which users were on vacation at
                 # the time the Gasto was created, and then DONT add this monto
                 # to those users
                 users_on_vacation = self.get_users_on_vacation_at_date(
                     fecha_gasto)
-                users = set(cand_user) - users_on_vacation
-                share = gasto.monto / len(users)
-                for u in users:
-                    user_expenses[u] += share
+                candidates = set(candidates) - users_on_vacation
+
+            share = gasto.monto / len(candidates)
+            for candidate in candidates:
+                if user_expenses.get(candidate.user, None) is not None:
+                    user_expenses[candidate.user] += share
 
         return user_expenses
 
@@ -544,21 +540,22 @@ class Vivienda(models.Model):
         Returns A QuerySet with all ViviendaUsuario instances that were
         active at the given date
         """
-        return ViviendaUsuario.objects.filter(
-            Q(fecha_creacion__lt=date, estado="activo") |
-            Q(fecha_creacion__lt=date, fecha_abandono__gt=date))
+        query = ViviendaUsuario.objects.filter(
+            Q(fecha_creacion__lte=date, estado="activo") |
+            Q(fecha_creacion__lte=date, fecha_abandono__gte=date))
+        return query
 
     def get_users_on_vacation_at_date(self, date):
         """
-        Returns a Set with all users were active but on vacation at
-        the given date
+        Returns a Set with all vivienda_usuarios that were active
+        but on vacation at the given date
         """
         vacs_at_the_time = UserIsOut.objects.filter(
             fecha_inicio__lte=date,
             fecha_fin__gte=date)
         users_on_vacation = set()
         for vac in vacs_at_the_time:
-            users_on_vacation.add(vac.vivienda_usuario.user)
+            users_on_vacation.add(vac.vivienda_usuario)
         return users_on_vacation
 
     def compute_balance(self, actual, expected):
