@@ -189,6 +189,53 @@ def get_setup_with_gastos_items_and_listas(test):
 
     return test_user_1
 
+def get_setup_w_vivienda_3_users_and_periods():
+    """
+    Creates a Vivienda with 3 users, 1 default categoria, 1 categoria shared
+    on leave and 5 dates
+    """
+    db = dict()
+    # get Vivienda with 3 users
+    (user1,
+     user2,
+     vivienda,
+     user1_viv,
+     user2_viv) = get_vivienda_with_2_users()
+    user3 = ProxyUser.objects.create(username="us3", email="c@c.com")
+    user3_viv = ViviendaUsuario.objects.create(
+        vivienda=vivienda, user=user3)
+    # create 2 categorias A, B
+    cat_not_shared_on_leave = Categoria.objects.create(
+        nombre="cat_1",
+        vivienda=vivienda,
+        is_shared=True,
+        is_shared_on_leave=False)
+    cat_shared_on_leave = Categoria.objects.create(
+        nombre="cat_2",
+        vivienda=vivienda,
+        is_shared=True,
+        is_shared_on_leave=True)
+
+    db["user1"] = user1
+    db["user2"] = user2
+    db["vivienda"] = vivienda
+    db["user1_viv"] = user1_viv
+    db["user2_viv"] = user2_viv
+    db["user3"] = user3
+    db["user3_viv"] = user3_viv
+
+    db["cat_not_shared_on_leave"] = cat_not_shared_on_leave
+    db["cat_shared_on_leave"] = cat_shared_on_leave
+
+    today = timezone.now().date()
+    db["pA"] = today + timezone.timedelta(weeks=1)
+    db["pB"] = today + timezone.timedelta(weeks=2)
+    db["pC"] = today + timezone.timedelta(weeks=3)
+    db["pD"] = today + timezone.timedelta(weeks=4)
+    db["pE"] = today + timezone.timedelta(weeks=5)
+
+    return db
+
 
 def has_navbar_without_vivienda(test, response, status_code=200):
     test.assertContains(response, "Crear Vivienda")

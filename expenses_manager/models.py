@@ -495,6 +495,142 @@ class Vivienda(models.Model):
             Q(vivienda=self) & ~Q(nombre__in=global_cats))
         return custom_cats
 
+    def get_expected_total_per_active_user_with_vacations(self):
+        """
+        Returns a dict of the form:
+        {"User": Integer}
+        The Integer represents how much money the User SHOULD have spent
+        considering the periods where he/she wasn't active or was on
+        vacation.
+        """
+        active_vivienda_usuario = ViviendaUsuario.objects.filter(
+            vivienda=self,
+            estado="activo")
+        active_users = set([vu.user for vu in active_vivienda_usuario])
+        user_expenses = {}
+        for u in active_users:
+            user_expenses[u] = 0
+        gastos = Gasto.objects.filter(
+            creado_por__vivienda=self,
+            estado=get_done_estadoGato(),
+            categoria__is_transfer=False,
+            categoria__is_shared=True)
+        for gasto in gastos:
+            fecha_gasto = gasto.fecha_pago
+            candidates = self.get_active_users_at_date(fecha_gasto)
+            cand_user = [c.user for c in candidates]
+            # check if gasto is shared on leave
+            if gasto.categoria.is_shared_on_leave:
+                # easy case: if it is, add the corresponding part to each
+                # candidate
+                for candidate in candidates:
+                    share = gasto.monto / len(candidates)
+                    user_expenses[candidate.user] += share
+            else:
+                # hard case: if not, check which users were on vacation at
+                # the time the Gasto was created, and then DONT add this monto
+                # to those users
+                users_on_vacation = self.get_users_on_vacation_at_date(
+                    fecha_gasto)
+                users = set(cand_user) - users_on_vacation
+                share = gasto.monto / len(users)
+                for u in users:
+                    user_expenses[u] += share
+
+        return user_expenses
+
+    def get_active_users_at_date(self, date):
+        """
+        Returns A QuerySet with all ViviendaUsuario instances that were
+        active at the given date
+        """
+        return ViviendaUsuario.objects.filter(
+            Q(fecha_creacion__lt=date, estado="activo") |
+            Q(fecha_creacion__lt=date, fecha_abandono__gt=date))
+
+    def get_users_on_vacation_at_date(self, date):
+        """
+        Returns a Set with all users were active but on vacation at
+        the given date
+        """
+        vacs_at_the_time = UserIsOut.objects.filter(
+            fecha_inicio__lte=date,
+            fecha_fin__gte=date)
+        users_on_vacation = set()
+        for vac in vacs_at_the_time:
+            users_on_vacation.add(vac.vivienda_usuario.user)
+        return users_on_vacation
+
+    def compute_balance(self, actual, expected):
+        """
+        Takes 2 dicts of the form:
+        {"User": Integer}
+        The first dict represents how much a user has actually spent.
+        The second dict represents how much each User should have spent.
+        Both dicts must have the same Keys.
+        Returns a dict of the form:
+        {"User": ("User", Integer), ("User", Ineteger), ...}
+        Where each tuple represents how much the Key-User has to transfer
+        to the Tuple-User so that everyone ends up spending the same.
+        """
+        # check that dicts are valid:
+        same_keys = set(actual.keys()) == set(expected.keys())
+        same_sum = sum(actual.values()) == sum(actual.values())
+        if same_keys and same_sum:
+            # compute dict for users with positive balance (has spent too
+            # much) and dict for users with negative balance (has spent too
+            # little)
+            pos = dict()
+            neg = dict()
+            for user, act in actual.items():
+                exp = expected.get(user)
+                balance = act - exp
+                if balance > 0:
+                    pos[user] = balance
+                elif balance < 0:
+                    neg[user] = abs(balance)
+                else:
+                    # user is OK
+                    pass
+            # users who have spent too little must transfer to users that have
+            # spent too much
+            transfers = dict()
+            for neg_user, neg_total in neg.items():
+                transfers[neg_user] = list()
+                this_transfer = neg_total
+                for pos_user, pos_total in pos.items():
+                    if this_transfer == 0:
+                        break
+                    # neg_user must transfer as much as he can to pos_user,
+                    # but without transfering more than pos_total.
+                    transfer_monto = min(neg_total, pos_total)
+                    transfers[neg_user].append((pos_user, transfer_monto))
+                    pos[pos_user] -= transfer_monto
+                    this_transfer -= transfer_monto
+            return transfers
+        else:
+            return None
+
+    def get_balance_with_vacations(self):
+        """
+        Returns a dict with the following format:
+        {User: (User, Integer), (User, Integer), ...}
+        Each key represents a user who owes money to others. The value of this
+        key is a list of tuples, where each tuple has another User, and an
+        Ineteger. This tuples represents the User that the Key-User owes
+        money to, and the Integer represents how much.
+        """
+        actual_total_per_user = self.get_total_expenses_per_active_user()
+        expected = self.get_expected_total_per_active_user_with_vacations()
+        # TODO this assumes that the sum of actual_total_per_user is the same
+        # as the sum of expected. This SHOULD always be the case, but it's
+        # not extensyvely tested!
+        # If this values don't match, the compute balance method does nothing!
+        # What should be the desired behaviour in thi case???
+        return self.compute_balance(
+            actual=actual_total_per_user,
+            expected=expected)
+
     def __str__(self):
         return self.alias
 
@@ -506,8 +642,8 @@ class ViviendaUsuario(models.Model):
     vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     estado = models.CharField(max_length=200, default="activo")
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_abandono = models.DateTimeField(null=True, blank=True, default=None)
+    fecha_creacion = models.DateField(auto_now_add=True)
+    fecha_abandono = models.DateField(null=True, blank=True, default=None)
 
     def __str__(self):
         return str(self.vivienda) + "__" + str(self.user)
