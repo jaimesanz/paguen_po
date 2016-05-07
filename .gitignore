@@ -5,3 +5,4 @@ project_root/settings_secret.py
 static/*
 uwsgi/*
 project_root/wsgi.py
+.idea/*
