@@ -9,7 +9,7 @@ from django.db.models import Q
 # helper functions
 
 
-def get_current_yearMonth_obj():
+def get_current_year_month_obj():
     """
     Returns the current YearMonth period.
     If the YarMonth doesn't exist, it creates it.
@@ -20,15 +20,15 @@ def get_current_yearMonth_obj():
     return year_month
 
 
-def get_current_yearMonth():
+def get_current_year_month():
     """
     Returns the current YearMonth period's ID field.
     If it doesn't exist, it creates it.
     """
-    return get_current_yearMonth_obj().id
+    return get_current_year_month_obj().id
 
 
-def get_default_estadoGasto():
+def get_default_estado_gasto():
     """
     Returns the "id" field of an instance of EstadoGasto with value
     "pendiente". If it doesn't exist, it creates it first.
@@ -38,7 +38,7 @@ def get_default_estadoGasto():
     return estado_gasto.id
 
 
-def get_done_estadoGato():
+def get_done_estado_gasto():
     """
     Returns an instance of EstadoGasto with value "pagado".
     If it doesn't exist, it creates it first.
@@ -46,7 +46,7 @@ def get_done_estadoGato():
     return EstadoGasto.objects.get_or_create(estado="pagado")[0]
 
 
-def get_pending_estadoGasto():
+def get_pending_estado_gasto():
     """
     Returns an instance of EstadoGasto with value "pendiente".
     If it doesn't exist, it creates it first.
@@ -313,7 +313,7 @@ class Vivienda(models.Model):
         """
         return Gasto.objects.filter(
             creado_por__vivienda=self,
-            estado=get_pending_estadoGasto(),
+            estado=get_pending_estado_gasto(),
             categoria__is_transfer=False)
 
     def get_gastos_pagados(self):
@@ -323,7 +323,7 @@ class Vivienda(models.Model):
         """
         return Gasto.objects.filter(
             creado_por__vivienda=self,
-            estado=get_done_estadoGato(),
+            estado=get_done_estado_gasto(),
             categoria__is_transfer=False)
 
     def get_categorias(self):
@@ -433,12 +433,12 @@ class Vivienda(models.Model):
         gastos_pagados = self.get_gastos_pagados()
         for gasto in gastos_pagados:
             user_that_paid = gasto.usuario.user
-            if gasto.usuario.estado=="activo":
+            if gasto.usuario.estado == "activo":
                 user_expenses[user_that_paid] += gasto.monto
         transferencias = self.get_transferencias()
         for t in transferencias:
             user_that_paid = t.usuario.user
-            if t.usuario.estado=="activo":
+            if t.usuario.estado == "activo":
                 user_expenses[user_that_paid] += t.monto
         return user_expenses
 
@@ -514,7 +514,6 @@ class Vivienda(models.Model):
             vivienda_usuario__vivienda=self,
             fecha_fin__gte=date).select_related("vivienda_usuario__user")
 
-
     def rm_users_out_at_date(self, user_set, vacations, date):
         """
         Given a set of ViviendaUsuario instances and a dict with the
@@ -526,14 +525,13 @@ class Vivienda(models.Model):
         """
         users_on_vac = set()
         for vu in user_set:
-            for vac in vacations[vu]:
+            for vac in vacations.get(vu, []):
                 gasto_after = date >= vac.fecha_inicio
                 gasto_before = date <= vac.fecha_fin
                 if gasto_after and gasto_before:
                     users_on_vac.add(vu)
         # these are the users that don't have to pay
         return user_set - users_on_vac
-
 
     def rm_not_active_at_date(self, user_set, date):
         """
@@ -545,9 +543,9 @@ class Vivienda(models.Model):
         """
         active_at_date = set()
         for vu in user_set:
-            joined_before = vu.fecha_creacion<=date
+            joined_before = vu.fecha_creacion <= date
             fecha_left = vu.fecha_abandono
-            left_after = fecha_left is None or fecha_left>=date
+            left_after = fecha_left is None or fecha_left >= date
             if joined_before and left_after:
                 active_at_date.add(vu)
         return active_at_date
@@ -597,12 +595,12 @@ class Vivienda(models.Model):
             fecha_pago = gasto.fecha_pago
 
             pay_active_today = self.rm_not_active_at_date(
-                                        active_users,
-                                        fecha_pago)
+                active_users,
+                fecha_pago)
             # users active at the time that should have payed
             shouldve_payed_then = self.rm_not_active_at_date(
-                                        all_users,
-                                        fecha_pago)
+                all_users,
+                fecha_pago)
 
             if not gasto.categoria.is_shared_on_leave:
                 pay_active_today = self.rm_users_out_at_date(
@@ -654,7 +652,6 @@ class Vivienda(models.Model):
 
         return (actual_total_per_user, expected_total_per_user)
 
-
     # ---------------------------
     # old
 
@@ -675,7 +672,7 @@ class Vivienda(models.Model):
             user_expenses[u] = 0
         gastos = Gasto.objects.filter(
             creado_por__vivienda=self,
-            estado=get_done_estadoGato(),
+            estado=get_done_estado_gasto(),
             categoria__is_shared=True)
         for gasto in gastos:
             fecha_gasto = gasto.fecha_pago
@@ -1084,7 +1081,7 @@ class Presupuesto(models.Model):
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE)
     year_month = models.ForeignKey(
-        YearMonth, on_delete=models.CASCADE, default=get_current_yearMonth)
+        YearMonth, on_delete=models.CASCADE, default=get_current_year_month)
     monto = models.IntegerField(default=0)
 
     def __str__(self):
@@ -1368,7 +1365,7 @@ class Gasto(models.Model):
     estado = models.ForeignKey(
         EstadoGasto,
         on_delete=models.CASCADE,
-        default=get_default_estadoGasto,
+        default=get_default_estado_gasto,
         blank=True)
 
     def __str__(self):

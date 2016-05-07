@@ -2,6 +2,8 @@ from django.core.urlresolvers import resolve
 from expenses_manager.models import *
 
 
+# functions for generating test databases
+
 def get_lone_user():
     return ProxyUser.objects.create(username="us1", email="a@a.com")
 
@@ -84,20 +86,20 @@ def get_basic_setup_and_login_user_1(test):
     """
     # get first user
     (test_user_1,
-        vivienda_A,
-        test_user_1_viv_A) = get_test_user_with_vivienda_and_login(
+        vivienda_a,
+        test_user_1_viv_a) = get_test_user_with_vivienda_and_login(
         test)
     # get roommate for rist user
     test_user_2 = ProxyUser.objects.create(
         username="test_user_2", email="b@b.com")
-    test_user_2_viv_A = ViviendaUsuario.objects.create(
-        vivienda=vivienda_A, user=test_user_2)
+    test_user_2_viv_a = ViviendaUsuario.objects.create(
+        vivienda=vivienda_a, user=test_user_2)
     # get another vivienda with another user
     test_user_3 = ProxyUser.objects.create(
         username="test_user_3", email="c@c.com")
-    vivienda_B = Vivienda.objects.create(alias="vivB")
-    test_user_3_viv_B = ViviendaUsuario.objects.create(
-        vivienda=vivienda_B, user=test_user_3)
+    vivienda_b = Vivienda.objects.create(alias="vivB")
+    test_user_3_viv_b= ViviendaUsuario.objects.create(
+        vivienda=vivienda_b, user=test_user_3)
     return test_user_1, test_user_2, test_user_3
 
 
@@ -188,6 +190,7 @@ def get_setup_with_gastos_items_and_listas(test):
         item=item_3, lista=lista_2, cantidad_solicitada=3)
 
     return test_user_1
+
 
 def get_setup_w_vivienda_3_users_and_periods():
     """
@@ -280,6 +283,7 @@ def get_hard_balance_test_database():
             creado_por=user,
             categoria=cat_not_shared_on_leave)
         user.pagar(gasto, fecha_pago=p)
+
     def S(user, monto, p):
         gasto = Gasto.objects.create(
             monto=monto,
@@ -290,43 +294,43 @@ def get_hard_balance_test_database():
     # create gastos per period
     monto = 1000
     # a
-    N(user1_viv, monto, db["pA"]) # 1 2
-    N(user2_viv, monto, db["pA"]) # 1 2
+    N(user1_viv, monto, db["pA"])  # 1 2
+    N(user2_viv, monto, db["pA"])  # 1 2
 
-    S(user2_viv, monto, db["pA"]) # 1 2
+    S(user2_viv, monto, db["pA"])  # 1 2
     # b
-    N(user2_viv, monto, db["pB"]) # 2
+    N(user2_viv, monto, db["pB"])  # 2
 
-    S(user2_viv, monto, db["pB"]) # 1 2
-    S(user2_viv, monto, db["pB"]) # 1 2
+    S(user2_viv, monto, db["pB"])  # 1 2
+    S(user2_viv, monto, db["pB"])  # 1 2
     # c
-    N(user2_viv, monto, db["pC"]) # 2 3
-    N(user2_viv, monto, db["pC"]) # 2 3
-    N(user3_viv, monto, db["pC"]) # 2 3
+    N(user2_viv, monto, db["pC"])  # 2 3
+    N(user2_viv, monto, db["pC"])  # 2 3
+    N(user3_viv, monto, db["pC"])  # 2 3
 
-    S(user2_viv, monto, db["pC"]) # 1 2 3
-    S(user3_viv, monto, db["pC"]) # 1 2 3
-    S(user3_viv, monto, db["pC"]) # 1 2 3
+    S(user2_viv, monto, db["pC"])  # 1 2 3
+    S(user3_viv, monto, db["pC"])  # 1 2 3
+    S(user3_viv, monto, db["pC"])  # 1 2 3
     # d
-    N(user1_viv, monto, db["pD"]) # 1 2
-    N(user1_viv, monto, db["pD"]) # 1 2
-    N(user2_viv, monto, db["pD"]) # 1 2
+    N(user1_viv, monto, db["pD"])  # 1 2
+    N(user1_viv, monto, db["pD"])  # 1 2
+    N(user2_viv, monto, db["pD"])  # 1 2
 
-    S(user1_viv, monto, db["pD"]) # 1 2 3
-    S(user1_viv, monto, db["pD"]) # 1 2 3
-    S(user2_viv, monto, db["pD"]) # 1 2 3
+    S(user1_viv, monto, db["pD"])  # 1 2 3
+    S(user1_viv, monto, db["pD"])  # 1 2 3
+    S(user2_viv, monto, db["pD"])  # 1 2 3
     # e
-    N(user1_viv, monto, db["pE"]) # 1
+    N(user1_viv, monto, db["pE"])  # 1
 
-    S(user1_viv, monto, db["pE"]) # 1 3
-    S(user1_viv, monto, db["pE"]) # 1 3
+    S(user1_viv, monto, db["pE"])  # 1 3
+    S(user1_viv, monto, db["pE"])  # 1 3
     # f
-    N(user1_viv, monto, db["pF"]) # 1 3
-    N(user1_viv, monto, db["pF"]) # 1 3
-    N(user3_viv, monto, db["pF"]) # 1 3
+    N(user1_viv, monto, db["pF"])  # 1 3
+    N(user1_viv, monto, db["pF"])  # 1 3
+    N(user3_viv, monto, db["pF"])  # 1 3
 
-    S(user1_viv, monto, db["pF"]) # 1 3
-    S(user3_viv, monto, db["pF"]) # 1 3
+    S(user1_viv, monto, db["pF"])  # 1 3
+    S(user3_viv, monto, db["pF"])  # 1 3
 
     # save user2_viv so that it is mark as not active
     # thiis has to be done after creating the gastos because otherwise
@@ -360,11 +364,11 @@ def get_HARDEST_balance_test_database():
     # create all neccesary periods. last period of dict is today -> "n"
     p = dict()
     today = timezone.now().date()
-    step = 2 # in weeks
-    delta = 0 # start today
+    step = 2  # in weeks
+    delta = 0  # start today
     for period_label in "nmlkjihgfedcba":
         p[period_label] = today - timezone.timedelta(weeks=delta)
-        delta+=step
+        delta += step
 
     # need 2 more users
     user4 = ProxyUser.objects.create(username="us4", email="d@d.com")
@@ -451,12 +455,14 @@ def get_HARDEST_balance_test_database():
 
     cat_not_shared_on_leave = db["cat_not_shared_on_leave"]
     cat_shared_on_leave = db["cat_shared_on_leave"]
+
     def N(user, monto, p):
         gasto = Gasto.objects.create(
             monto=monto,
             creado_por=user,
             categoria=cat_not_shared_on_leave)
         user.pagar(gasto, fecha_pago=p)
+
     def S(user, monto, p):
         gasto = Gasto.objects.create(
             monto=monto,
@@ -549,19 +555,21 @@ def get_HARDEST_balance_test_database():
     S(user5_viv, dummy_monto, p["n"]) # 1 4 5
 
     return {
-        "user1" : user1,
-        "user2" : user2,
-        "user3" : user3,
-        "user4" : user4,
-        "user5" : user5,
-        "user1_viv" : user1_viv,
-        "user2_viv" : user2_viv,
-        "user3_viv" : user3_viv,
-        "user4_viv" : user4_viv,
-        "user5_viv" : user5_viv,
-        "vivienda" : vivienda
+        "user1": user1,
+        "user2": user2,
+        "user3": user3,
+        "user4": user4,
+        "user5": user5,
+        "user1_viv": user1_viv,
+        "user2_viv": user2_viv,
+        "user3_viv": user3_viv,
+        "user4_viv": user4_viv,
+        "user5_viv": user5_viv,
+        "vivienda": vivienda
     }
 
+
+# common tests used in lots of views
 
 def has_navbar_without_vivienda(test, response, status_code=200):
     test.assertContains(response, "Crear Vivienda")

@@ -620,11 +620,6 @@ class ViviendaModelTest(TestCase):
         self.assertEqual(total_per_user.get(user2, None), 2900)
         self.assertEqual(total_per_user.get(user3, None), 900)
 
-
-    # above tests are OK
-    # --------------------------------
-    # <new balance tests>
-
     def test_get_vacations_after_date_method(self):
         """
         Tests that the method get_vacations_after_date(date) returns all
@@ -647,29 +642,544 @@ class ViviendaModelTest(TestCase):
         user2_viv.estado = "inactivo"
         user2_viv.save()
 
-        vacations_A = vivienda.get_vacations_after_date(db["pA"])
-        self.assertEqual(len(vacations_A), 3)
+        vacations_a= vivienda.get_vacations_after_date(db["pA"])
+        self.assertEqual(len(vacations_a), 3)
 
-        vacations_B = vivienda.get_vacations_after_date(db["pB"])
-        self.assertEqual(len(vacations_B), 3)
+        vacations_b = vivienda.get_vacations_after_date(db["pB"])
+        self.assertEqual(len(vacations_b), 3)
 
-        vacations_C = vivienda.get_vacations_after_date(db["pC"])
-        self.assertEqual(len(vacations_C), 2)
+        vacations_c = vivienda.get_vacations_after_date(db["pC"])
+        self.assertEqual(len(vacations_c), 2)
 
-        vacations_D = vivienda.get_vacations_after_date(db["pD"])
-        self.assertEqual(len(vacations_D), 1)
+        vacations_d = vivienda.get_vacations_after_date(db["pD"])
+        self.assertEqual(len(vacations_d), 1)
         self.assertEqual(
-            vacations_D.first().vivienda_usuario.user,
+            vacations_d.first().vivienda_usuario.user,
             user3)
 
-        vacations_E = vivienda.get_vacations_after_date(db["pE"])
-        self.assertEqual(len(vacations_E), 1)
+        vacations_e = vivienda.get_vacations_after_date(db["pE"])
+        self.assertEqual(len(vacations_e), 1)
         self.assertEqual(
-            vacations_E.first().vivienda_usuario.user,
+            vacations_e.first().vivienda_usuario.user,
             user3)
 
-        vacations_F = vivienda.get_vacations_after_date(db["pF"])
-        self.assertEqual(len(vacations_F), 0)
+        vacations_f = vivienda.get_vacations_after_date(db["pF"])
+        self.assertEqual(len(vacations_f), 0)
+
+    def test_rm_users_out_at_date_method(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        vivienda = db["vivienda"]
+
+        vac1, __ = user1.go_on_vacation(start_date=db["pA"], end_date=db["pC"])
+        vac2, __ = user2.go_on_vacation(start_date=db["pA"], end_date=db["pB"])
+        vac3, __ = user3.go_on_vacation(start_date=db["pC"], end_date=db["pE"])
+
+        user2_viv = user2.get_vu()
+        user2_viv.fecha_creacion = db["pA"]
+        user2_viv.fecha_abandono = db["pC"]
+        user2_viv.estado = "inactivo"
+        user2_viv.save()
+
+        vacations = {
+                        user1_viv: [vac1],
+                        user2_viv: [vac2],
+                        user3_viv: [vac3]
+        }
+        in_at_a = vivienda.rm_users_out_at_date(
+            {
+                user1_viv,
+                user2_viv,
+                user3_viv
+            },
+            vacations,
+            db["pA"])
+        in_at_b = vivienda.rm_users_out_at_date(
+            {user1_viv, user2_viv, user3_viv},
+            vacations,
+            db["pB"])
+        in_at_c = vivienda.rm_users_out_at_date(
+            {user1_viv, user2_viv, user3_viv},
+            vacations,
+            db["pC"])
+        in_at_d = vivienda.rm_users_out_at_date(
+            {user1_viv, user3_viv},
+            vacations,
+            db["pD"])
+        in_at_e = vivienda.rm_users_out_at_date(
+            {user1_viv, user3_viv},
+            vacations,
+            db["pE"])
+        in_at_f = vivienda.rm_users_out_at_date(
+            {user1_viv, user3_viv},
+            vacations,
+            db["pF"])
+
+        # for each period, check which users should be out and which
+        # ones should not
+        self.assertEqual(in_at_a, {user3_viv})
+        self.assertEqual(in_at_b, {user3_viv})
+        self.assertEqual(in_at_c, {user2_viv})
+        self.assertEqual(in_at_d, {user1_viv})
+        self.assertEqual(in_at_e, {user1_viv})
+        self.assertEqual(in_at_f, {user1_viv, user3_viv})
+
+    def test_rm_users_out_at_date_method_no_vacations(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        vivienda = db["vivienda"]
+
+        user2_viv = user2.get_vu()
+        user2_viv.fecha_creacion = db["pA"]
+        user2_viv.fecha_abandono = db["pC"]
+        user2_viv.estado = "inactivo"
+        user2_viv.save()
+
+        vacations = dict()
+
+        in_at_a = vivienda.rm_users_out_at_date(
+            {user1_viv, user2_viv, user3_viv},
+            vacations,
+            db["pA"])
+        in_at_b = vivienda.rm_users_out_at_date(
+            {user1_viv, user2_viv, user3_viv},
+            vacations,
+            db["pB"])
+        in_at_c = vivienda.rm_users_out_at_date(
+            {user1_viv, user2_viv, user3_viv},
+            vacations,
+            db["pC"])
+        in_at_d = vivienda.rm_users_out_at_date(
+            {user1_viv, user3_viv},
+            vacations,
+            db["pD"])
+        in_at_e = vivienda.rm_users_out_at_date(
+            {user1_viv, user3_viv},
+            vacations,
+            db["pE"])
+        in_at_f = vivienda.rm_users_out_at_date(
+            {user1_viv, user3_viv},
+            vacations,
+            db["pF"])
+
+        # for each period, check which users should be out and which
+        # ones should not
+        self.assertEqual(in_at_a, {user1_viv, user2_viv, user3_viv})
+        self.assertEqual(in_at_b, {user1_viv, user2_viv, user3_viv})
+        self.assertEqual(in_at_c, {user1_viv, user2_viv, user3_viv})
+        self.assertEqual(in_at_d, {user1_viv, user3_viv})
+        self.assertEqual(in_at_e, {user1_viv, user3_viv})
+        self.assertEqual(in_at_f, {user1_viv, user3_viv})
+
+    def test_rm_users_out_at_date_method_infinite_vacation(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        vivienda = db["vivienda"]
+
+        vac1, __ = user1.go_on_vacation(start_date=db["pB"])
+        vac2, __ = user2.go_on_vacation(start_date=db["pA"], end_date=db["pB"])
+        vac3, __ = user3.go_on_vacation(start_date=db["pC"], end_date=db["pD"])
+
+        user2_viv = user2.get_vu()
+        user2_viv.fecha_creacion = db["pA"]
+        user2_viv.fecha_abandono = db["pD"]
+        user2_viv.estado = "inactivo"
+        user2_viv.save()
+
+        vacations = {
+            user1_viv: [vac1],
+            user2_viv: [vac2],
+            user3_viv: [vac3]
+        }
+        in_at_a = vivienda.rm_users_out_at_date(
+            {user1_viv, user2_viv, user3_viv},
+            vacations,
+            db["pA"])
+        in_at_b = vivienda.rm_users_out_at_date(
+            {user1_viv, user2_viv, user3_viv},
+            vacations,
+            db["pB"])
+        in_at_c = vivienda.rm_users_out_at_date(
+            {user1_viv, user2_viv, user3_viv},
+            vacations,
+            db["pC"])
+        in_at_d = vivienda.rm_users_out_at_date(
+            {user1_viv, user2_viv, user3_viv},
+            vacations,
+            db["pD"])
+        in_at_e = vivienda.rm_users_out_at_date(
+            {user1_viv, user3_viv},
+            vacations,
+            db["pE"])
+        in_at_f = vivienda.rm_users_out_at_date(
+            {user1_viv, user3_viv},
+            vacations,
+            db["pF"])
+
+        # for each period, check which users should be out and which
+        # ones should not
+        self.assertEqual(in_at_a, {user1_viv, user3_viv})
+        self.assertEqual(in_at_b, {user3_viv})
+        self.assertEqual(in_at_c, {user2_viv})
+        self.assertEqual(in_at_d, {user2_viv})
+        self.assertEqual(in_at_e, {user3_viv})
+        self.assertEqual(in_at_f, {user3_viv})
+
+    def test_rm_users_out_at_date_method_multiple_vacations_per_user(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        vivienda = db["vivienda"]
+
+        vac1, __ = user1.go_on_vacation(start_date=db["pA"], end_date=db["pB"])
+        vac2, __ = user1.go_on_vacation(start_date=db["pE"], end_date=db["pF"])
+        vac3, __ = user2.go_on_vacation(start_date=db["pB"], end_date=db["pC"])
+
+        user2_viv = user2.get_vu()
+        user2_viv.fecha_creacion = db["pA"]
+        user2_viv.fecha_abandono = db["pD"]
+        user2_viv.estado = "inactivo"
+        user2_viv.save()
+
+        vacations = {
+            user1_viv: [vac1, vac2],
+            user2_viv: [vac3]
+        }
+        in_at_a = vivienda.rm_users_out_at_date(
+            {user1_viv, user2_viv, user3_viv},
+            vacations,
+            db["pA"])
+        in_at_b = vivienda.rm_users_out_at_date(
+            {user1_viv, user2_viv, user3_viv},
+            vacations,
+            db["pB"])
+        in_at_c = vivienda.rm_users_out_at_date(
+            {user1_viv, user2_viv, user3_viv},
+            vacations,
+            db["pC"])
+        in_at_d = vivienda.rm_users_out_at_date(
+            {user1_viv, user2_viv, user3_viv},
+            vacations,
+            db["pD"])
+        in_at_e = vivienda.rm_users_out_at_date(
+            {user1_viv, user3_viv},
+            vacations,
+            db["pE"])
+        in_at_f = vivienda.rm_users_out_at_date(
+            {user1_viv, user3_viv},
+            vacations,
+            db["pF"])
+
+        # for each period, check which users should be out and which
+        # ones should not
+        self.assertEqual(in_at_a, {user2_viv, user3_viv})
+        self.assertEqual(in_at_b, {user3_viv})
+        self.assertEqual(in_at_c, {user1_viv, user3_viv})
+        self.assertEqual(in_at_d, {user1_viv, user2_viv, user3_viv})
+        self.assertEqual(in_at_e, {user3_viv})
+        self.assertEqual(in_at_f, {user3_viv})
+
+    def test_rm_not_active_at_date_method(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        vivienda = db["vivienda"]
+
+        user2_viv = user2.get_vu()
+        user2_viv.fecha_creacion = db["pA"]
+        user2_viv.fecha_abandono = db["pD"]
+        user2_viv.estado = "inactivo"
+        user2_viv.save()
+
+        all_users = {user1_viv, user2_viv, user3_viv}
+
+        active_at_a = vivienda.rm_not_active_at_date(all_users, db["pA"])
+        active_at_b = vivienda.rm_not_active_at_date(all_users, db["pB"])
+        active_at_c = vivienda.rm_not_active_at_date(all_users, db["pC"])
+        active_at_d = vivienda.rm_not_active_at_date(all_users, db["pD"])
+        active_at_e = vivienda.rm_not_active_at_date(all_users, db["pE"])
+        active_at_f = vivienda.rm_not_active_at_date(all_users, db["pF"])
+
+        self.assertEqual(active_at_a, {user1_viv, user2_viv, user3_viv})
+        self.assertEqual(active_at_b, {user1_viv, user2_viv, user3_viv})
+        self.assertEqual(active_at_c, {user1_viv, user2_viv, user3_viv})
+        self.assertEqual(active_at_d, {user1_viv, user2_viv, user3_viv})
+        self.assertEqual(active_at_e, {user1_viv, user3_viv})
+        self.assertEqual(active_at_f, {user1_viv, user3_viv})
+
+    def test_rm_not_active_at_date_method_only_one_left(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        user2_viv = user2.get_vu()
+        vivienda = db["vivienda"]
+
+        user1_viv.fecha_creacion = db["pA"]
+        user1_viv.fecha_abandono = db["pC"]
+        user1_viv.estado = "inactivo"
+        user1_viv.save()
+
+        user2_viv.fecha_creacion = db["pC"]
+        user2_viv.save()
+
+        user3_viv.fecha_creacion = db["pB"]
+        user3_viv.fecha_abandono = db["pD"]
+        user3_viv.estado = "inactivo"
+        user3_viv.save()
+
+        all_users = {user1_viv, user2_viv, user3_viv}
+
+        active_at_a = vivienda.rm_not_active_at_date(all_users, db["pA"])
+        active_at_b = vivienda.rm_not_active_at_date(all_users, db["pB"])
+        active_at_c = vivienda.rm_not_active_at_date(all_users, db["pC"])
+        active_at_d = vivienda.rm_not_active_at_date(all_users, db["pD"])
+        active_at_e = vivienda.rm_not_active_at_date(all_users, db["pE"])
+        active_at_f = vivienda.rm_not_active_at_date(all_users, db["pF"])
+
+        self.assertEqual(active_at_a, {user1_viv})
+        self.assertEqual(active_at_b, {user1_viv, user3_viv})
+        self.assertEqual(active_at_c, {user1_viv, user2_viv, user3_viv})
+        self.assertEqual(active_at_d, {user2_viv, user3_viv})
+        self.assertEqual(active_at_e, {user2_viv})
+        self.assertEqual(active_at_f, {user2_viv})
+
+    def test_rm_not_active_at_date_method_everybody_left(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        user2_viv = user2.get_vu()
+        vivienda = db["vivienda"]
+
+        user1_viv.fecha_creacion = db["pA"]
+        user1_viv.fecha_abandono = db["pC"]
+        user1_viv.estado = "inactivo"
+        user1_viv.save()
+
+        user2_viv.fecha_creacion = db["pC"]
+        user2_viv.fecha_abandono = db["pD"]
+        user2_viv.estado = "inactivo"
+        user2_viv.save()
+
+        user3_viv.fecha_creacion = db["pB"]
+        user3_viv.fecha_abandono = db["pD"]
+        user3_viv.estado = "inactivo"
+        user3_viv.save()
+
+        all_users = {user1_viv, user2_viv, user3_viv}
+
+        active_at_a = vivienda.rm_not_active_at_date(all_users, db["pA"])
+        active_at_b = vivienda.rm_not_active_at_date(all_users, db["pB"])
+        active_at_c = vivienda.rm_not_active_at_date(all_users, db["pC"])
+        active_at_d = vivienda.rm_not_active_at_date(all_users, db["pD"])
+        active_at_e = vivienda.rm_not_active_at_date(all_users, db["pE"])
+        active_at_f = vivienda.rm_not_active_at_date(all_users, db["pF"])
+
+        self.assertEqual(active_at_a, {user1_viv})
+        self.assertEqual(active_at_b, {user1_viv, user3_viv})
+        self.assertEqual(active_at_c, {user1_viv, user2_viv, user3_viv})
+        self.assertEqual(active_at_d, {user2_viv, user3_viv})
+        self.assertEqual(active_at_e, set())
+        self.assertEqual(active_at_f, set())
+
+    def test_rm_not_active_at_date_method_no_one_has_left(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        user2_viv = user2.get_vu()
+        vivienda = db["vivienda"]
+
+        all_users = {user1_viv, user2_viv, user3_viv}
+
+        active_at_a = vivienda.rm_not_active_at_date(all_users, db["pA"])
+        active_at_b = vivienda.rm_not_active_at_date(all_users, db["pB"])
+        active_at_c = vivienda.rm_not_active_at_date(all_users, db["pC"])
+        active_at_d = vivienda.rm_not_active_at_date(all_users, db["pD"])
+        active_at_e = vivienda.rm_not_active_at_date(all_users, db["pE"])
+        active_at_f = vivienda.rm_not_active_at_date(all_users, db["pF"])
+
+        self.assertEqual(active_at_a, all_users)
+        self.assertEqual(active_at_b, all_users)
+        self.assertEqual(active_at_c, all_users)
+        self.assertEqual(active_at_d, all_users)
+        self.assertEqual(active_at_e, all_users)
+        self.assertEqual(active_at_f, all_users)
+
+    def test_get_smart_gasto_dict_method_no_left_no_vacation(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        user2_viv = user2.get_vu()
+        vivienda = db["vivienda"]
+
+        all_users = {user1_viv, user2_viv, user3_viv}
+
+        cat_shared_on_leave = db["cat_shared_on_leave"]
+
+        gasto_1 = Gasto.objects.create(
+            monto=1200,
+            creado_por=user1_viv,
+            categoria=cat_shared_on_leave)
+        user1_viv.pagar(gasto_1, fecha_pago=db["pB"])
+
+        gasto_2 = Gasto.objects.create(
+            monto=3000,
+            creado_por=user2_viv,
+            categoria=cat_shared_on_leave)
+        user2_viv.pagar(gasto_2, fecha_pago=db["pD"])
+
+        gasto_user_dict = vivienda.get_smart_gasto_dict(
+            active_users=all_users,
+            all_users=all_users,
+            vacations=dict())
+
+        self.assertEqual(gasto_user_dict[gasto_1], (all_users, all_users))
+        self.assertEqual(gasto_user_dict[gasto_2], (all_users, all_users))
+
+    def test_get_smart_gasto_dict_method_no_left_w_vacation(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        user2_viv = user2.get_vu()
+        vivienda = db["vivienda"]
+
+        vac2, __ = user2.go_on_vacation(start_date=db["pB"], end_date=db["pD"])
+
+        vacations = [vac2]
+
+        all_users = {user1_viv, user2_viv, user3_viv}
+
+        cat_not_shared_on_leave = db["cat_not_shared_on_leave"]
+        cat_shared_on_leave = db["cat_shared_on_leave"]
+
+        gasto_1 = Gasto.objects.create(
+            monto=1200,
+            creado_por=user1_viv,
+            categoria=cat_shared_on_leave)
+        user1_viv.pagar(gasto_1, fecha_pago=db["pB"])
+
+        gasto_2 = Gasto.objects.create(
+            monto=3000,
+            creado_por=user3_viv,
+            categoria=cat_not_shared_on_leave)
+        user3_viv.pagar(gasto_2, fecha_pago=db["pD"])
+
+        gasto_user_dict = vivienda.get_smart_gasto_dict(
+            active_users=all_users,
+            all_users=all_users,
+            vacations=vacations)
+
+        self.assertEqual(gasto_user_dict[gasto_1], (all_users, all_users))
+        self.assertEqual(
+            gasto_user_dict[gasto_2],
+            ({user1_viv, user3_viv},
+             {user1_viv, user3_viv})
+        )
+
+    def test_get_smart_gasto_dict_method_w_left_w_vacation(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        user2_viv = user2.get_vu()
+        vivienda = db["vivienda"]
+
+        user2_viv.fecha_abandono = db["pC"]
+        user2_viv.estado = "inactivo"
+
+        user3_viv.fecha_creacion = db["pC"]
+
+        vac1, __ = user1.go_on_vacation(start_date=db["pB"], end_date=db["pC"])
+        vac3, __ = user3.go_on_vacation(start_date=db["pE"])
+        vacations = {vac1, vac3}
+
+        cat_not_shared_on_leave = db["cat_not_shared_on_leave"]
+        cat_shared_on_leave = db["cat_shared_on_leave"]
+
+        gasto_1 = Gasto.objects.create(
+            monto=1200,
+            creado_por=user2_viv,
+            categoria=cat_not_shared_on_leave)
+        user2_viv.pagar(gasto_1, fecha_pago=db["pB"])
+
+        gasto_2 = Gasto.objects.create(
+            monto=1500,
+            creado_por=user3_viv,
+            categoria=cat_shared_on_leave)
+        user3_viv.pagar(gasto_2, fecha_pago=db["pC"])
+
+        gasto_3 = Gasto.objects.create(
+            monto=2000,
+            creado_por=user1_viv,
+            categoria=cat_shared_on_leave)
+        user1_viv.pagar(gasto_3, fecha_pago=db["pE"])
+
+        # save so that the fields are actually modified
+        user2_viv.save()
+        user3_viv.save()
+
+        all_users = {user1_viv, user2_viv, user3_viv}
+
+        gasto_user_dict = vivienda.get_smart_gasto_dict(
+            active_users={user1_viv, user3_viv},
+            all_users=all_users,
+            vacations=vacations)
+
+        self.assertEqual(gasto_user_dict.get(gasto_1, None), None)
+        self.assertEqual(
+            gasto_user_dict[gasto_2],
+            ({user1_viv, user3_viv},
+             all_users))
+        self.assertEqual(
+            gasto_user_dict[gasto_3],
+            ({user1_viv, user3_viv},
+             {user1_viv, user3_viv})
+        )
 
     def test_get_smart_gasto_dict_method_hard(self):
         """
@@ -690,16 +1200,13 @@ class ViviendaModelTest(TestCase):
         """
         db = get_hard_balance_test_database()
 
-        user1 = db["user1"]
-        user2 = db["user2"]
-        user3 = db["user3"]
         user1_viv = db["user1_viv"]
         user2_viv = db["user2_viv"]
         user3_viv = db["user3_viv"]
         vivienda = db["vivienda"]
 
-        active_users = set([user1_viv, user3_viv])
-        all_users = set([user1_viv, user2_viv, user3_viv])
+        active_users = {user1_viv, user3_viv}
+        all_users = {user1_viv, user2_viv, user3_viv}
 
         vacations = vivienda.get_vacations_after_date(db["pA"])
         gastos_users_dict = vivienda.get_smart_gasto_dict(
@@ -739,20 +1246,24 @@ class ViviendaModelTest(TestCase):
         expected = dict()
         expected[ids[0]] = ({user1_viv}, {user2_viv, user1_viv})
         expected[ids[1]] = ({user3_viv}, {user3_viv, user2_viv})
-        expected[ids[2]] = ({user3_viv, user1_viv}, {user2_viv, user3_viv, user1_viv})
-        expected[ids[3]] = ({user3_viv, user1_viv}, {user2_viv, user3_viv, user1_viv})
+        expected[ids[2]] = ({user3_viv, user1_viv}, {
+                            user2_viv, user3_viv, user1_viv})
+        expected[ids[3]] = ({user3_viv, user1_viv}, {
+                            user2_viv, user3_viv, user1_viv})
         expected[ids[4]] = ({user1_viv}, {user2_viv, user1_viv})
         expected[ids[5]] = ({user1_viv}, {user2_viv, user1_viv})
-        expected[ids[6]] = ({user3_viv, user1_viv}, {user2_viv, user3_viv, user1_viv})
-        expected[ids[7]] = ({user3_viv, user1_viv}, {user2_viv, user3_viv, user1_viv})
-        expected[ids[8]] = ({user1_viv},{user1_viv})
-        expected[ids[9]] = ({user3_viv, user1_viv},{user3_viv, user1_viv})
-        expected[ids[10]] = ({user3_viv, user1_viv},{user3_viv, user1_viv})
-        expected[ids[11]] = ({user3_viv, user1_viv},{user3_viv, user1_viv})
-        expected[ids[12]] = ({user3_viv, user1_viv},{user3_viv, user1_viv})
-        expected[ids[13]] = ({user3_viv, user1_viv},{user3_viv, user1_viv})
-        expected[ids[14]] = ({user3_viv, user1_viv},{user3_viv, user1_viv})
-        expected[ids[15]] = ({user3_viv, user1_viv},{user3_viv, user1_viv})
+        expected[ids[6]] = ({user3_viv, user1_viv}, {
+                            user2_viv, user3_viv, user1_viv})
+        expected[ids[7]] = ({user3_viv, user1_viv}, {
+                            user2_viv, user3_viv, user1_viv})
+        expected[ids[8]] = ({user1_viv}, {user1_viv})
+        expected[ids[9]] = ({user3_viv, user1_viv}, {user3_viv, user1_viv})
+        expected[ids[10]] = ({user3_viv, user1_viv}, {user3_viv, user1_viv})
+        expected[ids[11]] = ({user3_viv, user1_viv}, {user3_viv, user1_viv})
+        expected[ids[12]] = ({user3_viv, user1_viv}, {user3_viv, user1_viv})
+        expected[ids[13]] = ({user3_viv, user1_viv}, {user3_viv, user1_viv})
+        expected[ids[14]] = ({user3_viv, user1_viv}, {user3_viv, user1_viv})
+        expected[ids[15]] = ({user3_viv, user1_viv}, {user3_viv, user1_viv})
 
         for i in ids:
             self.assertEqual(
@@ -760,7 +1271,209 @@ class ViviendaModelTest(TestCase):
                 expected[i],
                 "assertion failed for Gasto with id=%s" % (i))
 
-    def test_get_reversed_user_totals_dict(self):
+    def test_get_reversed_user_totals_dict_method_empty_gastos_dict(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user2_viv = user2.get_vu()
+        user3_viv = user3.get_vu()
+        vivienda = db["vivienda"]
+
+        (actual_totals,
+         expected_totals) = vivienda.get_reversed_user_totals_dict({})
+
+        self.assertEqual(actual_totals[user1_viv], 0)
+        self.assertEqual(actual_totals[user2_viv], 0)
+        self.assertEqual(actual_totals[user3_viv], 0)
+        self.assertEqual(expected_totals[user1_viv], 0)
+        self.assertEqual(expected_totals[user2_viv], 0)
+        self.assertEqual(expected_totals[user3_viv], 0)
+
+    def test_get_reversed_user_totals_dict_w_empty_gastos_dict_w_left(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        user2_viv = user2.get_vu()
+        vivienda = db["vivienda"]
+
+        user2_viv.fecha_abandono = db["pC"]
+        user2_viv.estado = "inactivo"
+        user2_viv.save()
+
+        (actual_totals,
+         expected_totals) = vivienda.get_reversed_user_totals_dict({})
+
+        self.assertEqual(actual_totals[user1_viv], 0)
+        self.assertEqual(actual_totals[user3_viv], 0)
+        self.assertEqual(expected_totals[user1_viv], 0)
+        self.assertEqual(expected_totals[user3_viv], 0)
+
+        self.assertEqual(actual_totals.get(user2_viv, None), None)
+        self.assertEqual(expected_totals.get(user2_viv, None), None)
+
+    def test_get_reversed_user_totals_no_left_no_vacation(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        user2_viv = user2.get_vu()
+        vivienda = db["vivienda"]
+
+        all_users = {user1_viv, user2_viv, user3_viv}
+
+        cat_shared_on_leave = db["cat_shared_on_leave"]
+
+        gasto_1 = Gasto.objects.create(
+            monto=1200,
+            creado_por=user1_viv,
+            categoria=cat_shared_on_leave)
+        user1_viv.pagar(gasto_1, fecha_pago=db["pB"])
+
+        gasto_2 = Gasto.objects.create(
+            monto=3000,
+            creado_por=user2_viv,
+            categoria=cat_shared_on_leave)
+        user2_viv.pagar(gasto_2, fecha_pago=db["pD"])
+
+        gasto_user_dict = dict()
+        gasto_user_dict[gasto_1] = (all_users, all_users)
+        gasto_user_dict[gasto_2] = (all_users, all_users)
+
+        (actual_totals,
+         expected_totals) = vivienda.get_reversed_user_totals_dict(
+            gasto_user_dict)
+
+        self.assertEqual(actual_totals[user1_viv], 1200)
+        self.assertEqual(actual_totals[user2_viv], 3000)
+        self.assertEqual(actual_totals[user3_viv], 0)
+        self.assertEqual(expected_totals[user1_viv], 1400)
+        self.assertEqual(expected_totals[user2_viv], 1400)
+        self.assertEqual(expected_totals[user3_viv], 1400)
+
+    def test_get_reversed_user_totals_no_left_w_vacation(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        user2_viv = user2.get_vu()
+        vivienda = db["vivienda"]
+
+        vac2, __ = user2.go_on_vacation(start_date=db["pB"], end_date=db["pD"])
+
+        vacations = [vac2]
+
+        all_users = {user1_viv, user2_viv, user3_viv}
+
+        cat_not_shared_on_leave = db["cat_not_shared_on_leave"]
+        cat_shared_on_leave = db["cat_shared_on_leave"]
+
+        gasto_1 = Gasto.objects.create(
+            monto=1200,
+            creado_por=user1_viv,
+            categoria=cat_shared_on_leave)
+        user1_viv.pagar(gasto_1, fecha_pago=db["pB"])
+
+        gasto_2 = Gasto.objects.create(
+            monto=3000,
+            creado_por=user3_viv,
+            categoria=cat_not_shared_on_leave)
+        user3_viv.pagar(gasto_2, fecha_pago=db["pD"])
+
+        gasto_user_dict = dict()
+        gasto_user_dict[gasto_1] = (all_users, all_users)
+
+        gasto_user_dict[gasto_2] = ({user1_viv, user3_viv},
+                                    {user1_viv, user3_viv})
+
+        (actual_totals,
+         expected_totals) = vivienda.get_reversed_user_totals_dict(
+            gasto_user_dict)
+
+        self.assertEqual(actual_totals[user1_viv], 1200)
+        self.assertEqual(actual_totals[user2_viv], 0)
+        self.assertEqual(actual_totals[user3_viv], 3000)
+        self.assertEqual(expected_totals[user1_viv], 1500 + 400)
+        self.assertEqual(expected_totals[user2_viv], 400)
+        self.assertEqual(expected_totals[user3_viv], 1500 + 400)
+
+    def test_get_reversed_user_totals_w_left_w_vacation(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        user2_viv = user2.get_vu()
+        vivienda = db["vivienda"]
+
+        user2_viv.fecha_abandono = db["pC"]
+        user2_viv.estado = "inactivo"
+
+        user3_viv.fecha_creacion = db["pC"]
+
+        vac1, __ = user1.go_on_vacation(start_date=db["pB"], end_date=db["pC"])
+        vac3, __ = user3.go_on_vacation(start_date=db["pE"])
+        vacations = {vac1, vac3}
+
+        cat_not_shared_on_leave = db["cat_not_shared_on_leave"]
+        cat_shared_on_leave = db["cat_shared_on_leave"]
+
+        gasto_1 = Gasto.objects.create(
+            monto=1200,
+            creado_por=user2_viv,
+            categoria=cat_not_shared_on_leave)
+        user2_viv.pagar(gasto_1, fecha_pago=db["pB"])
+
+        gasto_2 = Gasto.objects.create(
+            monto=1500,
+            creado_por=user3_viv,
+            categoria=cat_shared_on_leave)
+        user3_viv.pagar(gasto_2, fecha_pago=db["pC"])
+
+        gasto_3 = Gasto.objects.create(
+            monto=2000,
+            creado_por=user1_viv,
+            categoria=cat_shared_on_leave)
+        user1_viv.pagar(gasto_3, fecha_pago=db["pE"])
+
+        # save so that the fields are actually modified
+        user2_viv.save()
+        user3_viv.save()
+
+        all_users = {user1_viv, user2_viv, user3_viv}
+
+        gasto_user_dict = dict()
+        gasto_user_dict[gasto_2] = ({user1_viv, user3_viv}, all_users)
+        gasto_user_dict[gasto_3] = ({user1_viv, user3_viv},
+                                    {user1_viv, user3_viv})
+
+        (actual_totals,
+         expected_totals) = vivienda.get_reversed_user_totals_dict(
+            gasto_user_dict)
+
+        self.assertEqual(actual_totals.get(user2_viv, None), None)
+        self.assertEqual(expected_totals.get(user2_viv, None), None)
+
+        self.assertEqual(actual_totals[user1_viv], 2000)
+        self.assertEqual(actual_totals[user3_viv], 1000)
+        self.assertEqual(expected_totals[user1_viv], 1000 + 500)
+        self.assertEqual(expected_totals[user3_viv], 1000 + 500)
+
+    def test_get_reversed_user_totals_dict_hard_database(self):
         """
         Tests that the Vivienda can convert a dict of the form:
         {
@@ -786,8 +1499,8 @@ class ViviendaModelTest(TestCase):
         user3_viv = db["user3_viv"]
         vivienda = db["vivienda"]
 
-        active_users = set([user1_viv, user3_viv])
-        all_users = set([user1_viv, user2_viv, user3_viv])
+        active_users = {user1_viv, user3_viv}
+        all_users = {user1_viv, user2_viv, user3_viv}
 
         vacations = vivienda.get_vacations_after_date(db["pA"])
         gastos_users_dict = vivienda.get_smart_gasto_dict(
@@ -817,7 +1530,7 @@ class ViviendaModelTest(TestCase):
 
         (actual_total_per_user,
             expected_total_per_user
-            ) = vivienda.get_reversed_user_totals_dict(gastos_users_dict)
+         ) = vivienda.get_reversed_user_totals_dict(gastos_users_dict)
 
         # actual totals should look like this:
         # portions of 1000:
@@ -826,111 +1539,117 @@ class ViviendaModelTest(TestCase):
         # => user1 : 8833.333333333332
         # => user3 : 3833.333333333333
 
-        # print(actual_total_per_user)
-        # print("----")
-        # print(expected_total_per_user)
+        # give some margin in assertions because of float aproximations
+        self.assertAlmostEquals(sum(actual_total_per_user.values()),
+                                sum(expected_total_per_user.values()))
 
+        self.assertAlmostEqual(
+            actual_total_per_user[user1_viv],
+            8833,
+            delta=5)
+        self.assertAlmostEqual(
+            actual_total_per_user[user3_viv],
+            3833,
+            delta=5)
+
+        # expected_total_per_user should look like this:
+        # {
+        #    1: (1/2 + 2/3 + 1 + 2/3 + 1 + 7/2)*1000 = 7333.333
+        #    3: (1/2 + 2/3 + 2/3 + 7/2)*1000 = 5333.333
+        # }
+
+        self.assertAlmostEqual(
+            expected_total_per_user[user1_viv],
+            7333,
+            delta=5)
+        self.assertAlmostEqual(
+            expected_total_per_user[user3_viv],
+            5333,
+            delta=5)
+
+    def test_compute_balance_method(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        vivienda = db["vivienda"]
+
+        actual_total = {user1: 1200, user2: 2000, user3: 1500}
+        expected_total = {user1: 900, user2: 2900, user3: 900}
+
+        balance = vivienda.compute_balance(actual_total, expected_total)
+
+        # result dict should be:
+        # {user2: [(user1, 300), (user3, 600)]}
+        self.assertEqual(balance.get(user1, None), None)
+        self.assertEqual(balance.get(user3, None), None)
+
+        user2_transfers = balance.get(user2, None)
+        self.assertNotEqual(user2_transfers, None)
+        self.assertEqual(len(user2_transfers), 2)
         self.assertEqual(
-            int(actual_total_per_user[user1_viv]),
-            8833)
+            set(user2_transfers),
+            {(user1, 300), (user3, 600)}
+        )
+
+    def test_compute_balance_method_already_balanced(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        vivienda = db["vivienda"]
+
+        actual_total = {user1: 1200, user2: 2000, user3: 1500}
+        expected_total = {user1: 1200, user2: 2000, user3: 1500}
+
+        balance = vivienda.compute_balance(actual_total, expected_total)
+
+        # result dict should be empty
+        self.assertEqual(balance.get(user1, None), None)
+        self.assertEqual(balance.get(user2, None), None)
+        self.assertEqual(balance.get(user3, None), None)
+        self.assertEqual(len(balance), 0)
+
+    def test_compute_balance_method_hard(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        vivienda = db["vivienda"]
+        user4 = ProxyUser.objects.create(username="us4", email="d@d.com")
+        user4_viv = ViviendaUsuario.objects.create(
+            vivienda=vivienda, user=user4)
+
+        actual_total = {
+            user1: 2000,
+            user2: 5000,
+            user3: 1500,
+            user4: 9000}
+        expected_total = {
+            user1: 3000,
+            user2: 2500,
+            user3: 7000,
+            user4: 5000}
+
+        balance = vivienda.compute_balance(actual_total, expected_total)
+
+        self.assertEqual(balance.get(user2, None), None)
+        self.assertEqual(balance.get(user4, None), None)
+
+        user1_transfers = balance.get(user1, None)
+        self.assertNotEqual(user1_transfers, None)
+        self.assertEqual(len(user1_transfers), 1)
         self.assertEqual(
-            int(actual_total_per_user[user3_viv]),
-            3833)
-
-        # expected_total_per_user should look like this
-        # ???
-        # TODO make these tests
-
-        self.fail()
-
-    # </new balance tests>
-    # --------------------------------
-    # old balance tests
-
-
-    # def test_compute_balance_method(self):
-    #     db = get_setup_w_vivienda_3_users_and_periods()
-    #     user1 = db["user1"]
-    #     user2 = db["user2"]
-    #     user3 = db["user3"]
-    #     vivienda = db["vivienda"]
-
-    #     actual_total = {user1: 1200, user2: 2000, user3: 1500}
-    #     expected_total = {user1: 900, user2: 2900, user3: 900}
-
-    #     balance = vivienda.compute_balance(actual_total, expected_total)
-
-    #     # result dict should be:
-    #     # {user2: [(user1, 300), (user3, 600)]}
-    #     self.assertEqual(balance.get(user1, None), None)
-    #     self.assertEqual(balance.get(user3, None), None)
-
-    #     user2_transfers = balance.get(user2, None)
-    #     self.assertNotEqual(user2_transfers, None)
-    #     self.assertEqual(len(user2_transfers), 2)
-    #     self.assertEqual(
-    #         set(user2_transfers),
-    #         set([(user1, 300), (user3, 600)])
-    #     )
-
-    # def test_compute_balance_method_already_balanced(self):
-    #     db = get_setup_w_vivienda_3_users_and_periods()
-    #     user1 = db["user1"]
-    #     user2 = db["user2"]
-    #     user3 = db["user3"]
-    #     vivienda = db["vivienda"]
-
-    #     actual_total = {user1: 1200, user2: 2000, user3: 1500}
-    #     expected_total = {user1: 1200, user2: 2000, user3: 1500}
-
-    #     balance = vivienda.compute_balance(actual_total, expected_total)
-
-    #     # result dict should be empty
-    #     self.assertEqual(balance.get(user1, None), None)
-    #     self.assertEqual(balance.get(user2, None), None)
-    #     self.assertEqual(balance.get(user3, None), None)
-    #     self.assertEqual(len(balance), 0)
-
-    # def test_compute_balance_method_hard(self):
-    #     db = get_setup_w_vivienda_3_users_and_periods()
-    #     user1 = db["user1"]
-    #     user2 = db["user2"]
-    #     user3 = db["user3"]
-    #     vivienda = db["vivienda"]
-    #     user4 = ProxyUser.objects.create(username="us4", email="d@d.com")
-    #     user4_viv = ViviendaUsuario.objects.create(
-    #         vivienda=vivienda, user=user4)
-
-    #     actual_total = {
-    #         user1: 2000,
-    #         user2: 5000,
-    #         user3: 1500,
-    #         user4: 9000}
-    #     expected_total = {
-    #         user1: 3000,
-    #         user2: 2500,
-    #         user3: 7000,
-    #         user4: 5000}
-
-    #     balance = vivienda.compute_balance(actual_total, expected_total)
-
-    #     self.assertEqual(balance.get(user2, None), None)
-    #     self.assertEqual(balance.get(user4, None), None)
-
-    #     user1_transfers = balance.get(user1, None)
-    #     self.assertNotEqual(user1_transfers, None)
-    #     self.assertEqual(len(user1_transfers), 1)
-    #     self.assertEqual(
-    #         set(user1_transfers),
-    #         set([(user2, 1000)])
-    #     )
-    #     user3_transfers = balance.get(user3, None)
-    #     self.assertNotEqual(user3_transfers, None)
-    #     self.assertEqual(len(user3_transfers), 2)
-    #     self.assertEqual(
-    #         set(user3_transfers),
-    #         set([(user2, 1500), (user4, 4000)])
-    #     )
+            set(user1_transfers),
+            {(user2, 1000)}
+        )
+        user3_transfers = balance.get(user3, None)
+        self.assertNotEqual(user3_transfers, None)
+        self.assertEqual(len(user3_transfers), 2)
+        self.assertEqual(
+            set(user3_transfers),
+            {(user2, 1500), (user4, 4000)}
+        )
 
     # def test_get_balance_with_vacations_method(self):
     #     db = get_setup_w_vivienda_3_users_and_periods()
@@ -1040,7 +1759,6 @@ class ViviendaModelTest(TestCase):
     #     user5 = db["user5"]
     #     vivienda = db["vivienda"]
 
-
     #     tot_p_user_active_share = vivienda.total_per_user_active_share_only()
     #     # adding everything "by hand"
     #     # yields this:
@@ -1049,7 +1767,6 @@ class ViviendaModelTest(TestCase):
     #     #     4: 7333.333333333332,
     #     #     5: 6833.333333333331
     #     # }
-
 
     #     # IMPORTANT Explanation:
     #     # Q: why is this LESS than the NAIVE method?
