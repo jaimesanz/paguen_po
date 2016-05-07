@@ -497,6 +497,167 @@ class Vivienda(models.Model):
             Q(vivienda=self) & ~Q(nombre__in=global_cats))
         return custom_cats
 
+    def get_vacations_after_date(self, date):
+        """
+        Returns all UserIsOut instances that:
+        - happened after the given date, ie, the end date comes
+        after the given date (read *NOTE*)
+        - is related to a vivienda_usuario related to this Vivienda
+
+        *NOTE*: since the "fecha_fin" field always comes after the
+        "fecha_inicio" field, it suffices to say that if the "fecha_fin"
+        comes after the given date, the vacation should be returned.
+        """
+        # select_related so that database is not hit again when asking for
+        # vivienda_usuario's user
+        return UserIsOut.objects.filter(
+            vivienda_usuario__vivienda=self,
+            fecha_fin__gte=date).select_related("vivienda_usuario__user")
+
+
+    def rm_users_out_at_date(self, user_set, vacations, date):
+        """
+        Given a set of ViviendaUsuario instances and a dict with the
+        ViviendaUsuario's vacations, returns a subset of the original set
+        of ViviendaUsuario with all instances that were active and not on
+        vacation at the given date
+
+        TODO Testing
+        """
+        users_on_vac = set()
+        for vu in user_set:
+            for vac in vacations[vu]:
+                gasto_after = date >= vac.fecha_inicio
+                gasto_before = date <= vac.fecha_fin
+                if gasto_after and gasto_before:
+                    users_on_vac.add(vu)
+        # these are the users that don't have to pay
+        return user_set - users_on_vac
+
+
+    def rm_not_active_at_date(self, user_set, date):
+        """
+        Given a set of ViviendaUsuario instances and a date, returns a
+        subset of the original set with all ViviendaUsuario instances
+        that were active at the given date
+
+        TODO Testing
+        """
+        active_at_date = set()
+        for vu in user_set:
+            joined_before = vu.fecha_creacion<=date
+            fecha_left = vu.fecha_abandono
+            left_after = fecha_left is None or fecha_left>=date
+            if joined_before and left_after:
+                active_at_date.add(vu)
+        return active_at_date
+
+    def get_smart_gasto_dict(self, active_users, all_users, vacations):
+        """
+        Given a set with currently active ViviendaUsuario instances,
+        another Set with all ViviendaUsuario instances related to the
+        Vivienda and a set of Vacations, this method returns a dict
+        of the form:
+        {
+            Gasto: (
+                currently_active_users_that_should_pay_this_Gasto,
+                users_active_at_the_time_of_Gasto_that_had_to_pay_it
+            )
+        }
+        The keys are Gasto instances payed by Users that are currently active,
+        and the values are tuples of Sets. Note that these Sets:
+        - don't necessarily contain the same set of Users
+        - are not necessarily of the same length
+        - always have at least 1 user in common (the one who payed the Gasto)
+        """
+        # get dict "user" -> [UserIsOut1, UserIsOut2, ...]
+        vac_dict = dict()
+        for vu in all_users:
+            vac_dict[vu] = []
+        for vacation in vacations:
+            vac_dict[vacation.vivienda_usuario].append(vacation)
+        # get the earliest user that is still active in the Vivienda
+        dates = set()
+        for vu in all_users:
+            if vu.is_active():
+                dates.add(vu.fecha_creacion)
+            else:
+                pass
+        start_date = min(dates)
+        gastos = Gasto.objects.filter(
+            creado_por__vivienda=self,
+            usuario__estado="activo",
+            categoria__is_shared=True,
+            categoria__is_transfer=False,
+            fecha_pago__gte=start_date)
+
+        gastos_users_dict = dict()
+
+        for gasto in gastos:
+            fecha_pago = gasto.fecha_pago
+
+            pay_active_today = self.rm_not_active_at_date(
+                                        active_users,
+                                        fecha_pago)
+            # users active at the time that should have payed
+            shouldve_payed_then = self.rm_not_active_at_date(
+                                        all_users,
+                                        fecha_pago)
+
+            if not gasto.categoria.is_shared_on_leave:
+                pay_active_today = self.rm_users_out_at_date(
+                    pay_active_today,
+                    vac_dict,
+                    fecha_pago)
+                shouldve_payed_then = self.rm_users_out_at_date(
+                    shouldve_payed_then,
+                    vac_dict,
+                    fecha_pago)
+
+            gastos_users_dict[gasto] = (pay_active_today, shouldve_payed_then)
+
+        return gastos_users_dict
+
+    def get_reversed_user_totals_dict(self, gastos_users_dict):
+        """
+        Converts a dict of the form:
+        {
+            Gasto: (
+                currently_active_users_that_should_pay_this_Gasto,
+                users_active_at_the_time_of_Gasto_that_had_to_pay_it
+            )
+        }
+        to 2 dicts: actual_total_per_user and expected_total_per_user.
+        Both dicts are of the form:
+        {User: Integer}
+        The first dict represents how much the User has spent in Gastos that
+        are shared with the active users, and the second dict represents how
+        much the user should've spent
+        """
+        actual_total_per_user = dict()
+        expected_total_per_user = dict()
+        active_users = ViviendaUsuario.objects.filter(
+            vivienda=self,
+            estado="activo")
+        for vu in active_users:
+            actual_total_per_user[vu] = 0
+            expected_total_per_user[vu] = 0
+        for gasto in gastos_users_dict:
+            today_users, past_users = gastos_users_dict[gasto]
+            user_that_payed = gasto.usuario
+            shared_portion = len(today_users) / len(past_users)
+            share = gasto.monto * shared_portion
+            # print(str(user_that_payed) + " : " + str(share))
+            actual_total_per_user[user_that_payed] += share
+            for vu in today_users:
+                expected_total_per_user[vu] += share / len(today_users)
+
+        return (actual_total_per_user, expected_total_per_user)
+
+
+    # ---------------------------
+    # old
+
     def get_expected_total_per_active_user_with_vacations(self):
         """
         Returns a dict of the form:

@@ -233,14 +233,115 @@ def get_setup_w_vivienda_3_users_and_periods():
     db["pC"] = today + timezone.timedelta(weeks=3)
     db["pD"] = today + timezone.timedelta(weeks=4)
     db["pE"] = today + timezone.timedelta(weeks=5)
+    db["pF"] = today + timezone.timedelta(weeks=6)
 
     return db
 
+
+def get_hard_balance_test_database():
+    """
+    Creates complex database case for balancing Gastos:
+    - 3 users total
+    - 1 user left
+    - users had vacations
+    - some gastos are shared on vacation, others are not
+    """
+    db = get_setup_w_vivienda_3_users_and_periods()
+
+    user1 = db["user1"]
+    user2 = db["user2"]
+    user3 = db["user3"]
+    user1_viv = db["user1_viv"]
+    user2_viv = db["user2_viv"]
+    user3_viv = db["user3_viv"]
+    vivienda = db["vivienda"]
+
+    user2_viv.fecha_creacion = db["pA"]
+    user2_viv.fecha_abandono = db["pD"]
+    user2_viv.estado = "inactivo"
+    user3_viv.fecha_creacion = db["pC"]
+
+    user1.go_on_vacation(start_date=db["pB"], end_date=db["pC"])
+    user3.go_on_vacation(start_date=db["pD"], end_date=db["pE"])
+
+    # u/p |a|b|c|d|e|f|...
+    # --------------------
+    # 1   |x|-|-|x|x|x|...
+    # 2   |x|x|x|x|
+    # 3       |x|-|-|x|...
+
+    # create categorias
+    cat_not_shared_on_leave = db["cat_not_shared_on_leave"]
+    cat_shared_on_leave = db["cat_shared_on_leave"]
+
+    def N(user, monto, p):
+        gasto = Gasto.objects.create(
+            monto=monto,
+            creado_por=user,
+            categoria=cat_not_shared_on_leave)
+        user.pagar(gasto, fecha_pago=p)
+    def S(user, monto, p):
+        gasto = Gasto.objects.create(
+            monto=monto,
+            creado_por=user,
+            categoria=cat_shared_on_leave)
+        user.pagar(gasto, fecha_pago=p)
+
+    # create gastos per period
+    monto = 1000
+    # a
+    N(user1_viv, monto, db["pA"]) # 1 2
+    N(user2_viv, monto, db["pA"]) # 1 2
+
+    S(user2_viv, monto, db["pA"]) # 1 2
+    # b
+    N(user2_viv, monto, db["pB"]) # 2
+
+    S(user2_viv, monto, db["pB"]) # 1 2
+    S(user2_viv, monto, db["pB"]) # 1 2
+    # c
+    N(user2_viv, monto, db["pC"]) # 2 3
+    N(user2_viv, monto, db["pC"]) # 2 3
+    N(user3_viv, monto, db["pC"]) # 2 3
+
+    S(user2_viv, monto, db["pC"]) # 1 2 3
+    S(user3_viv, monto, db["pC"]) # 1 2 3
+    S(user3_viv, monto, db["pC"]) # 1 2 3
+    # d
+    N(user1_viv, monto, db["pD"]) # 1 2
+    N(user1_viv, monto, db["pD"]) # 1 2
+    N(user2_viv, monto, db["pD"]) # 1 2
+
+    S(user1_viv, monto, db["pD"]) # 1 2 3
+    S(user1_viv, monto, db["pD"]) # 1 2 3
+    S(user2_viv, monto, db["pD"]) # 1 2 3
+    # e
+    N(user1_viv, monto, db["pE"]) # 1
+
+    S(user1_viv, monto, db["pE"]) # 1 3
+    S(user1_viv, monto, db["pE"]) # 1 3
+    # f
+    N(user1_viv, monto, db["pF"]) # 1 3
+    N(user1_viv, monto, db["pF"]) # 1 3
+    N(user3_viv, monto, db["pF"]) # 1 3
+
+    S(user1_viv, monto, db["pF"]) # 1 3
+    S(user3_viv, monto, db["pF"]) # 1 3
+
+    # save user2_viv so that it is mark as not active
+    # thiis has to be done after creating the gastos because otherwise
+    # the user can't pay Gastos! This is not a problem, it's just
+    # inconvenient for creating tests...
+    user2_viv.save()
+    user3_viv.save()
+
+    return db
 
 
 def get_HARDEST_balance_test_database():
     """
     Creates complex database case for balancing Gastos:
+    - 5 users total
     - users have left
     - users had vacations
     - users have vacations
@@ -453,6 +554,11 @@ def get_HARDEST_balance_test_database():
         "user3" : user3,
         "user4" : user4,
         "user5" : user5,
+        "user1_viv" : user1_viv,
+        "user2_viv" : user2_viv,
+        "user3_viv" : user3_viv,
+        "user4_viv" : user4_viv,
+        "user5_viv" : user5_viv,
         "vivienda" : vivienda
     }
 
