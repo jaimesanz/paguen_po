@@ -6,6 +6,20 @@ var getRandomColor = function(){
     }
     return color;	
 };
+
+var getRandomColorAsList = function(){
+    var color = [];
+    return [
+		Math.floor(Math.random() * 256),
+		Math.floor(Math.random() * 256),
+		Math.floor(Math.random() * 256)];
+};
+
+var getTransparentColor = function (color, transp) {
+	return "rgba(" + color[0] + "," + color[1] + "," +
+                    color[2] + "," + transp + ")";
+}
+
 var is_valid_period_range = function(y0,m0,y1,m1){
 	return y0<y1 || (y0==y1 && m0<=m1)
 }

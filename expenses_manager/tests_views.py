@@ -2545,7 +2545,7 @@ class BalanceViewTest(TestCase):
                 response,
                 roommate.user)
 
-    def test_user_can_see_total_expenses(self):
+    def test_user_can_see_own_disbalance(self):
         (test_user_1,
             test_user_2,
             test_user_3,
@@ -2561,10 +2561,19 @@ class BalanceViewTest(TestCase):
             self.url,
             follow=True)
 
-        self.assertContains(response, gasto_1.monto + gasto_2.monto)
-        self.assertContains(response, 0)
+        expected_per_user = (gasto_1.monto + gasto_2.monto)/2
+        actual_total_user_1 = gasto_1.monto + gasto_2.monto
+        actual_total_user_2 = 0
 
-    def test_user_can_see_total_expenses_of_roommates(self):
+        balance_user_1 = actual_total_user_1 - expected_per_user
+        balance_user_2 = actual_total_user_2 - expected_per_user
+
+        # must cast to int because, in the template, decimals are separated
+        # by commas instead of dots
+        self.assertContains(response, int(balance_user_1))
+        self.assertContains(response, int(balance_user_2))
+
+    def test_user_can_see_disbalance_of_roommates(self):
         (test_user_1,
             test_user_2,
             test_user_3,
@@ -2580,9 +2589,15 @@ class BalanceViewTest(TestCase):
             self.url,
             follow=True)
 
-        smallest_total = min([gasto_1.monto, gasto_2.monto])
-        self.assertContains(response, gasto_1.monto - smallest_total)
-        self.assertContains(response, gasto_2.monto - smallest_total)
+        expected_per_user = (gasto_1.monto + gasto_2.monto) / 2
+        actual_total_user_1 = gasto_1.monto
+        actual_total_user_2 = gasto_2.monto
+
+        balance_user_1 = actual_total_user_1 - expected_per_user
+        balance_user_2 = actual_total_user_2 - expected_per_user
+
+        self.assertContains(response, int(balance_user_1))
+        self.assertContains(response, int(balance_user_2))
 
 
 class CategoriaListViewTest(TestCase):

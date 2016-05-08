@@ -4,7 +4,7 @@
 
 
 {% block custom_head %}
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.1/Chart.min.js"></script>
 	<script type="text/javascript" src="{% static 'js/period_functions.js' %}"></script>
 {% endblock %}
 
@@ -49,8 +49,6 @@
 			    }
 			});
 
-			Chart.defaults.global.responsive = true;
-
 			var ctx = $("#user_expenses_chart").get(0).getContext("2d");
 			labels = []
 			values = []
@@ -59,28 +57,54 @@
 				labels.push("{{vivienda_usuario.user}}");
 				values.push(parseInt("{{total}}"));
 			{% endfor %}
-			color = getRandomColor()
+
+			color_list = getRandomColorAsList()
+            color = getTransparentColor(color_list, 0.2)
+            border_color = getTransparentColor(color_list, 1)
+            hover_color = getTransparentColor(color_list, 0.4)
 			var data = {
 			    labels: labels,
 			    datasets: [
 			        {
 			            label: "Balance de Gastos",
-			            fillColor: color,
-			            strokeColor: color,
-			            pointColor: color,
-			            pointStrokeColor: "#fff",
-			            pointHighlightFill: "#fff",
-			            pointHighlightStroke: color,
+                        backgroundColor: color,
+                        borderColor: border_color,
+                        borderWidth: 1,
+                        hoverBackgroundColor: hover_color,
+                        hoverBorderColor: border_color,
 			            data: values
 			        }
 			    ]
 			};
-			console.log(data)
 			var options = {
-				multiTooltipTemplate: "$<%= $.format.number(value, '#,##0.#') %>",
-				tooltipTemplate : "<%=label%>: $<%= $.format.number(value, '#,##0.#') %>"
+                responsive: true,
+                responsiveAnimationDuration: 1000,
+				tooltips: {
+                    enabled: true,
+                    mode: 'single',
+                    callbacks: {
+                        label: function(tooltipItems, data) {
+                            return '$ ' + $.format.number(tooltipItems.yLabel,
+                                            '#,##0.#');
+                        }
+                    }
+                },
+                scales: {
+                    yAxes: [{
+                        display: true,
+                        ticks: {
+                            suggestedMax: Math.max.apply(Math, values)*1.05,
+                            suggestedMin: Math.min.apply(Math, values)*1.05
+                        }
+                    }]
+                }
 			}
-			myChart = new Chart(ctx).Bar(data, options);
+
+			myChart = new Chart(ctx, {
+                type:'bar',
+                data: data,
+                options: options
+            });
 		});
 	</script>
 {% endblock %}

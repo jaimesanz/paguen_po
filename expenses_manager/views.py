@@ -278,10 +278,7 @@ def manage_users(request):
                      redirect_field_name=None)
 def balance(request):
     vivienda = request.user.get_vivienda()
-    # TODO the user doesn't need the actual total per user, the user needs
-    # the disbalance levels of the Vivienda. Ie, the user needs the
-    # "disbalance_dict" of the Vivienda.
-    user_expenses, __ = vivienda.get_smart_totals()
+    user_expenses = vivienda.get_disbalance_dict()
     form = TransferForm()
     form.fields["user"].queryset = request.user.get_roommates_users()
     return render(request, "vivienda/balance.html", locals())
