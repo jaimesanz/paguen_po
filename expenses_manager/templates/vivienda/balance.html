@@ -55,9 +55,9 @@
 			labels = []
 			values = []
 			var myChart = null
-			{% for u,m in user_expenses.items %}
-				labels.push("{{u}}");
-				values.push(parseInt("{{m}}"));
+			{% for vivienda_usuario, total in user_expenses.items %}
+				labels.push("{{vivienda_usuario.user}}");
+				values.push(parseInt("{{total}}"));
 			{% endfor %}
 			color = getRandomColor()
 			var data = {
