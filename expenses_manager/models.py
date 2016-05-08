@@ -419,42 +419,6 @@ class Vivienda(models.Model):
             creado_por__vivienda=self,
             creado_por__estado="activo")
 
-    def get_total_expenses_per_active_user(self):
-        """
-        Returns a dict where the keys are the names of the users
-        and the values are the total expenses of said user
-        """
-        active_users = ViviendaUsuario.objects.filter(
-            vivienda=self,
-            estado="activo")
-        user_expenses = {}
-        for u in active_users:
-            user_expenses[u.user] = 0
-        gastos_pagados = self.get_gastos_pagados()
-        for gasto in gastos_pagados:
-            user_that_paid = gasto.usuario.user
-            if gasto.usuario.estado == "activo":
-                user_expenses[user_that_paid] += gasto.monto
-        transferencias = self.get_transferencias()
-        for t in transferencias:
-            user_that_paid = t.usuario.user
-            if t.usuario.estado == "activo":
-                user_expenses[user_that_paid] += t.monto
-        return user_expenses
-
-    def get_active_users_balance(self):
-        """
-        Returns a dict where the keys are the names of the users
-        and the values are the difference between that user's total
-        expenses and the user that has spent the least amount of money.
-        Note: the latter will always have a value of 0.
-        """
-        total_expenses_per_user = self.get_total_expenses_per_active_user()
-        smallest_total = min([v for k, v in total_expenses_per_user.items()])
-        for k, v in total_expenses_per_user.items():
-            total_expenses_per_user[k] -= smallest_total
-        return total_expenses_per_user
-
     def add_categoria(self, nombre):
         """
         Takes a String representing the name of a new custom Categoria
@@ -508,6 +472,7 @@ class Vivienda(models.Model):
         "fecha_inicio" field, it suffices to say that if the "fecha_fin"
         comes after the given date, the vacation should be returned.
         """
+
         # select_related so that database is not hit again when asking for
         # vivienda_usuario's user
         return UserIsOut.objects.filter(
@@ -572,26 +537,16 @@ class Vivienda(models.Model):
             vac_dict[vu] = []
         for vacation in vacations:
             vac_dict[vacation.vivienda_usuario].append(vacation)
-        # get the earliest user that is still active in the Vivienda
-        dates = set()
-        for vu in all_users:
-            if vu.is_active():
-                dates.add(vu.fecha_creacion)
-            else:
-                pass
-        start_date = min(dates)
         gastos = Gasto.objects.filter(
             creado_por__vivienda=self,
             usuario__estado="activo",
             categoria__is_shared=True,
-            categoria__is_transfer=False,
-            fecha_pago__gte=start_date)
+            estado__estado="pagado")
 
         gastos_users_dict = dict()
 
         for gasto in gastos:
             fecha_pago = gasto.fecha_pago
-
             pay_active_today = self.rm_not_active_at_date(
                 active_users,
                 fecha_pago)
@@ -731,23 +686,52 @@ class Vivienda(models.Model):
         else:
             return None
 
-    def get_smart_balance(self):
+    def get_smart_totals(self):
         """
-        Computes the instructions for users to balance out their shared
-        expenses
+        Returns a tuple with:
+        - a dict with the actual totals each active user has spent
+        - a dict with the expected totals for each active user
         """
         all_users = ViviendaUsuario.objects.filter(
             vivienda=self)
         active_users = all_users.filter(estado="activo")
-        vacations = UserIsOut.objects.filter(vivienda_usuario__vivienda=self)
+        # get the earliest user that is still active in the Vivienda
+        dates = set()
+        for vu in active_users:
+            dates.add(vu.fecha_creacion)
+        start_date = min(dates)
+        vacations = self.get_vacations_after_date(start_date)
         gasto_user_dict = self.get_smart_gasto_dict(
             active_users=active_users,
             all_users=all_users,
             vacations=vacations)
 
+        return self.get_reversed_user_totals_dict(gasto_user_dict)
+
+    def get_disbalance_dict(self):
+        """
+        Returns a dict of the form:
+        {
+            User: Integer
+        }
+        where the Integer represents how much the User ows to other users
+        (Integer is negative, meaning he has spent too little), or how much the
+        User is owed (if the Integer is positive, meaning he has spent too
+        much)
+        """
+        act, exp = self.get_smart_totals()
+        disbalance_dict = dict()
+        for user in act:
+            disbalance_dict[user] = act[user] - exp[user]
+        return disbalance_dict
+
+    def get_smart_balance(self):
+        """
+        Computes the instructions for users to balance out their shared
+        expenses
+        """
         (actual_totals,
-         expected_totals) = self.get_reversed_user_totals_dict(
-            gasto_user_dict)
+         expected_totals) = self.get_smart_totals()
 
         return self.compute_balance(actual_totals, expected_totals)
 

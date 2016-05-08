@@ -254,8 +254,10 @@ class ProxyUserModelTest(TestCase):
             nombre="cat_2",
             vivienda=vivienda)
         # create 2 periods P1, P2
-        p1 = YearMonth.objects.create(year=2016, month=1)
-        p2 = YearMonth.objects.create(year=2016, month=2)
+        date1 = timezone.now().date() + timezone.timedelta(weeks=8)
+        date2 = timezone.now().date() + timezone.timedelta(weeks=16)
+        p1 = YearMonth.objects.create(year=date1.year, month=date1.month)
+        p2 = YearMonth.objects.create(year=date2.year, month=date2.month)
         # create 2 gastos per user, using different combinations
         # of A,B and P1, P2
         estado_pagado = EstadoGasto.objects.create(estado="pagado")
@@ -263,47 +265,35 @@ class ProxyUserModelTest(TestCase):
         g1_1 = Gasto.objects.create(
             monto=1000,
             creado_por=user1.get_vu(),
-            usuario=user1.get_vu(),
-            categoria=cat_1,
-            year_month=p1,
-            estado=estado_pagado)
+            categoria=cat_1)
+        user1_viv.pagar(g1_1, date1)
         g1_2 = Gasto.objects.create(
             monto=2000,
             creado_por=user1.get_vu(),
-            usuario=user1.get_vu(),
-            categoria=cat_2,
-            year_month=p1,
-            estado=estado_pagado)
+            categoria=cat_2)
+        user1_viv.pagar(g1_2, date1)
         # gastos user2
         g2_1 = Gasto.objects.create(
             monto=500,
             creado_por=user2.get_vu(),
-            usuario=user2.get_vu(),
-            categoria=cat_1,
-            year_month=p1,
-            estado=estado_pagado)
+            categoria=cat_1)
+        user2_viv.pagar(g2_1, date1)
         g2_2 = Gasto.objects.create(
             monto=1700,
             creado_por=user2.get_vu(),
-            usuario=user2.get_vu(),
-            categoria=cat_2,
-            year_month=p2,
-            estado=estado_pagado)
+            categoria=cat_2)
+        user2_viv.pagar(g2_2, date2)
         # gastos user3
         g3_1 = Gasto.objects.create(
             monto=1200,
             creado_por=user3.get_vu(),
-            usuario=user3.get_vu(),
-            categoria=cat_1,
-            year_month=p1,
-            estado=estado_pagado)
+            categoria=cat_1)
+        user3_viv.pagar(g3_1, date1)
         g3_2 = Gasto.objects.create(
             monto=700,
             creado_por=user3.get_vu(),
-            usuario=user3.get_vu(),
-            categoria=cat_1,
-            year_month=p1,
-            estado=estado_pagado)
+            categoria=cat_1)
+        user3_viv.pagar(g3_2, date1)
 
         # create presupuesto for each categoria
         presupuesto_1_p1 = Presupuesto.objects.create(
@@ -333,7 +323,7 @@ class ProxyUserModelTest(TestCase):
         total_presupuesto_2_p1 = presupuesto_2_p1.get_total_expenses()
         total_presupuesto_2_p2 = presupuesto_2_p2.get_total_expenses()
         # get total_per_user
-        total_per_user = vivienda.get_total_expenses_per_active_user()
+        total_per_user, __ = vivienda.get_smart_totals()
         # get total_per_period
         total_p1 = vivienda.get_total_expenses_period(p1)
         total_p2 = vivienda.get_total_expenses_period(p2)
@@ -348,11 +338,11 @@ class ProxyUserModelTest(TestCase):
         self.assertEqual(Gasto.objects.count(), 6)
 
         # user1 should have 3000 total
-        self.assertEqual(total_per_user[user1], 3000)
+        self.assertEqual(total_per_user[user1_viv], 3000)
         # user2 should have 2200 total
-        self.assertEqual(total_per_user[user2], 2200)
+        self.assertEqual(total_per_user[user2_viv], 2200)
         # user3 should have 1900 total
-        self.assertEqual(total_per_user[user3], 1900)
+        self.assertEqual(total_per_user[user3_viv], 1900)
 
         # TRANSFER METHOD CALL!!
         # user1 has spent way too much money! He can't even buy lunch anymore!
@@ -392,16 +382,22 @@ class ProxyUserModelTest(TestCase):
             vivienda.get_total_expenses_categoria_period(cat_2, p2))
 
         # total_per_user DID change
-        new_total_per_user = vivienda.get_total_expenses_per_active_user()
+        new_total_per_user, __ = vivienda.get_smart_totals()
         # user1 should now have 2600 total
-        self.assertNotEqual(total_per_user[user1], new_total_per_user[user1])
-        self.assertEqual(new_total_per_user[user1], 2600)
+        self.assertNotEqual(
+            total_per_user[user1_viv],
+            new_total_per_user[user1_viv])
+        self.assertEqual(new_total_per_user[user1_viv], 2600)
         # user2 should now have 2600 total
-        self.assertNotEqual(total_per_user[user2], new_total_per_user[user2])
-        self.assertEqual(new_total_per_user[user2], 2600)
+        self.assertNotEqual(
+            total_per_user[user2_viv],
+            new_total_per_user[user2_viv])
+        self.assertEqual(new_total_per_user[user2_viv], 2600)
         # user3 should still have 1900 total
-        self.assertEqual(total_per_user[user3], new_total_per_user[user3])
-        self.assertEqual(new_total_per_user[user3], 1900)
+        self.assertEqual(
+            total_per_user[user3_viv],
+            new_total_per_user[user3_viv])
+        self.assertEqual(new_total_per_user[user3_viv], 1900)
 
         # the total of presupuestos did NOT change
         self.assertEqual(
