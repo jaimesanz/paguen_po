@@ -1895,7 +1895,7 @@ class ViviendaModelTest(TestCase):
             {(user1_viv, 300), (user3_viv, 600)}
         )
 
-    def test_get_reversed_user_totals_hardest(self):
+    def test_get_smart_gasto_dict_hardest(self):
         db = get_HARDEST_balance_test_database()
 
         user1_viv = db["user1_viv"]
@@ -1915,6 +1915,112 @@ class ViviendaModelTest(TestCase):
             all_users,
             vacations)
 
+        ids = [g.id for g in gastos_users_dict]
+        ids.sort()
+
+        expected = dict()
+
+        # the resulting dict should look like this:
+        # (this was computed by hand)
+        expected[ids[0]] = ({user1_viv}, {user1_viv, user2_viv})
+        expected[ids[1]] = ({user1_viv}, {user1_viv, user2_viv})
+        expected[ids[2]] = ({user1_viv, user4_viv}, {user1_viv, user4_viv})
+        expected[ids[3]] = ({user1_viv, user4_viv}, {user1_viv, user4_viv})
+        expected[ids[4]] = (
+        {user1_viv, user4_viv}, {user1_viv, user2_viv, user4_viv})
+        expected[ids[5]] = (
+        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+        expected[ids[6]] = (
+        {user1_viv, user4_viv}, {user1_viv, user2_viv, user3_viv, user4_viv})
+        expected[ids[7]] = (
+        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+        expected[ids[8]] = (
+        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+        expected[ids[9]] = (
+        {user1_viv, user4_viv}, {user1_viv, user2_viv, user3_viv, user4_viv})
+        expected[ids[10]] = (
+        {user1_viv, user4_viv}, {user1_viv, user2_viv, user3_viv, user4_viv})
+        expected[ids[11]] = ({user4_viv}, {user4_viv})
+        expected[ids[12]] = ({user4_viv}, {user4_viv})
+        expected[ids[13]] = ({user4_viv}, {user4_viv})
+        expected[ids[14]] = (
+        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+        expected[ids[15]] = ({user1_viv}, {user1_viv, user3_viv})
+        expected[ids[16]] = (
+        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+        expected[ids[17]] = (
+        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+        expected[ids[18]] = (
+        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+        expected[ids[19]] = (
+        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+        expected[ids[20]] = (
+        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+        expected[ids[21]] = ({user4_viv, user5_viv}, {user4_viv, user5_viv})
+        expected[ids[22]] = (
+        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+        expected[ids[23]] = (
+        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+        expected[ids[24]] = (
+        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+        expected[ids[25]] = ({user5_viv}, {user5_viv})
+        expected[ids[26]] = ({user5_viv}, {user5_viv})
+        expected[ids[27]] = ({user5_viv}, {user5_viv})
+        expected[ids[28]] = (
+        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+        expected[ids[29]] = ({user5_viv}, {user5_viv})
+        expected[ids[30]] = (
+        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+        expected[ids[31]] = (
+        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+        expected[ids[32]] = (
+        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+        expected[ids[33]] = (
+        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+        expected[ids[34]] = (
+        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+        expected[ids[35]] = (
+        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+        expected[ids[36]] = (
+        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+        expected[ids[37]] = (
+        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+        expected[ids[38]] = (
+        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+
+        for id in ids:
+            gasto = Gasto.objects.get(id=id)
+            self.assertNotEqual(
+                gastos_users_dict.get(gasto, None),
+                None,
+                "Gasto with id=%d is not in resulting smart dict" % (id)
+            )
+            self.assertEqual(
+                gastos_users_dict.get(gasto, None),
+                expected.get(id, None),
+                "Gasto with id=%d is not equal to expected" % (id)
+            )
+
+    def test_get_reversed_user_totals_hardest(self):
+        db = get_HARDEST_balance_test_database()
+
+        user1_viv = db["user1_viv"]
+        user2_viv = db["user2_viv"]
+        user3_viv = db["user3_viv"]
+        user4_viv = db["user4_viv"]
+        user5_viv = db["user5_viv"]
+        vivienda = db["vivienda"]
+
+        active_users = {user1_viv, user4_viv, user5_viv}
+        all_users = {user1_viv, user2_viv, user3_viv, user4_viv, user5_viv}
+
+        vacations = vivienda.get_vacations_after_date(db["pA"])
+
+        gastos_users_dict = vivienda.get_smart_gasto_dict(
+            active_users,
+            all_users,
+            vacations)  # this method is already tested
+
         (actual_totals,
          expected_totals
          ) = vivienda.get_reversed_user_totals_dict(gastos_users_dict)
@@ -1929,22 +2035,48 @@ class ViviendaModelTest(TestCase):
         self.assertEqual(expected_totals.get(user2_viv, None), None)
         self.assertEqual(expected_totals.get(user3_viv, None), None)
 
-        # TODO calculate the correct values by hand and check if they are right
-        # THIS IS THE OLD SUM, CHECK IF RIGHT!!!!
-        # adding everything "by hand" yields this:
-        # {
-        #     1: 8166.666666666666,
-        #     4: 7333.333333333332,
-        #     5: 6833.333333333331
-        # }
-        self.assertNotEqual(actual_totals.get(user1_viv, None), None)
-        self.assertNotEqual(actual_totals.get(user4_viv, None), None)
-        self.assertNotEqual(actual_totals.get(user5_viv, None), None)
+        # actual totals should look like this:
+        # user1_viv: 9666.666666666666
+        # user4_viv: 11000.0
+        # user5_viv: 12000.0
 
-        self.assertNotEqual(expected_totals.get(user1_viv, None), None)
-        self.assertNotEqual(expected_totals.get(user4_viv, None), None)
-        self.assertNotEqual(expected_totals.get(user5_viv, None), None)
-        self.fail("Missing tests to check if values are correct")
+        self.assertAlmostEqual(
+            actual_totals.get(user1_viv, None),
+            9666.666666666666,
+            delta=5
+        )
+        self.assertAlmostEqual(
+            actual_totals.get(user4_viv, None),
+            11000.0,
+            delta=5
+        )
+        self.assertAlmostEqual(
+            actual_totals.get(user5_viv, None),
+            12000.0,
+            delta=5
+        )
+
+        # the expected totals should be:
+        # (calculated by hand)
+        # user1_viv: 10916.666666666668
+        # user4_viv: 12916.666666666668
+        # user5_viv: 8833.333333333332
+
+        self.assertAlmostEqual(
+            expected_totals.get(user1_viv, None),
+            10916.666666666668,
+            delta=5
+        )
+        self.assertAlmostEqual(
+            expected_totals.get(user4_viv, None),
+            12916.666666666668,
+            delta=5
+        )
+        self.assertAlmostEqual(
+            expected_totals.get(user5_viv, None),
+            8833.333333333332,
+            delta=5
+        )
 
     def test_get_smart_balance_hardest(self):
         db = get_HARDEST_balance_test_database()
@@ -1958,20 +2090,44 @@ class ViviendaModelTest(TestCase):
 
         transfers = vivienda.get_smart_balance()
 
-        # adding everything "by hand"
-        # yields this:
-        # {
-        #     1: 15333.333333333345,
-        #     2: 4333.333333333333,
-        #     3: 8166.666666666664,
-        #     4: 17333.333333333343,
-        #     5: 8833.333333333332
-        # }
-        # TODO check values to see if balance is actually right
+        # users that are not currently active shoudn't show up in the balance
         self.assertEqual(transfers.get(user2_viv, None), None)
         self.assertEqual(transfers.get(user3_viv, None), None)
 
-        self.fail("Missing tests to check if values are correct")
+        # actual totals should look like this:
+        # user1_viv: 9666.666666666666
+        # user4_viv: 11000.0
+        # user5_viv: 12000.0
+
+        # the expected totals should be:
+        # (calculated by hand)
+        # user1_viv: 10916.666666666668
+        # user4_viv: 12916.666666666668
+        # user5_viv: 8833.333333333332
+
+        # Therefore, the balance should look like this:
+        # 1: -1250
+        # 4: −1916.666
+        # 5: 3166,667
+        # and the insructions would look like this:
+
+        user1_transfer = transfers.get(user1_viv, None)
+        self.assertNotEqual(user1_transfer, None)
+        self.assertEqual(user1_transfer[0][0], user5_viv)
+        self.assertAlmostEqual(
+            user1_transfer[0][1],
+            1250,
+            delta=5
+        )
+
+        user4_transfer = transfers.get(user4_viv, None)
+        self.assertNotEqual(user4_transfer, None)
+        self.assertEqual(user4_transfer[0][0], user5_viv)
+        self.assertAlmostEqual(
+            user4_transfer[0][1],
+            1916.666,
+            delta=5
+        )
 
 
 class ViviendaUsuarioModelTest(TestCase):

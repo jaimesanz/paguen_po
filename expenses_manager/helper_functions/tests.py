@@ -361,7 +361,7 @@ def get_HARDEST_balance_test_database():
     user2_viv = db["user2_viv"]
     user3_viv = db["user3_viv"]
     vivienda = db["vivienda"]
-    # create all neccesary periods. last period of dict is today -> "n"
+    # create all necessary periods. Last period of dict is today -> "n"
     p = dict()
     today = timezone.now().date()
     step = 2  # in weeks
@@ -475,84 +475,84 @@ def get_HARDEST_balance_test_database():
     # print(dummy_monto)
     dummy_monto = 1000
     # a
-    N(user1_viv, dummy_monto, p["a"]) # 1 2
-    N(user1_viv, dummy_monto, p["a"]) # 1 2
-    N(user2_viv, dummy_monto, p["a"]) # 1 2
+    N(user1_viv, dummy_monto, p["a"])  # 1 2
+    N(user1_viv, dummy_monto, p["a"])  # 1 2
+    N(user2_viv, dummy_monto, p["a"])  # 1 2
     # b
-    N(user1_viv, dummy_monto, p["b"]) # 1 4
-    N(user4_viv, dummy_monto, p["b"]) # 1 4
+    N(user1_viv, dummy_monto, p["b"])  # 1 4
+    N(user4_viv, dummy_monto, p["b"])  # 1 4
 
-    S(user1_viv, dummy_monto, p["b"]) # 1 2 4
+    S(user1_viv, dummy_monto, p["b"])  # 1 2 4
     # c
-    N(user1_viv, dummy_monto, p["c"]) # 1 3 4
-    N(user2_viv, dummy_monto, p["c"]) # 1 3 4
-    N(user2_viv, dummy_monto, p["c"]) # 1 3 4
-    N(user3_viv, dummy_monto, p["c"]) # 1 3 4
+    N(user1_viv, dummy_monto, p["c"])  # 1 3 4
+    N(user2_viv, dummy_monto, p["c"])  # 1 3 4
+    N(user2_viv, dummy_monto, p["c"])  # 1 3 4
+    N(user3_viv, dummy_monto, p["c"])  # 1 3 4
 
-    S(user1_viv, dummy_monto, p["c"]) # 1 2 3 4
-    S(user3_viv, dummy_monto, p["c"]) # 1 2 3 4
+    S(user1_viv, dummy_monto, p["c"])  # 1 2 3 4
+    S(user3_viv, dummy_monto, p["c"])  # 1 2 3 4
     # d
-    N(user1_viv, dummy_monto, p["d"]) # 1 3 4
-    N(user1_viv, dummy_monto, p["d"]) # 1 3 4
-    N(user3_viv, dummy_monto, p["d"]) # 1 3 4
+    N(user1_viv, dummy_monto, p["d"])  # 1 3 4
+    N(user1_viv, dummy_monto, p["d"])  # 1 3 4
+    N(user3_viv, dummy_monto, p["d"])  # 1 3 4
 
-    S(user2_viv, dummy_monto, p["d"]) # 1 2 3 4
-    S(user2_viv, dummy_monto, p["d"]) # 1 2 3 4
-    S(user3_viv, dummy_monto, p["d"]) # 1 2 3 4
+    S(user2_viv, dummy_monto, p["d"])  # 1 2 3 4
+    S(user2_viv, dummy_monto, p["d"])  # 1 2 3 4
+    S(user3_viv, dummy_monto, p["d"])  # 1 2 3 4
     # e
-    N(user2_viv, dummy_monto, p["e"]) # 2 4
+    N(user2_viv, dummy_monto, p["e"])  # 2 4
 
-    S(user2_viv, dummy_monto, p["e"]) # 1 2 3 4
-    S(user4_viv, dummy_monto, p["e"]) # 1 2 3 4
-    S(user4_viv, dummy_monto, p["e"]) # 1 2 3 4
+    S(user2_viv, dummy_monto, p["e"])  # 1 2 3 4
+    S(user4_viv, dummy_monto, p["e"])  # 1 2 3 4
+    S(user4_viv, dummy_monto, p["e"])  # 1 2 3 4
     # f
     # g
-    N(user4_viv, dummy_monto, p["g"]) # 4
-    N(user4_viv, dummy_monto, p["g"]) # 4
-    N(user4_viv, dummy_monto, p["g"]) # 4
+    N(user4_viv, dummy_monto, p["g"])  # 4
+    N(user4_viv, dummy_monto, p["g"])  # 4
+    N(user4_viv, dummy_monto, p["g"])  # 4
 
-    S(user4_viv, dummy_monto, p["g"]) # 1 3 4
+    S(user4_viv, dummy_monto, p["g"])  # 1 3 4
     # h
-    N(user1_viv, dummy_monto, p["h"]) # 1 3
+    N(user1_viv, dummy_monto, p["h"])  # 1 3
 
-    S(user1_viv, dummy_monto, p["h"]) # 1 3 4
-    S(user3_viv, dummy_monto, p["h"]) # 1 3 4
-    S(user3_viv, dummy_monto, p["h"]) # 1 3 4
+    S(user1_viv, dummy_monto, p["h"])  # 1 3 4
+    S(user3_viv, dummy_monto, p["h"])  # 1 3 4
+    S(user3_viv, dummy_monto, p["h"])  # 1 3 4
     # i
     # j
-    N(user1_viv, dummy_monto, p["j"]) # 1 3 4
-    N(user4_viv, dummy_monto, p["j"]) # 1 3 4
-    N(user4_viv, dummy_monto, p["j"]) # 1 3 4
+    N(user1_viv, dummy_monto, p["j"])  # 1 3 4
+    N(user4_viv, dummy_monto, p["j"])  # 1 3 4
+    N(user4_viv, dummy_monto, p["j"])  # 1 3 4
 
-    S(user1_viv, dummy_monto, p["j"]) # 1 3 4
-    S(user3_viv, dummy_monto, p["j"]) # 1 3 4
-    S(user3_viv, dummy_monto, p["j"]) # 1 3 4
+    S(user1_viv, dummy_monto, p["j"])  # 1 3 4
+    S(user3_viv, dummy_monto, p["j"])  # 1 3 4
+    S(user3_viv, dummy_monto, p["j"])  # 1 3 4
     # k
-    N(user5_viv, dummy_monto, p["k"]) # 4 5
+    N(user5_viv, dummy_monto, p["k"])  # 4 5
 
-    S(user4_viv, dummy_monto, p["k"]) # 1 4 5
-    S(user4_viv, dummy_monto, p["k"]) # 1 4 5
-    S(user5_viv, dummy_monto, p["k"]) # 1 4 5
+    S(user4_viv, dummy_monto, p["k"])  # 1 4 5
+    S(user4_viv, dummy_monto, p["k"])  # 1 4 5
+    S(user5_viv, dummy_monto, p["k"])  # 1 4 5
     # l
-    N(user5_viv, dummy_monto, p["l"]) # 5
-    N(user5_viv, dummy_monto, p["l"]) # 5
-    N(user5_viv, dummy_monto, p["l"]) # 5
+    N(user5_viv, dummy_monto, p["l"])  # 5
+    N(user5_viv, dummy_monto, p["l"])  # 5
+    N(user5_viv, dummy_monto, p["l"])  # 5
 
-    S(user5_viv, dummy_monto, p["l"]) # 1 4 5
+    S(user5_viv, dummy_monto, p["l"])  # 1 4 5
     # m
-    N(user5_viv, dummy_monto, p["m"]) # 5
+    N(user5_viv, dummy_monto, p["m"])  # 5
 
-    S(user5_viv, dummy_monto, p["m"]) # 1 4 5
-    S(user5_viv, dummy_monto, p["m"]) # 1 4 5
-    S(user5_viv, dummy_monto, p["m"]) # 1 4 5
+    S(user5_viv, dummy_monto, p["m"])  # 1 4 5
+    S(user5_viv, dummy_monto, p["m"])  # 1 4 5
+    S(user5_viv, dummy_monto, p["m"])  # 1 4 5
     # n
-    N(user1_viv, dummy_monto, p["n"]) # 1 4 5
-    N(user4_viv, dummy_monto, p["n"]) # 1 4 5
+    N(user1_viv, dummy_monto, p["n"])  # 1 4 5
+    N(user4_viv, dummy_monto, p["n"])  # 1 4 5
 
-    S(user1_viv, dummy_monto, p["n"]) # 1 4 5
-    S(user4_viv, dummy_monto, p["n"]) # 1 4 5
-    S(user5_viv, dummy_monto, p["n"]) # 1 4 5
-    S(user5_viv, dummy_monto, p["n"]) # 1 4 5
+    S(user1_viv, dummy_monto, p["n"])  # 1 4 5
+    S(user4_viv, dummy_monto, p["n"])  # 1 4 5
+    S(user5_viv, dummy_monto, p["n"])  # 1 4 5
+    S(user5_viv, dummy_monto, p["n"])  # 1 4 5
 
     return {
         "user1": user1,

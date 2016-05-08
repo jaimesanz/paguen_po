@@ -12,10 +12,10 @@ from django.db.models import Q
 def get_current_year_month_obj():
     """
     Returns the current YearMonth period.
-    If the YarMonth doesn't exist, it creates it.
+    If the YearMonth doesn't exist, it creates it.
     """
     today = timezone.now()
-    year_month, creted = YearMonth.objects.get_or_create(
+    year_month, created = YearMonth.objects.get_or_create(
         year=today.year, month=today.month)
     return year_month
 
@@ -69,7 +69,7 @@ class ProxyUser(User):
 
     def get_vu(self):
         """
-        Returns the user's current active vivienda, or None if it doens't have
+        Returns the user's current active Vivienda, or None if it does not have
         one.
         """
         return ViviendaUsuario.objects.filter(
@@ -98,7 +98,7 @@ class ProxyUser(User):
 
     def get_vivienda(self):
         """
-        Returns the active vivienda of the user, or None if it doesn't
+        Returns the active Vivienda of the user, or None if it doesn't
         have any.
         """
         vivienda_usuario = self.get_vu()
@@ -111,7 +111,7 @@ class ProxyUser(User):
         """
         Returns a list of all active members of the Vivienda,
         including the User that calls the method.
-        If there's no active vivienda, returns None
+        If there's no active Vivienda, returns None
         """
         return ViviendaUsuario.objects.filter(
             vivienda=self.get_vivienda(),
@@ -139,7 +139,7 @@ class ProxyUser(User):
 
     def pagar(self, gasto, fecha_pago=timezone.now().date()):
         """
-        Sets the state of the given Gasto as "pagado", and it's usuario field
+        Sets the state of the given Gasto as "pagado", and it's "usuario" field
         as the User's active ViviendaUsuario.
         If the user has no active Vivienda, returns None and does nothing.
         """
@@ -232,8 +232,8 @@ class ProxyUser(User):
     def is_out(self):
         """
         Returns True if today's date falls within the range of any
-        UserIsOut instance realted to this user's ViviendaUsuario.
-        If this doesn't heppen, or if the user doesn't have a Vivienda,
+        UserIsOut instance related to this user's ViviendaUsuario.
+        If this doesn't happen, or if the user doesn't have a Vivienda,
         returns False.
         """
         if not self.has_vivienda():
@@ -248,14 +248,14 @@ class ProxyUser(User):
         """
         If the given User and this User belong to the same Vivienda, and both
         Users are active in this Vivienda, this method creates 2 new
-        Gasto instances with a paid state and Caetgoria "Transferencia", and
+        Gasto instances with a paid state and Categoria "Transferencia", and
         returns a tuple with both new Gastos.
 
         The first Gasto has a positive "monto" field equal to the given monto,
         and is linked to this User (self).
         The second Gasto has a NEGATIVE "monto" field equal to -1 times the
         given monto, and is linked to the given User (parameter).
-        This way, this User effectively "transfered" a given monto to the
+        This way, this User effectively "transferred" a given monto to the
         given User.
         """
         users_have_vivienda = self.has_vivienda() and user.has_vivienda()
@@ -345,7 +345,7 @@ class Vivienda(models.Model):
     def get_all_vivienda_categorias_with_is_hidden_field(self):
         """
         Returns a QuerySet with all Categoria objects related to the Vivienda,
-        including the hidden categorias
+        including the hidden Categoria instances
         """
         return Categoria.objects.filter(vivienda=self, is_transfer=False)
 
@@ -445,7 +445,7 @@ class Vivienda(models.Model):
     def get_active_users_balance(self):
         """
         Returns a dict where the keys are the names of the users
-        and the values are the difference bewtween that user's total
+        and the values are the difference between that user's total
         expenses and the user that has spent the least amount of money.
         Note: the latter will always have a value of 0.
         """
@@ -462,7 +462,7 @@ class Vivienda(models.Model):
         a new one is created using the user's Vivienda and the given String
         as the Categoria's "nombre" field.
         Returns a tuple (Categoria, String):
-        - the first element is the newly created categoria, or None
+        - the first element is the newly created Categoria, or None
         if there was any error creating it
         - the String is a message explaining what happened (it
         failed for some reason / it finished successfully)
@@ -480,7 +480,7 @@ class Vivienda(models.Model):
 
     def get_vivienda_global_categorias(self):
         """
-        Returns the global Categorias related to this vivienda
+        Returns the global Categorias related to this Vivienda
         """
         global_cats = Categoria.objects.filter(vivienda=None).values("nombre")
         this_viv_global = Categoria.objects.filter(
@@ -490,7 +490,7 @@ class Vivienda(models.Model):
 
     def get_vivienda_custom_categorias(self):
         """
-        Returns the custom Categorias related to this vivienda
+        Returns the custom Categorias related to this Vivienda
         """
         global_cats = Categoria.objects.filter(vivienda=None).values("nombre")
         custom_cats = Categoria.objects.filter(
@@ -538,8 +538,6 @@ class Vivienda(models.Model):
         Given a set of ViviendaUsuario instances and a date, returns a
         subset of the original set with all ViviendaUsuario instances
         that were active at the given date
-
-        TODO Testing
         """
         active_at_date = set()
         for vu in user_set:
@@ -634,7 +632,7 @@ class Vivienda(models.Model):
 
         IMPORTANT Explanation:
         Q: why are the actual totals per user LESS than the "naive" approach
-        of just adding up every Gasto payed by each currenlty active user?
+        of just adding up every Gasto payed by each currently active user?
 
         A: Suppose there was a time when users A and B were sharing expenses,
         but user C was not a part of the Vivienda yet. Furthermore, say B
@@ -691,7 +689,7 @@ class Vivienda(models.Model):
         The second dict represents how much each User should have spent.
         Both dicts must have the same Keys.
         Returns a dict of the form:
-        {"User": ("User", Integer), ("User", Ineteger), ...}
+        {"User": ("User", Integer), ("User", Integer), ...}
         Where each tuple represents how much the Key-User has to transfer
         to the Tuple-User so that everyone ends up spending the same.
         """
@@ -724,7 +722,7 @@ class Vivienda(models.Model):
                     if this_transfer == 0:
                         break
                     # neg_user must transfer as much as he can to pos_user,
-                    # but without transfering more than pos_total.
+                    # but without transferring more than pos_total.
                     transfer_monto = min(neg_total, pos_total)
                     transfers[neg_user].append((pos_user, transfer_monto))
                     pos[pos_user] -= transfer_monto
@@ -810,7 +808,7 @@ class ViviendaUsuario(models.Model):
 
     def pagar(self, gasto, fecha_pago=timezone.now().date()):
         """
-        Sets the state of the given Gasto as "pagado", and it's usuario field
+        Sets the state of the given Gasto as "pagado", and it's "usuario" field
         as the ViviendaUsuario.
         """
         gasto.usuario = self
@@ -927,7 +925,7 @@ class Categoria(models.Model):
 
     def is_global(self):
         """
-        Returns True if the categoria is Global and shared with every Vivienda
+        Returns True if the Categoria is Global and shared with every Vivienda
         """
         return Categoria.objects.filter(
             vivienda=None,
@@ -1239,7 +1237,7 @@ class ListaCompras(models.Model):
 
     def discard_items(self):
         """
-        Deletes all ItemLista with a pending stateobjects linked
+        Deletes all ItemLista instances with a pending state linked
         to the ListaCompras
         """
         for item in self.get_missing_items():
