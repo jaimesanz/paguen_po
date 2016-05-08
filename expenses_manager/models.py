@@ -630,7 +630,38 @@ class Vivienda(models.Model):
         {User: Integer}
         The first dict represents how much the User has spent in Gastos that
         are shared with the active users, and the second dict represents how
-        much the user should've spent
+        much the user should've spent.
+
+        IMPORTANT Explanation:
+        Q: why are the actual totals per user LESS than the "naive" approach
+        of just adding up every Gasto payed by each currenlty active user?
+
+        A: Suppose there was a time when users A and B were sharing expenses,
+        but user C was not a part of the Vivienda yet. Furthermore, say B
+        left a couple of weeks ago, and is no longer a part of the Vivienda.
+        Thus, if A spent money when only A and B were roommates, C should not
+        PERCEIVE this Gasto.
+
+        If A was awarded that whole Gasto's monto, then this would unbalance
+        the total amounts per user, because this would mean C is ALSO
+        responsible for a portion of that Gasto.
+
+        C should perceive that A spent that money at that time, but only half
+        of it was meant for himself (because it was shared with B).
+        Then, user A should be awarded part of that expense: the portion of it
+        that was shared with users that are still active TODAY.
+
+        Let's look at another example: suppose there was a time when users A,
+        B and C shared the Vivienda, and A made a Gasto for 1000. However,
+        today only A, C and D share the Vivienda. This would mean that 2/3 of
+        that Gasto's monto should be added to the total of A.
+        Why?
+        Because A and C (2 users) perceived that Gasto, but it was
+        also split with B at the time (3 users), meaning it was split
+        into 3 parts. However, only 2 of those 3 users are still active
+        => only 2/3 parts of the monto should be added to A.
+        The other 1/3 part is assumed to have been balanced with B before
+        she/he left.
         """
         actual_total_per_user = dict()
         expected_total_per_user = dict()
@@ -651,70 +682,6 @@ class Vivienda(models.Model):
                 expected_total_per_user[vu] += share / len(today_users)
 
         return (actual_total_per_user, expected_total_per_user)
-
-    # ---------------------------
-    # old
-
-    def get_expected_total_per_active_user_with_vacations(self):
-        """
-        Returns a dict of the form:
-        {"User": Integer}
-        The Integer represents how much money the User SHOULD have spent
-        considering the periods where he/she wasn't active or was on
-        vacation.
-        """
-        active_vivienda_usuario = ViviendaUsuario.objects.filter(
-            vivienda=self,
-            estado="activo")
-        active_users = set([vu.user for vu in active_vivienda_usuario])
-        user_expenses = {}
-        for u in active_users:
-            user_expenses[u] = 0
-        gastos = Gasto.objects.filter(
-            creado_por__vivienda=self,
-            estado=get_done_estado_gasto(),
-            categoria__is_shared=True)
-        for gasto in gastos:
-            fecha_gasto = gasto.fecha_pago
-            candidates = self.get_active_users_at_date(fecha_gasto)
-            # check if gasto is shared on leave
-            if not gasto.categoria.is_shared_on_leave:
-                # hard case: if not, check which users were on vacation at
-                # the time the Gasto was created, and then DONT add this monto
-                # to those users
-                users_on_vacation = self.get_users_on_vacation_at_date(
-                    fecha_gasto)
-                candidates = set(candidates) - users_on_vacation
-
-            share = gasto.monto / len(candidates)
-            for candidate in candidates:
-                if user_expenses.get(candidate.user, None) is not None:
-                    user_expenses[candidate.user] += share
-
-        return user_expenses
-
-    def get_active_users_at_date(self, date):
-        """
-        Returns A QuerySet with all ViviendaUsuario instances that were
-        active at the given date
-        """
-        query = ViviendaUsuario.objects.filter(
-            Q(fecha_creacion__lte=date, estado="activo") |
-            Q(fecha_creacion__lte=date, fecha_abandono__gte=date))
-        return query
-
-    def get_users_on_vacation_at_date(self, date):
-        """
-        Returns a Set with all vivienda_usuarios that were active
-        but on vacation at the given date
-        """
-        vacs_at_the_time = UserIsOut.objects.filter(
-            fecha_inicio__lte=date,
-            fecha_fin__gte=date)
-        users_on_vacation = set()
-        for vac in vacs_at_the_time:
-            users_on_vacation.add(vac.vivienda_usuario)
-        return users_on_vacation
 
     def compute_balance(self, actual, expected):
         """
@@ -766,25 +733,25 @@ class Vivienda(models.Model):
         else:
             return None
 
-    def get_balance_with_vacations(self):
+    def get_smart_balance(self):
         """
-        Returns a dict with the following format:
-        {User: (User, Integer), (User, Integer), ...}
-        Each key represents a user who owes money to others. The value of this
-        key is a list of tuples, where each tuple has another User, and an
-        Ineteger. This tuples represents the User that the Key-User owes
-        money to, and the Integer represents how much.
+        Computes the instructions for users to balance out their shared
+        expenses
         """
-        actual_total_per_user = self.get_total_expenses_per_active_user()
-        expected = self.get_expected_total_per_active_user_with_vacations()
-        # TODO this assumes that the sum of actual_total_per_user is the same
-        # as the sum of expected. This SHOULD always be the case, but it's
-        # not extensyvely tested!
-        # If this values don't match, the compute balance method does nothing!
-        # What should be the desired behaviour in thi case???
-        return self.compute_balance(
-            actual=actual_total_per_user,
-            expected=expected)
+        all_users = ViviendaUsuario.objects.filter(
+            vivienda=self)
+        active_users = all_users.filter(estado="activo")
+        vacations = UserIsOut.objects.filter(vivienda_usuario__vivienda=self)
+        gasto_user_dict = self.get_smart_gasto_dict(
+            active_users=active_users,
+            all_users=all_users,
+            vacations=vacations)
+
+        (actual_totals,
+         expected_totals) = self.get_reversed_user_totals_dict(
+            gasto_user_dict)
+
+        return self.compute_balance(actual_totals, expected_totals)
 
     def __str__(self):
         return self.alias

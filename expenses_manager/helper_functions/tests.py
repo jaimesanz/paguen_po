@@ -565,7 +565,13 @@ def get_HARDEST_balance_test_database():
         "user3_viv": user3_viv,
         "user4_viv": user4_viv,
         "user5_viv": user5_viv,
-        "vivienda": vivienda
+        "vivienda": vivienda,
+        "pA": p["a"],
+        "pB": p["b"],
+        "pC": p["c"],
+        "pD": p["d"],
+        "pE": p["e"],
+        "pF": p["f"]
     }
 
 

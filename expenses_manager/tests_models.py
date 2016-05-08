@@ -583,42 +583,65 @@ class ViviendaModelTest(TestCase):
         user1 = db["user1"]
         user2 = db["user2"]
         user3 = db["user3"]
+
+        user1_viv = db["user1_viv"]
+        user2_viv = db["user2_viv"]
+        user3_viv = db["user3_viv"]
+
         vivienda = db["vivienda"]
+
         user1.go_on_vacation(start_date=db["pB"], end_date=db["pD"])
         # user3 is out from period C-E
         user3.go_on_vacation(start_date=db["pC"], end_date=db["pE"])
+
         # Gnsl1 = user1 makes gasto cat_not_shared_on_leave on A for 1200
-        Gnsl1 = Gasto.objects.create(
+        gnsl1 = Gasto.objects.create(
             monto=1200,
             creado_por=user1.get_vu(),
             categoria=db["cat_not_shared_on_leave"])
-        user1.pagar(Gnsl1, fecha_pago=db["pA"])
+        user1.pagar(gnsl1, fecha_pago=db["pA"])
         # Gnsl2 = user2 makes gasto cat_not_shared_on_leave on C for 2000
-        Gnsl2 = Gasto.objects.create(
+        gnsl2 = Gasto.objects.create(
             monto=2000,
             creado_por=user2.get_vu(),
             categoria=db["cat_not_shared_on_leave"])
-        user2.pagar(Gnsl2, fecha_pago=db["pC"])
+        user2.pagar(gnsl2, fecha_pago=db["pC"])
         # Gsl1 = user3 makes gasto cat_shared_on_leave on B for 1500
-        Gsl1 = Gasto.objects.create(
+        gsl1 = Gasto.objects.create(
             monto=1500,
             creado_por=user3.get_vu(),
             categoria=db["cat_shared_on_leave"])
-        user3.pagar(Gsl1, fecha_pago=db["pB"])
+        user3.pagar(gsl1, fecha_pago=db["pB"])
         # periods  :    A   |    B   | C
-        # gastos   :  Gnsl1 |  Gsl1  | Gnsl2
+        # gastos   :  gnsl1 |  gsl1  | gnsl2
         # users out:  none  |  user1 | (user1, user3)
-        # Gnsl1 should be payed by: all => +400 each
-        # Gsl1 should be payed by: all => +500 each
-        # Gnsl2 should be payed by: user2 => +2000 user2
+        # gnsl1 should be payed by: all => +400 each
+        # gsl1 should be payed by: all => +500 each
+        # gnsl2 should be payed by: user2 => +2000 user2
         # users have payed: {user1:1200, user2: 2000, user3: 1500}
 
-        total_per_user = vivienda.get_expected_total_per_active_user_with_vacations()
+        active_users = {user1_viv, user2_viv, user3_viv}
+        all_users = {user1_viv, user2_viv, user3_viv}
 
-        # users SHOULD have payed: {user1:900, user2: 2900, user3: 900}
-        self.assertEqual(total_per_user.get(user1, None), 900)
-        self.assertEqual(total_per_user.get(user2, None), 2900)
-        self.assertEqual(total_per_user.get(user3, None), 900)
+        vacations = vivienda.get_vacations_after_date(db["pA"])
+
+        gastos_users_dict = vivienda.get_smart_gasto_dict(
+            active_users,
+            all_users,
+            vacations)
+
+        (__, expected_per_user) = vivienda.get_reversed_user_totals_dict(
+            gastos_users_dict)
+
+        # users SHOULD have payed:
+        # {
+        #   user1_viv:900,
+        #   user2_viv: 2900,
+        #   user3_viv: 900
+        # }
+        self.assertEqual(expected_per_user.get(user1_viv, None), 900)
+        self.assertEqual(expected_per_user.get(user2_viv, None), 2900)
+        self.assertEqual(expected_per_user.get(user3_viv, None), 900)
 
     def test_get_vacations_after_date_method(self):
         """
@@ -1651,190 +1674,304 @@ class ViviendaModelTest(TestCase):
             {(user2, 1500), (user4, 4000)}
         )
 
-    # def test_get_balance_with_vacations_method(self):
-    #     db = get_setup_w_vivienda_3_users_and_periods()
-    #     user1 = db["user1"]
-    #     user2 = db["user2"]
-    #     user3 = db["user3"]
-    #     vivienda = db["vivienda"]
+    def test_get_smart_balance_no_left_no_vacation(self):
+        """
+        Tests that get_smart_balance correctly calls every helper method and
+        returns the excepted balance dict. This is the easiest of many cases.
+        """
+        db = get_setup_w_vivienda_3_users_and_periods()
 
-    #     # periods A,B,C,D,E
-    #     pA = db["pA"]
-    #     pB = db["pB"]
-    #     pC = db["pC"]
-    #     pD = db["pD"]
-    #     pE = db["pE"]
-    #     # user1 is out from period B-D
-    #     user1.go_on_vacation(start_date=pB, end_date=pD)
-    #     # user3 is out from period C-E
-    #     user3.go_on_vacation(start_date=pC, end_date=pE)
-    #     # Gnsl1 = user1 makes gasto cat_not_shared_on_leave on A for 1200
-    #     Gnsl1 = Gasto.objects.create(
-    #         monto=1200,
-    #         creado_por=user1.get_vu(),
-    #         categoria=db["cat_not_shared_on_leave"])
-    #     user1.pagar(Gnsl1, fecha_pago=pA)
-    #     # Gnsl2 = user2 makes gasto cat_not_shared_on_leave on C for 2000
-    #     Gnsl2 = Gasto.objects.create(
-    #         monto=2000,
-    #         creado_por=user2.get_vu(),
-    #         categoria=db["cat_not_shared_on_leave"])
-    #     user2.pagar(Gnsl2, fecha_pago=pC)
-    #     # Gsl1 = user3 makes gasto cat_shared_on_leave on B for 1500
-    #     Gsl1 = Gasto.objects.create(
-    #         monto=1500,
-    #         creado_por=user3.get_vu(),
-    #         categoria=db["cat_shared_on_leave"])
-    #     user3.pagar(Gsl1, fecha_pago=pB)
-    #     # periods  :    A   |    B   | C
-    #     # gastos   :  Gnsl1 |  Gsl1  | Gnsl2
-    #     # users out:  none  |  user1 | (user1, user3)
-    #     # Gnsl1 should be payed by: all => +400 each
-    #     # Gsl1 should be payed by: all => +500 each
-    #     # Gnsl2 should be payed by: user2 => +2000 user2
-    #     # users have payed: {user1:1200, user2: 2000, user3: 1500}
-    #     # users SHOULD have payed: {user1:900, user2: 2900, user3: 900}
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        user2_viv = user2.get_vu()
+        vivienda = db["vivienda"]
 
-    #     balance = vivienda.get_balance_with_vacations()
+        cat_shared_on_leave = db["cat_shared_on_leave"]
 
-    #     # result dict should be:
-    #     # {user2: [(user1, 300), (user3, 600)]}
-    #     self.assertEqual(balance.get(user1, None), None)
-    #     self.assertEqual(balance.get(user3, None), None)
+        gasto_1 = Gasto.objects.create(
+            monto=1200,
+            creado_por=user1_viv,
+            categoria=cat_shared_on_leave)
+        user1_viv.pagar(gasto_1, fecha_pago=db["pB"])
 
-    #     user2_transfers = balance.get(user2, None)
-    #     self.assertNotEqual(user2_transfers, None)
-    #     self.assertEqual(len(user2_transfers), 2)
-    #     self.assertEqual(
-    #         set(user2_transfers),
-    #         set([(user1, 300), (user3, 600)])
-    #     )
+        gasto_2 = Gasto.objects.create(
+            monto=3000,
+            creado_por=user2_viv,
+            categoria=cat_shared_on_leave)
+        user2_viv.pagar(gasto_2, fecha_pago=db["pD"])
 
-    # def test_get_total_expenses_per_active_user_method_complex_DB(self):
-    #     db = get_HARDEST_balance_test_database()
+        transfers = vivienda.get_smart_balance()
 
-    #     user1 = db["user1"]
-    #     user2 = db["user2"]
-    #     user3 = db["user3"]
-    #     user4 = db["user4"]
-    #     user5 = db["user5"]
-    #     vivienda = db["vivienda"]
+        self.assertEqual(transfers.get(user2_viv, None), None)
 
-    #     # NAIVE totals per user
-    #     # 1: N:9000 S:5000 -> 14000
-    #     # 2: N:4000 S:3000 -> 7000
-    #     # 3: N:2000 S:6000 -> 8000
-    #     # 4: N:7000 S:6000 -> 13000
-    #     # 5: N:5000 S:7000 -> 12000
-    #     # total:
-    #     # 9000 + 5000 + 4000 + 3000 + 2000 + 6000 + 7000 + 6000 + 5000 + 7000
-    #     # = 54000
+        self.assertEqual(
+            transfers.get(user1_viv, None),
+            [(user2_viv, 200)]
+        )
+        self.assertEqual(
+            transfers.get(user3_viv, None),
+            [(user2_viv, 1400)]
+        )
 
-    #     # IMPORTANT Explanation:
-    #     # this is NAIVE because there was a time when user1 was spending
-    #     # money for himself and user2, but user5 was not a part of
-    #     # the Vivienda. user2 is no longer a part of the Vivienda, meaning
-    #     # that user5 should not PERCEIVE that user1 spent that money.
+    def test_get_smart_balance_no_left_w_vacation(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
 
-    #     # If he did perceive this, it would unbalance the amounts spent
-    #     # by each user (1 and 5), thus creating an error:
-    #     # user5 is not responsable for balancing THOSE Gastos,
-    #     # because he was not even there.
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        user2_viv = user2.get_vu()
+        vivienda = db["vivienda"]
 
-    #     total_per_user = vivienda.get_total_expenses_per_active_user()
+        vac2, __ = user2.go_on_vacation(start_date=db["pB"], end_date=db["pD"])
 
-    #     self.assertEqual(total_per_user[user1], 14000)
-    #     self.assertEqual(total_per_user.get(user2, None), None)
-    #     self.assertEqual(total_per_user.get(user3, None), None)
-    #     self.assertEqual(total_per_user[user4], 13000)
-    #     self.assertEqual(total_per_user[user5], 12000)
+        vacations = [vac2]
 
-    # def test_total_per_user_active_share_only_complex_DB(self):
-    #     db = get_HARDEST_balance_test_database()
+        all_users = {user1_viv, user2_viv, user3_viv}
 
-    #     user1 = db["user1"]
-    #     user2 = db["user2"]
-    #     user3 = db["user3"]
-    #     user4 = db["user4"]
-    #     user5 = db["user5"]
-    #     vivienda = db["vivienda"]
+        cat_not_shared_on_leave = db["cat_not_shared_on_leave"]
+        cat_shared_on_leave = db["cat_shared_on_leave"]
 
-    #     tot_p_user_active_share = vivienda.total_per_user_active_share_only()
-    #     # adding everything "by hand"
-    #     # yields this:
-    #     # {
-    #     #     1: 8166.666666666666,
-    #     #     4: 7333.333333333332,
-    #     #     5: 6833.333333333331
-    #     # }
+        gasto_1 = Gasto.objects.create(
+            monto=1200,
+            creado_por=user1_viv,
+            categoria=cat_shared_on_leave)
+        user1_viv.pagar(gasto_1, fecha_pago=db["pB"])
 
-    #     # IMPORTANT Explanation:
-    #     # Q: why is this LESS than the NAIVE method?
+        gasto_2 = Gasto.objects.create(
+            monto=3000,
+            creado_por=user3_viv,
+            categoria=cat_not_shared_on_leave)
+        user3_viv.pagar(gasto_2, fecha_pago=db["pD"])
 
-    #     # A: Supose there was a time when users 1 and 2 were sharing expenses,
-    #     # but user 5 was not a part of the Vivienda yet. Furthermore, user2
-    #     # is no longer a part of the vivienda. Thus, if user1 spent money when
-    #     # only 1 and 2 were roommates, user5 should not PERCEIVE this Gasto.
-    #     # If user1 was awarded that whole Gasto's monto, then
-    #     # this would unbalance the total amounts per user, because this would
-    #     # mean user5 is ALSO responsable for a portion of that Gasto.
+        transfers = vivienda.get_smart_balance()
 
-    #     # user5 should perceive that user1 spent that money at the time,
-    #     # but only half of it was for himself (because it was shared with
-    #     # user2). user1 should be awarded part of that expense: the portion
-    #     # of it that was shared with users that are still active TODAY.
+        self.assertEqual(
+            transfers.get(user1_viv, None),
+            [(user3_viv, 700)]
+        )
+        self.assertEqual(
+            transfers.get(user2_viv, None),
+            [(user3_viv, 400)]
+        )
+        self.assertEqual(
+            transfers.get(user3_viv, None),
+            None
+        )
 
-    #     # For instance, suppose there was a time when users 1,2 and 4 shared
-    #     # the Vivienda, and user1 made a Gasto for 1000. However, today only
-    #     # 1,4 and 5 share the Vivienda. This would mean that 2/3 of that
-    #     # Gasto's monto should be added to the total of user1.
-    #     # Why?
-    #     # Because user1 and user4 (2 users) perceived that gasto, but it was
-    #     # also split with user2 at the time (3 users), meaning it was split
-    #     # into 3 parts. However, only 2 of those 3 users are still active
-    #     # => only 2/3 parts of the monto should be added to user1.
-    #     # The ther 1/3 part is assumed to have been balanced with user2 before
-    #     # she/he left.
+    def test_get_smart_balance_w_left_w_vacation(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
 
-    #     self.assertEqual(int(tot_p_user_active_share[user1]), 8166)
-    #     self.assertEqual(tot_p_user_active_share.get(user2, None), None)
-    #     self.assertEqual(tot_p_user_active_share.get(user3, None), None)
-    #     self.assertEqual(int(tot_p_user_active_share[user4]), 7333)
-    #     self.assertEqual(int(tot_p_user_active_share[user5]), 6833)
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+        user1_viv = user1.get_vu()
+        user3_viv = user3.get_vu()
+        user2_viv = user2.get_vu()
+        vivienda = db["vivienda"]
 
-    # def test_get_balance_with_vacations_method_complex_DB(self):
-    #     db = get_HARDEST_balance_test_database()
+        user2_viv.fecha_abandono = db["pC"]
+        user2_viv.estado = "inactivo"
 
-    #     user1 = db["user1"]
-    #     user2 = db["user2"]
-    #     user3 = db["user3"]
-    #     user4 = db["user4"]
-    #     user5 = db["user5"]
-    #     vivienda = db["vivienda"]
+        user3_viv.fecha_creacion = db["pC"]
 
-    #     expected = vivienda.get_expected_total_per_active_user_with_vacations()
+        vac1, __ = user1.go_on_vacation(start_date=db["pB"], end_date=db["pC"])
+        vac3, __ = user3.go_on_vacation(start_date=db["pE"])
 
-    #     # adding everything "by hand"
-    #     # yields this:
-    #     # {
-    #     #     1: 15333.333333333345,
-    #     #     2: 4333.333333333333,
-    #     #     3: 8166.666666666664,
-    #     #     4: 17333.333333333343,
-    #     #     5: 8833.333333333332
-    #     # }
-    #     # sum is 54000.000000000015 (close enough)
+        cat_not_shared_on_leave = db["cat_not_shared_on_leave"]
+        cat_shared_on_leave = db["cat_shared_on_leave"]
 
-    #     self.assertEqual(int(expected[user1]), 15333)
-    #     self.assertEqual(expected.get(user2, None), None)
-    #     self.assertEqual(expected.get(user3, None), None)
-    #     self.assertEqual(int(expected[user4]), 17333)
-    #     self.assertEqual(int(expected[user5]), 8833)
+        gasto_1 = Gasto.objects.create(
+            monto=1200,
+            creado_por=user2_viv,
+            categoria=cat_not_shared_on_leave)
+        user2_viv.pagar(gasto_1, fecha_pago=db["pB"])
 
-    #     balance = vivienda.get_balance_with_vacations()
+        gasto_2 = Gasto.objects.create(
+            monto=1500,
+            creado_por=user3_viv,
+            categoria=cat_shared_on_leave)
+        user3_viv.pagar(gasto_2, fecha_pago=db["pC"])
 
-    #     self.assertNotEqual(balance, None)
-    #     self.fail()
+        gasto_3 = Gasto.objects.create(
+            monto=2000,
+            creado_por=user1_viv,
+            categoria=cat_shared_on_leave)
+        user1_viv.pagar(gasto_3, fecha_pago=db["pE"])
+
+        # save so that the fields are actually modified
+        user2_viv.save()
+        user3_viv.save()
+
+        transfers = vivienda.get_smart_balance()
+
+        self.assertEqual(transfers.get(user1_viv, None), None)
+        self.assertEqual(transfers.get(user2_viv, None), None)
+        self.assertEqual(
+            transfers.get(user3_viv, None),
+            [(user1_viv, 500)]
+        )
+
+    def test_get_smart_balance_hard_database(self):
+        db = get_hard_balance_test_database()
+
+        user1_viv = db["user1_viv"]
+        user2_viv = db["user2_viv"]
+        user3_viv = db["user3_viv"]
+        vivienda = db["vivienda"]
+
+        transfers = vivienda.get_smart_balance()
+
+        self.assertEqual(transfers.get(user1_viv, None), None)
+        self.assertEqual(transfers.get(user2_viv, None), None)
+        self.assertNotEqual(transfers.get(user3_viv, None), None)
+        user_to_transfer = transfers.get(user3_viv)[0][0]
+        monto_to_transfer = transfers.get(user3_viv)[0][1]
+        self.assertEqual(user_to_transfer, user1_viv)
+        self.assertAlmostEqual(
+            monto_to_transfer,
+            1500,
+            delta=5
+        )
+
+    def test_get_balance_with_vacations_method_harder(self):
+        db = get_setup_w_vivienda_3_users_and_periods()
+        user1 = db["user1"]
+        user2 = db["user2"]
+        user3 = db["user3"]
+
+        user1_viv = user1.get_vu()
+        user2_viv = user2.get_vu()
+        user3_viv = user3.get_vu()
+
+        vivienda = db["vivienda"]
+
+        user1.go_on_vacation(start_date=db["pB"], end_date=db["pD"])
+        user3.go_on_vacation(start_date=db["pC"], end_date=db["pE"])
+
+        gnsl1 = Gasto.objects.create(
+            monto=1200,
+            creado_por=user1.get_vu(),
+            categoria=db["cat_not_shared_on_leave"])
+        user1.pagar(gnsl1, fecha_pago=db["pA"])
+
+        gnsl2 = Gasto.objects.create(
+            monto=2000,
+            creado_por=user2.get_vu(),
+            categoria=db["cat_not_shared_on_leave"])
+        user2.pagar(gnsl2, fecha_pago=db["pC"])
+
+        gsl1 = Gasto.objects.create(
+            monto=1500,
+            creado_por=user3.get_vu(),
+            categoria=db["cat_shared_on_leave"])
+        user3.pagar(gsl1, fecha_pago=db["pB"])
+
+        # periods  :    A   |    B   | C
+        # gastos   :  gnsl1 |  gsl1  | gnsl2
+        # users out:  none  |  user1 | (user1, user3)
+        # gnsl1 should be payed by: all => +400 each
+        # gsl1 should be payed by: all => +500 each
+        # gnsl2 should be payed by: user2 => +2000 user2
+        # users have payed: {user1:1200, user2: 2000, user3: 1500}
+        # users SHOULD have payed: {user1:900, user2: 2900, user3: 900}
+
+        transfers = vivienda.get_smart_balance()
+
+        # result dict should be:
+        # {user2_viv: [(user1_viv, 300), (user3_viv, 600)]}
+        self.assertEqual(transfers.get(user1_viv, None), None)
+        self.assertEqual(transfers.get(user3_viv, None), None)
+
+        user2_transfers = transfers.get(user2_viv, None)
+        self.assertNotEqual(user2_transfers, None)
+        self.assertEqual(len(user2_transfers), 2)
+        self.assertEqual(
+            set(user2_transfers),
+            {(user1_viv, 300), (user3_viv, 600)}
+        )
+
+    def test_get_reversed_user_totals_hardest(self):
+        db = get_HARDEST_balance_test_database()
+
+        user1_viv = db["user1_viv"]
+        user2_viv = db["user2_viv"]
+        user3_viv = db["user3_viv"]
+        user4_viv = db["user4_viv"]
+        user5_viv = db["user5_viv"]
+        vivienda = db["vivienda"]
+
+        active_users = {user1_viv, user4_viv, user5_viv}
+        all_users = {user1_viv, user2_viv, user3_viv, user4_viv, user5_viv}
+
+        vacations = vivienda.get_vacations_after_date(db["pA"])
+
+        gastos_users_dict = vivienda.get_smart_gasto_dict(
+            active_users,
+            all_users,
+            vacations)
+
+        (actual_totals,
+         expected_totals
+         ) = vivienda.get_reversed_user_totals_dict(gastos_users_dict)
+
+        self.assertAlmostEqual(
+            sum(actual_totals.values()),
+            sum(expected_totals.values()),
+            delta=5
+        )
+        self.assertEqual(actual_totals.get(user2_viv, None), None)
+        self.assertEqual(actual_totals.get(user3_viv, None), None)
+        self.assertEqual(expected_totals.get(user2_viv, None), None)
+        self.assertEqual(expected_totals.get(user3_viv, None), None)
+
+        # TODO calculate the correct values by hand and check if they are right
+        # THIS IS THE OLD SUM, CHECK IF RIGHT!!!!
+        # adding everything "by hand" yields this:
+        # {
+        #     1: 8166.666666666666,
+        #     4: 7333.333333333332,
+        #     5: 6833.333333333331
+        # }
+        self.assertNotEqual(actual_totals.get(user1_viv, None), None)
+        self.assertNotEqual(actual_totals.get(user4_viv, None), None)
+        self.assertNotEqual(actual_totals.get(user5_viv, None), None)
+
+        self.assertNotEqual(expected_totals.get(user1_viv, None), None)
+        self.assertNotEqual(expected_totals.get(user4_viv, None), None)
+        self.assertNotEqual(expected_totals.get(user5_viv, None), None)
+        self.fail("Missing tests to check if values are correct")
+
+    def test_get_smart_balance_hardest(self):
+        db = get_HARDEST_balance_test_database()
+
+        user1_viv = db["user1_viv"]
+        user2_viv = db["user2_viv"]
+        user3_viv = db["user3_viv"]
+        user4_viv = db["user4_viv"]
+        user5_viv = db["user5_viv"]
+        vivienda = db["vivienda"]
+
+        transfers = vivienda.get_smart_balance()
+
+        # adding everything "by hand"
+        # yields this:
+        # {
+        #     1: 15333.333333333345,
+        #     2: 4333.333333333333,
+        #     3: 8166.666666666664,
+        #     4: 17333.333333333343,
+        #     5: 8833.333333333332
+        # }
+        # TODO check values to see if balance is actually right
+        self.assertEqual(transfers.get(user2_viv, None), None)
+        self.assertEqual(transfers.get(user3_viv, None), None)
+
+        self.fail("Missing tests to check if values are correct")
 
 
 class ViviendaUsuarioModelTest(TestCase):
