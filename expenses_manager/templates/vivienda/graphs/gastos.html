@@ -3,7 +3,7 @@
 
 
 {% block custom_head %}
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.1/Chart.min.js"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/7.0.0/bootstrap-slider.min.js"></script>
 	<script type="text/javascript" src="{% static 'js/period_functions.js' %}"></script>
 	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/7.0.0/css/bootstrap-slider.min.css">
@@ -73,20 +73,6 @@
 	<script type="text/javascript">
 		$(document).ready(function(){
 
-			// get the color of the not checked categorias for later use wheen restarting the color aof a button
-			var not_checked_color = $("#categorias_checkbox").find("label").first().css("background-color")
-
-			$("label").click(function(){
-				// if checked, change to default not_checked_color
-				if($(this).hasClass("active")){
-					$(this).css("background-color", not_checked_color)
-				}
-				// if not checked, change to random color
-				else{
-					$(this).css("background-color", getRandomColor())
-				}
-			});
-
 			// get the range of periods (the labels, NOT the indexes)
 			var range_periods_labels = JSON.parse($("#ex19").attr("data-slider-ticks-labels"))
 
@@ -99,16 +85,27 @@
 			    }
 			});
 
-			Chart.defaults.global.responsive = true;
-
 			// starting null values for the yet-to-be-created graph
 			var ctx = $("#gastos_chart").get(0).getContext("2d");
 			var myChart = null;
 			var labels = [];
 
 			var options = {
-				multiTooltipTemplate: "$<%= $.format.number(value, '#,##0.#') %>",
-				tooltipTemplate : "<%=label%>: $<%= $.format.number(value, '#,##0.#') %>"
+				responsive: true,
+                responsiveAnimationDuration: 1000,
+				tooltips: {
+                    enabled: true,
+                    mode: 'single',
+                    callbacks: {
+                        label: function(tooltipItems, data) {
+                            index = tooltipItems.datasetIndex
+                            category = data.datasets[index].label
+                            return category + ': $' + $.format.number
+                                    (tooltipItems.yLabel,
+                                            '#,##0.#');
+                        }
+                    }
+                },
 			}
 			// this is the main method that generates the graph
 			$("#get_graph").click(function(){
@@ -133,10 +130,10 @@
 				}
 
 				// find active categorias
-				categorias = []
+				categorias = [];
 				$('#categorias_checkbox').find('.active').find("input").each(function(){
 					categorias.push($(this).attr("name"))
-				})
+				});
 
 				// include total of each period in graph?
 				include_total = $("#total_checkbox:checked").length;
@@ -161,6 +158,8 @@
 					dataType: "json",
 					success: function( data ) {
 						// update graph data
+                        colors = randomColors(Object.keys(data).length);
+                        idx=0;
 						for(var categoria_nombre in data){
 							if (data.hasOwnProperty(categoria_nombre)) {
 								values = data[categoria_nombre]
@@ -168,16 +167,15 @@
 								// periods are ordered!
 
 								// create dataset where the label is the name of the categoria, the data is the array with values per period and the color is the color of the highlighted checkbox of the categoria
-								color = $("input[name='" + categoria_nombre + "']").parent().css("background-color")
+                                color = getTransparentColor(colors[idx++], 1)
 								datasets.push(
 									{
 									    label: categoria_nombre,
-									    fillColor: color,
-									    strokeColor: color,
-									    pointColor: color,
-									    pointStrokeColor: "#fff",
-									    pointHighlightFill: "#fff",
-									    pointHighlightStroke: "rgba(220,220,220,1)",
+                                        backgroundColor: color,
+                                        borderColor: color,
+                                        borderWidth: 1,
+                                        hoverBackgroundColor: color,
+                                        hoverBorderColor: color,
 									    data: values
 									}
 								);
@@ -187,13 +185,16 @@
 						    labels: labels,
 						    datasets: datasets
 						};
-						console.log(data)
 
 						// graph must be destroyed and rebuild from scratch
 						if(myChart!=null){
 							myChart.destroy()
 						}
-						myChart = new Chart(ctx).Bar(data, options);
+						myChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: data,
+                            options: options
+                        });
 						// wait a sec before changing the messages
 						setTimeout(function(){
 							$(".alert-success").show();
