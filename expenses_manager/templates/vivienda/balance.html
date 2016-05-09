@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load bootstrap3 %}
 {% load static %}
-
+{% load humanize %}
 
 {% block custom_head %}
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.1/Chart.min.js"></script>
@@ -13,6 +13,7 @@
 {% block content %}
 	<h3>Balance de Gastos</h3>
 	{% bootstrap_button "Transferir" icon="share-alt" name="transfer_button" button_class="btn-warning" %}
+	{% bootstrap_button "¿Cómo balancear?" icon="transfer" name="instructions_button" button_class="btn-success" %}
 	<div id="transfer_modal" class="modal fade" role="dialog">
 		<div class="modal-dialog">
 			<!-- Modal content-->
@@ -34,10 +35,34 @@
 			</div>
 		</div>
 	</div>
-	<hr>
+    <hr>
+    <div id="instructions_div" style="display: none">
+        {% if instructions %}
+            <p>Para balancear los gastos de todos los usuarios, se deben seguir
+            estas instrucciones:</p>
+            <ul>
+            {% for vu, transfers in instructions.items %}
+                <li> {{ vu.user }} debe transferir: </li>
+                <ul>
+                    {% for t in transfers %}
+                        <li>
+                            ${{ t.1 | floatformat:"0" | intcomma }} a {{ t.0.user }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>Los usuarios ya se encuentran balanceados.</p>
+        {% endif %}
+        <hr>
+    </div>
 	<canvas id="user_expenses_chart"></canvas>
 	<script type="text/javascript">
 		$(document).ready(function(){
+            $("button[name=instructions_button]").click(function() {
+                $("#instructions_div").toggle()
+            })
 			$("button[name=transfer_button]").click(function(){
 				transfer_modal = $("#transfer_modal");
 				transfer_modal.modal("toggle");
@@ -53,7 +78,7 @@
 			labels = []
 			values = []
 			var myChart = null
-			{% for vivienda_usuario, total in user_expenses.items %}
+			{% for vivienda_usuario, total in users_disbalance.items %}
 				labels.push("{{vivienda_usuario.user}}");
 				values.push(parseInt("{{total}}"));
 			{% endfor %}
