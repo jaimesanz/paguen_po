@@ -647,6 +647,9 @@ class Vivienda(models.Model):
         {"User": ("User", Integer), ("User", Integer), ...}
         Where each tuple represents how much the Key-User has to transfer
         to the Tuple-User so that everyone ends up spending the same.
+        :param actual: dict(User: Integer)
+        :param expected: dict(User: Integer)
+        :return: dict(User: List( Pair( User, Integer ) )
         """
         # check that dicts are valid:
         same_keys = set(actual.keys()) == set(expected.keys())
@@ -655,36 +658,71 @@ class Vivienda(models.Model):
             # compute dict for users with positive balance (has spent too
             # much) and dict for users with negative balance (has spent too
             # little)
-            pos = dict()
-            neg = dict()
+            balance = dict()
             for user, act in actual.items():
                 exp = expected.get(user)
-                balance = act - exp
-                if balance > 0:
-                    pos[user] = balance
-                elif balance < 0:
-                    neg[user] = abs(balance)
-                else:
-                    # user is OK
-                    pass
-            # users who have spent too little must transfer to users that have
-            # spent too much
-            transfers = dict()
-            for neg_user, neg_total in neg.items():
-                transfers[neg_user] = list()
-                this_transfer = neg_total
-                for pos_user, pos_total in pos.items():
-                    if this_transfer == 0:
-                        break
-                    # neg_user must transfer as much as he can to pos_user,
-                    # but without transferring more than pos_total.
-                    transfer_monto = min(neg_total, pos_total)
-                    transfers[neg_user].append((pos_user, transfer_monto))
-                    pos[pos_user] -= transfer_monto
-                    this_transfer -= transfer_monto
-            return transfers
+                balance[user] = act - exp
+            return self.get_instructions_from_disbalance(balance)
         else:
             return None
+
+    def get_pos_neg_dicts_from_disbalance(self, balance):
+        """
+        Given a (dis)balance dict of te form:
+        {
+            User : Integer
+        }
+        , returns a dict with only those users that have a positive balance (
+        have spent too much) and another dict only with users that have a
+        negative balance (have spent too little)
+        """
+        pos = dict()
+        neg = dict()
+        for user, balance in balance.items():
+            if balance > 0:
+                pos[user] = balance
+            elif balance < 0:
+                neg[user] = abs(balance)
+            else:
+                # user is exactly at 0
+                pass
+        return neg, pos
+
+    def get_instructions_from_pos_neg(self, neg, pos):
+        """
+        Generates the instructions to balance out the expenses of the
+        Vivienda's Users
+        :param neg: dict(User: Integer)
+        :param pos: dict(User: Integer)
+        :return: dict(User: List( Pair( User, Integer ) )
+        """
+        transfers = dict()
+        for neg_user, neg_total in neg.items():
+            transfers[neg_user] = list()
+            this_transfer = neg_total
+            for pos_user, pos_total in pos.items():
+                if this_transfer == 0:
+                    break
+                # neg_user must transfer as much as he can to pos_user,
+                # but without transferring more than pos_total.
+                transfer_monto = min(neg_total, pos_total)
+                transfers[neg_user].append((pos_user, transfer_monto))
+                pos[pos_user] -= transfer_monto
+                this_transfer -= transfer_monto
+        return transfers
+
+    def get_instructions_from_disbalance(self, balance):
+        """
+        Generates the instructions for the users to balance out their shared
+        expenses.
+        :param balance: dict(User: Integer)
+        :return: dict(User: List( Pair( User, Integer ) )
+        """
+        neg, pos = self.get_pos_neg_dicts_from_disbalance(balance)
+        # users who have spent too little must transfer to users that have
+        # spent too much
+        instr = self.get_instructions_from_pos_neg(neg, pos)
+        return instr
 
     def get_smart_totals(self):
         """
@@ -722,7 +760,10 @@ class Vivienda(models.Model):
         act, exp = self.get_smart_totals()
         disbalance_dict = dict()
         for user in act:
-            disbalance_dict[user] = act[user] - exp[user]
+            diff = act[user] - exp[user]
+            if abs(diff)<5:
+                diff = 0
+            disbalance_dict[user] = diff
         return disbalance_dict
 
     def get_smart_balance(self):
