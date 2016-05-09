@@ -2,7 +2,7 @@
 {% load bootstrap3 %}
 
 {% block custom_head %}
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.1/Chart.min.js"></script>
 	<style type="text/css">
 		.canvas_label {
 			width: 50%;
@@ -55,49 +55,91 @@
 			        decimalSeparator: ','
 			    }
 			});
-			Chart.defaults.global.responsive = true;
+
 			{% for p in presupuestos %}
 				var ctx = $("#{{p.id}}_Chart").get(0).getContext("2d");
 				presupuesto = parseInt("{{p.monto}}");
-				invertido = parseInt("{{p.get_total_expenses}}")
+				invertido = parseInt("{{p.get_total_expenses}}");
 				restante = presupuesto - invertido;
 				invertido_color = "808080";
 				invertido_highlight = "575252";
-				invertido_label = "Monto Invertido"
-				presupuesto_pretty = "$" + $.format.number(presupuesto, '#,##0.#')
-				invertido_pretty = "$" + $.format.number(invertido, '#,##0.#')
-				restante_pretty = "$" + $.format.number(restante, '#,##0.#')
-				if(restante<=0){
-					restante=0;
-					invertido_color = "763939";
-					invertido_highlight = "763939";
-					invertido_label = "Presupuesto de " + presupuesto_pretty + " superado! Invertido"
-				}
-				var data = [
-				    {
-				        value: invertido,
-				        color:"#" + invertido_color,
-				        highlight: "#" + invertido_highlight,
-				        label: invertido_label
-				    },
-				    {
-				        value: restante,
-				        // color: "#46BFBD",
-				        color: "#66FF66",
-				        // highlight: "#5AD3D1",
-				        highlight: "#50DC50",
-				        label: "Monto Restante"
-				    }
-				];
-				// TODO this is awesome but completely unneccesary and should never get to production
-				random_number=Math.random()
-				options = {
-					animateRotate : random_number<0.66 && !is_mobile,
-					animateScale : random_number>0.33 && !is_mobile,
-					tooltipTemplate : "<%=label%>: $<%= $.format.number(value, '#,##0.#') %>"
-				}
+				invertido_label = "Invertido";
+				presupuesto_pretty = "$" + $.format.number(presupuesto, '#,' +
+                                '##0.#');
 
-				var myDoughnutChart = new Chart(ctx).Doughnut(data, options);
+                var labels = [
+                        invertido_label,
+                        "Restante"
+                ];
+
+                var datasets = [
+                        {
+                            data: [invertido, restante],
+                            backgroundColor: [
+                                "#" + invertido_color,
+                                "#66FF66"
+                            ],
+                            hoverBackgroundColor: [
+                                "#" + invertido_highlight,
+                                "#50DC50"
+                            ]
+                        }
+                ];
+
+				if(restante<=0){
+                    invertido_color = "763939";
+                    invertido_highlight = "763939";
+                    invertido_label = "Presupuesto de " + presupuesto_pretty + " " +
+                            "superado!"
+                    labels = [
+                            invertido_label
+                    ];
+                    datasets = [
+                            {
+                                data: [invertido],
+                                backgroundColor: [
+                                    "#" + invertido_color
+                                ],
+                                hoverBackgroundColor: [
+                                    "#" + invertido_highlight
+                                ]
+                            }
+                    ];
+				}
+                var data = {
+                    labels: labels,
+                    datasets: datasets
+                };
+				// TODO this is awesome but completely unnecessary and should never get to production
+				random_number=Math.random()
+
+                var options = {
+                    responsive: true,
+                    animation:{
+                        animateRotate : random_number<0.66 && !is_mobile,
+                        animateScale : random_number>0.33 && !is_mobile
+                    },
+                    tooltips: {
+                        enabled: true,
+                        mode: 'single',
+                        callbacks: {
+                            label: function(tooltipItems, data) {
+                                index = tooltipItems.index;
+                                dataset_index  =tooltipItems.datasetIndex;
+                                amount = data.datasets[dataset_index]
+                                        .data[index];
+                                return '$ ' + $.format.number(amount,
+                                                '#,##0.#');
+                            }
+                        }
+                    }
+                };
+
+				var myDoughnutChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: data,
+                    options:options
+                });
 			{% endfor %}
 		});
 	</script>
