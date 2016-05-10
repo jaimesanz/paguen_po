@@ -199,7 +199,6 @@ def invite_user(request):
 
 @login_required
 def invite(request, invite_id):
-    # TODO add custom error 404 page
     invite = get_object_or_404(Invitacion, id=invite_id)
     invite_in = invite.is_invited_user(request.user)
     if invite_in:
@@ -279,7 +278,7 @@ def manage_users(request):
 def balance(request):
     vivienda = request.user.get_vivienda()
     users_disbalance = vivienda.get_disbalance_dict()
-    instructions = vivienda.get_instructions_from_disbalance(users_disbalance)
+    instructions = get_instructions_from_balance(users_disbalance)
     form = TransferForm()
     form.fields["user"].queryset = request.user.get_roommates_users()
     return render(request, "vivienda/balance.html", locals())
@@ -459,7 +458,7 @@ def nuevo_gasto(request):
     if request.POST:
         form = GastoForm(request.POST)
         if form.is_valid():
-            # if fecha_pago is a future one, dont create Gasto
+            # if fecha_pago is a future one, don't create Gasto
             # and inform
             kwargs = {}
             fecha_pago_raw = request.POST.get("fecha_pago", None)

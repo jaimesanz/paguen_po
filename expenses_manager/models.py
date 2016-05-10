@@ -5,6 +5,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Q
+from .helper_functions.balance_functions import *
+
 
 # helper functions
 
@@ -289,6 +291,7 @@ class ProxyUser(User):
 
 
 class Vivienda(models.Model):
+
     alias = models.CharField(max_length=200)
 
     def add_global_items(self):
@@ -479,40 +482,6 @@ class Vivienda(models.Model):
             vivienda_usuario__vivienda=self,
             fecha_fin__gte=date).select_related("vivienda_usuario__user")
 
-    def rm_users_out_at_date(self, user_set, vacations, date):
-        """
-        Given a set of ViviendaUsuario instances and a dict with the
-        ViviendaUsuario's vacations, returns a subset of the original set
-        of ViviendaUsuario with all instances that were active and not on
-        vacation at the given date
-
-        TODO Testing
-        """
-        users_on_vac = set()
-        for vu in user_set:
-            for vac in vacations.get(vu, []):
-                gasto_after = date >= vac.fecha_inicio
-                gasto_before = date <= vac.fecha_fin
-                if gasto_after and gasto_before:
-                    users_on_vac.add(vu)
-        # these are the users that don't have to pay
-        return user_set - users_on_vac
-
-    def rm_not_active_at_date(self, user_set, date):
-        """
-        Given a set of ViviendaUsuario instances and a date, returns a
-        subset of the original set with all ViviendaUsuario instances
-        that were active at the given date
-        """
-        active_at_date = set()
-        for vu in user_set:
-            joined_before = vu.fecha_creacion <= date
-            fecha_left = vu.fecha_abandono
-            left_after = fecha_left is None or fecha_left >= date
-            if joined_before and left_after:
-                active_at_date.add(vu)
-        return active_at_date
-
     def get_smart_gasto_dict(self, active_users, all_users, vacations):
         """
         Given a set with currently active ViviendaUsuario instances,
@@ -546,26 +515,13 @@ class Vivienda(models.Model):
         gastos_users_dict = dict()
 
         for gasto in gastos:
-            fecha_pago = gasto.fecha_pago
-            pay_active_today = self.rm_not_active_at_date(
-                active_users,
-                fecha_pago)
-            # users active at the time that should have payed
-            shouldve_payed_then = self.rm_not_active_at_date(
+            should_have_payed_then = gasto.get_responsible_users(
                 all_users,
-                fecha_pago)
-
-            if not gasto.categoria.is_shared_on_leave:
-                pay_active_today = self.rm_users_out_at_date(
-                    pay_active_today,
-                    vac_dict,
-                    fecha_pago)
-                shouldve_payed_then = self.rm_users_out_at_date(
-                    shouldve_payed_then,
-                    vac_dict,
-                    fecha_pago)
-
-            gastos_users_dict[gasto] = (pay_active_today, shouldve_payed_then)
+                vac_dict)
+            pay_active_today = set.intersection(
+                set(active_users),
+                should_have_payed_then)
+            gastos_users_dict[gasto] = (pay_active_today, should_have_payed_then)
 
         return gastos_users_dict
 
@@ -629,100 +585,11 @@ class Vivienda(models.Model):
             user_that_payed = gasto.usuario
             shared_portion = len(today_users) / len(past_users)
             share = gasto.monto * shared_portion
-            # print(str(user_that_payed) + " : " + str(share))
             actual_total_per_user[user_that_payed] += share
             for vu in today_users:
                 expected_total_per_user[vu] += share / len(today_users)
 
-        return (actual_total_per_user, expected_total_per_user)
-
-    def compute_balance(self, actual, expected):
-        """
-        Takes 2 dicts of the form:
-        {"User": Integer}
-        The first dict represents how much a user has actually spent.
-        The second dict represents how much each User should have spent.
-        Both dicts must have the same Keys.
-        Returns a dict of the form:
-        {"User": ("User", Integer), ("User", Integer), ...}
-        Where each tuple represents how much the Key-User has to transfer
-        to the Tuple-User so that everyone ends up spending the same.
-        :param actual: dict(User: Integer)
-        :param expected: dict(User: Integer)
-        :return: dict(User: List( Pair( User, Integer ) )
-        """
-        # check that dicts are valid:
-        same_keys = set(actual.keys()) == set(expected.keys())
-        same_sum = sum(actual.values()) == sum(actual.values())
-        if same_keys and same_sum:
-            # compute dict for users with positive balance (has spent too
-            # much) and dict for users with negative balance (has spent too
-            # little)
-            balance = dict()
-            for user, act in actual.items():
-                exp = expected.get(user)
-                balance[user] = act - exp
-            return self.get_instructions_from_disbalance(balance)
-        else:
-            return None
-
-    def get_pos_neg_dicts_from_disbalance(self, balance):
-        """
-        Given a (dis)balance dict of te form:
-        {
-            User : Integer
-        }
-        , returns a dict with only those users that have a positive balance (
-        have spent too much) and another dict only with users that have a
-        negative balance (have spent too little)
-        """
-        pos = dict()
-        neg = dict()
-        for user, balance in balance.items():
-            if balance > 0:
-                pos[user] = balance
-            elif balance < 0:
-                neg[user] = abs(balance)
-            else:
-                # user is exactly at 0
-                pass
-        return neg, pos
-
-    def get_instructions_from_pos_neg(self, neg, pos):
-        """
-        Generates the instructions to balance out the expenses of the
-        Vivienda's Users
-        :param neg: dict(User: Integer)
-        :param pos: dict(User: Integer)
-        :return: dict(User: List( Pair( User, Integer ) )
-        """
-        transfers = dict()
-        for neg_user, neg_total in neg.items():
-            transfers[neg_user] = list()
-            this_transfer = neg_total
-            for pos_user, pos_total in pos.items():
-                if this_transfer == 0:
-                    break
-                # neg_user must transfer as much as he can to pos_user,
-                # but without transferring more than pos_total.
-                transfer_monto = min(neg_total, pos_total)
-                transfers[neg_user].append((pos_user, transfer_monto))
-                pos[pos_user] -= transfer_monto
-                this_transfer -= transfer_monto
-        return transfers
-
-    def get_instructions_from_disbalance(self, balance):
-        """
-        Generates the instructions for the users to balance out their shared
-        expenses.
-        :param balance: dict(User: Integer)
-        :return: dict(User: List( Pair( User, Integer ) )
-        """
-        neg, pos = self.get_pos_neg_dicts_from_disbalance(balance)
-        # users who have spent too little must transfer to users that have
-        # spent too much
-        instr = self.get_instructions_from_pos_neg(neg, pos)
-        return instr
+        return actual_total_per_user, expected_total_per_user
 
     def get_smart_totals(self):
         """
@@ -774,7 +641,7 @@ class Vivienda(models.Model):
         (actual_totals,
          expected_totals) = self.get_smart_totals()
 
-        return self.compute_balance(actual_totals, expected_totals)
+        return compute_balance(actual_totals, expected_totals)
 
     def __str__(self):
         return self.alias
@@ -1342,7 +1209,6 @@ class Gasto(models.Model):
         ViviendaUsuario, on_delete=models.CASCADE, related_name="creado_por")
     usuario = models.ForeignKey(
         ViviendaUsuario, on_delete=models.CASCADE, null=True, blank=True)
-    # TODO categoria should default to "Supermercado"
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     fecha_creacion = models.DateField(auto_now_add=True)
     fecha_pago = models.DateField(null=True, blank=True)
@@ -1392,3 +1258,24 @@ class Gasto(models.Model):
         return (user.has_vivienda() and
                 not self.categoria.is_transfer and
                 user.get_vivienda() == self.creado_por.vivienda)
+
+    def get_responsible_users(self, all_users, vac_dict):
+        """
+        Returns all users that were supposed to pay for this Gasto.
+        :param all_users: Set(ViviendaUsuario)
+        :param vac_dict: dict(ViviendaUsuario -> List(UserIsOut))
+        :return: Set(ViviendaUsuario)
+        """
+        pay_date = self.fecha_pago
+        # users active at the time that should have payed
+        share_holders = rm_not_active_at_date(
+            all_users,
+            pay_date)
+        if not self.categoria.is_shared_on_leave:
+            share_holders = rm_users_out_at_date(
+                share_holders,
+                vac_dict,
+                pay_date)
+        # make sure the user that payed is always responsible
+        share_holders.add(self.usuario)
+        return share_holders
