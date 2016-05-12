@@ -15,6 +15,7 @@ def get_current_year_month_obj():
     """
     Returns the current YearMonth period.
     If the YearMonth doesn't exist, it creates it.
+    :return: YearMonth
     """
     today = timezone.now()
     year_month, created = YearMonth.objects.get_or_create(
@@ -26,6 +27,7 @@ def get_current_year_month():
     """
     Returns the current YearMonth period's ID field.
     If it doesn't exist, it creates it.
+    :return: Integer
     """
     return get_current_year_month_obj().id
 
@@ -34,8 +36,9 @@ def get_default_estado_gasto():
     """
     Returns the "id" field of an instance of EstadoGasto with value
     "pendiente". If it doesn't exist, it creates it first.
+    :return: Integer
     """
-    estado_gasto, created = EstadoGasto.objects.get_or_create(
+    estado_gasto, __ = EstadoGasto.objects.get_or_create(
         estado="pendiente")
     return estado_gasto.id
 
@@ -44,6 +47,7 @@ def get_done_estado_gasto():
     """
     Returns an instance of EstadoGasto with value "pagado".
     If it doesn't exist, it creates it first.
+    :return: EstadoGasto
     """
     return EstadoGasto.objects.get_or_create(estado="pagado")[0]
 
@@ -52,11 +56,17 @@ def get_pending_estado_gasto():
     """
     Returns an instance of EstadoGasto with value "pendiente".
     If it doesn't exist, it creates it first.
+    :return: EstadoGasto
     """
     return EstadoGasto.objects.get_or_create(estado="pendiente")[0]
 
 
 def get_default_others_categoria():
+    """
+    Returns the default Categoria for "Other" Gasto instances. Gastos
+    with a hidden Categoria are shown as if they belonged to this Categoria
+    :return: Categoria
+    """
     return Categoria.objects.get_or_create(nombre="Otros", vivienda=None)[0]
 
 
@@ -73,6 +83,7 @@ class ProxyUser(User):
         """
         Returns the user's current active Vivienda, or None if it does not have
         one.
+        :return: ViviendaUsuario
         """
         return ViviendaUsuario.objects.filter(
             user=self,
@@ -82,6 +93,7 @@ class ProxyUser(User):
         """
         Returns True if the user has an active Vivienda.
         Otherwise, it returns False.
+        :return: Boolean
         """
         return ViviendaUsuario.objects.filter(
             user=self,
@@ -93,6 +105,7 @@ class ProxyUser(User):
         and sets the "fecha_abandono" as the current datetime.
         If the user doesn't currently have a Vivienda, returns False and
         does nothing.
+        :return: Boolean
         """
         if self.has_vivienda():
             return self.get_vu().leave()
@@ -102,6 +115,7 @@ class ProxyUser(User):
         """
         Returns the active Vivienda of the user, or None if it doesn't
         have any.
+        :return: Vivienda
         """
         vivienda_usuario = self.get_vu()
         if vivienda_usuario is not None:
@@ -114,6 +128,7 @@ class ProxyUser(User):
         Returns a list of all active members of the Vivienda,
         including the User that calls the method.
         If there's no active Vivienda, returns None
+        :return: QuerySet( ViviendaUsuario )
         """
         return ViviendaUsuario.objects.filter(
             vivienda=self.get_vivienda(),
@@ -123,6 +138,7 @@ class ProxyUser(User):
         """
         Returns a QuerySet with all User instances that have a related
         active ViviendaUsuario
+        :return: QuerySet( User )
         """
         roommates = self.get_roommates().values("user")
         return User.objects.filter(id__in=roommates).exclude(id=self.id)
@@ -132,6 +148,7 @@ class ProxyUser(User):
         Returns a Tuple consisting of:
         - QuerySet with pending invites the user has received, or None
         - QuerySet with pending invites the user has sent, or None
+        :return: Pair( QuerySet( Invitacion ), QuerySet( Invitacion ) )
         """
         invites_in = Invitacion.objects.filter(
             invitado=self, estado="pendiente")
@@ -144,6 +161,8 @@ class ProxyUser(User):
         Sets the state of the given Gasto as "pagado", and it's "usuario" field
         as the User's active ViviendaUsuario.
         If the user has no active Vivienda, returns None and does nothing.
+        :param gasto: Gasto
+        :param fecha_pago: Date
         """
         if self.has_vivienda():
             self.get_vu().confirm_pay(gasto, fecha_pago)
@@ -152,6 +171,8 @@ class ProxyUser(User):
         """
         Returns True if the given Invite was sent by the User, or False
         otherwise.
+        :param invite: Invitacion
+        :return: Boolean
         """
         return invite.invitado_por.user == self
 
@@ -168,6 +189,9 @@ class ProxyUser(User):
         a message saying everything went well.
         If there were errors, it does nothing and returns False plus a
         message with the error.
+        :param start_date: Date
+        :param end_date: Date
+        :return: Pair( UserIsOut, String )
         """
         if self.has_vivienda():
             if start_date > end_date:
@@ -195,8 +219,8 @@ class ProxyUser(User):
                 fecha_fin=end_date,
                 fecha_inicio=start_date)
 
-            return (user_is_out, "¡Salida creada correctamente!")
-        return (False, "Debe pertenecer a una vivienda para crear una salida")
+            return user_is_out, "¡Salida creada correctamente!"
+        return None, "Debe pertenecer a una vivienda para crear una salida"
 
     def update_vacation(self, vacation, start_date=None, end_date=None):
         """
@@ -205,6 +229,10 @@ class ProxyUser(User):
         changes the given fields with the given values.
         If the user only provides one of the fields, only that field is
         changed.
+        :param vacation: UserIsOut
+        :param start_date: Date
+        :param end_date: Date
+        :return: Pair( UserIsOut, String )
         """
         if start_date is None and end_date is None:
             return False, "Debe especificar al menos una de las fechas."
@@ -225,7 +253,7 @@ class ProxyUser(User):
             vac_ends_late = vac.fecha_fin >= vacation.fecha_inicio
             if vac_starts_early and vac_ends_late:
                 return (
-                    False,
+                    None,
                     "¡Las fechas indicadas topan con otra salida programada!")
 
         vacation.save()
@@ -237,6 +265,7 @@ class ProxyUser(User):
         UserIsOut instance related to this user's ViviendaUsuario.
         If this doesn't happen, or if the user doesn't have a Vivienda,
         returns False.
+        :return: Boolean
         """
         if not self.has_vivienda():
             return False
@@ -259,6 +288,9 @@ class ProxyUser(User):
         given monto, and is linked to the given User (parameter).
         This way, this User effectively "transferred" a given monto to the
         given User.
+        :param user: User
+        :param monto: Integer
+        :return: Pair( Gasto, Gasto )
         """
         users_have_vivienda = self.has_vivienda() and user.has_vivienda()
         users_are_roommates = self.get_vivienda() == user.get_vivienda()
@@ -303,7 +335,7 @@ class Vivienda(models.Model):
         """
         global_items = Item.objects.filter(vivienda=None)
         for item in global_items:
-            global_item_this_viv, __ = Item.objects.get_or_create(
+            Item.objects.get_or_create(
                 nombre=item.nombre,
                 unidad_medida=item.unidad_medida,
                 descripcion=item.descripcion,
@@ -313,6 +345,7 @@ class Vivienda(models.Model):
         """
         Returns a QuerySet with the Gastos associated with the Vivienda,
         and with a pending state
+        :return: QuerySet( Gasto )
         """
         return Gasto.objects.filter(
             creado_por__vivienda=self,
@@ -323,6 +356,7 @@ class Vivienda(models.Model):
         """
         Returns a QuerySet with the Gastos associated with the Vivienda,
         and with a paid state.
+        :return: QuerySet( Gasto )
         """
         return Gasto.objects.filter(
             creado_por__vivienda=self,
@@ -333,6 +367,7 @@ class Vivienda(models.Model):
         """
         Returns a QuerySet with all Categoria objects related to the Vivienda
         that are not hidden
+        :return: QuerySet( Categoria )
         """
         return Categoria.objects.filter(
             vivienda=self,
@@ -342,6 +377,7 @@ class Vivienda(models.Model):
     def get_items(self):
         """
         Returns a QuerySet with all Items related to this Vivienda
+        :return: QuerySet( Item )
         """
         return Item.objects.filter(vivienda=self)
 
@@ -349,6 +385,7 @@ class Vivienda(models.Model):
         """
         Returns a QuerySet with all Categoria objects related to the Vivienda,
         including the hidden Categoria instances
+        :return: QuerySet( Categoria )
         """
         return Categoria.objects.filter(vivienda=self, is_transfer=False)
 
@@ -356,6 +393,8 @@ class Vivienda(models.Model):
         """
         Returns the sum of all Gastos' montos with a Categoria that's
         hidden
+        :param year_month: YearMonth
+        :return: Integer
         """
         montos = Gasto.objects.filter(
             creado_por__vivienda=self,
@@ -375,6 +414,9 @@ class Vivienda(models.Model):
         for the given Categoria in this Vivienda. If the Categoria is the
         default "other" Categoria, it takes into account that Categoria, plus
         all hidden Categorias related to the Vivienda.
+        :param categoria: Categoria
+        :param year_month: YearMonth
+        :return: Integer
         """
         categoria = Categoria.objects.get(
             nombre=categoria,
@@ -400,6 +442,8 @@ class Vivienda(models.Model):
         """
         Returns the sum of all Gastos made during the given YearMonth
         regardless of Categoria
+        :param year_month: YearMonth
+        :return: Integer
         """
         montos = Gasto.objects.filter(
             creado_por__vivienda=self,
@@ -416,6 +460,7 @@ class Vivienda(models.Model):
         Returns all Gasto instances that:
         - it's Categoria's is_transfer field is True
         - were created by active users
+        :return: QuerySet( Gasto )
         """
         return Gasto.objects.filter(
             categoria__is_transfer=True,
@@ -433,6 +478,8 @@ class Vivienda(models.Model):
         if there was any error creating it
         - the String is a message explaining what happened (it
         failed for some reason / it finished successfully)
+        :param nombre: String
+        :return: Pair( Categoria, String)
         """
         categoria, created = Categoria.objects.get_or_create(
             nombre=nombre,
@@ -448,6 +495,7 @@ class Vivienda(models.Model):
     def get_vivienda_global_categorias(self):
         """
         Returns the global Categorias related to this Vivienda
+        :return: QuerySet( Categoria )
         """
         global_cats = Categoria.objects.filter(vivienda=None).values("nombre")
         this_viv_global = Categoria.objects.filter(
@@ -458,6 +506,7 @@ class Vivienda(models.Model):
     def get_vivienda_custom_categorias(self):
         """
         Returns the custom Categorias related to this Vivienda
+        :return: QuerySet( Categoria )
         """
         global_cats = Categoria.objects.filter(vivienda=None).values("nombre")
         custom_cats = Categoria.objects.filter(
@@ -474,6 +523,8 @@ class Vivienda(models.Model):
         *NOTE*: since the "fecha_fin" field always comes after the
         "fecha_inicio" field, it suffices to say that if the "fecha_fin"
         comes after the given date, the vacation should be returned.
+        :param date: Date
+        :return: QuerySet( UserIsOut )
         """
 
         # select_related so that database is not hit again when asking for
@@ -499,6 +550,12 @@ class Vivienda(models.Model):
         - don't necessarily contain the same set of Users
         - are not necessarily of the same length
         - always have at least 1 user in common (the one who payed the Gasto)
+        :param active_users: Set( ViviendaUsuario )
+        :param all_users: Set( ViviendaUsuario )
+        :param vacations: Set( UserIsOut )
+        :return: Dict(
+            Gasto : Pair( Set(ViviendaUsuario), Set(ViviendaUsuario) )
+        )
         """
         # get dict "user" -> [UserIsOut1, UserIsOut2, ...]
         vac_dict = dict()
@@ -571,6 +628,10 @@ class Vivienda(models.Model):
         => only 2/3 parts of the monto should be added to A.
         The other 1/3 part is assumed to have been balanced with B before
         she/he left.
+        :param gastos_users_dict: Dict(
+            Gasto : Pair( Set(ViviendaUsuario), Set(ViviendaUsuario) )
+        )
+        :return: Pair( Dict(User: Integer), Dict(User: Integer) )
         """
         actual_total_per_user = dict()
         expected_total_per_user = dict()
@@ -596,6 +657,7 @@ class Vivienda(models.Model):
         Returns a tuple with:
         - a dict with the actual totals each active user has spent
         - a dict with the expected totals for each active user
+        :return: Pair( Dict(User: Integer), Dict(User: Integer) )
         """
         all_users = ViviendaUsuario.objects.filter(
             vivienda=self)
@@ -623,6 +685,7 @@ class Vivienda(models.Model):
         (Integer is negative, meaning he has spent too little), or how much the
         User is owed (if the Integer is positive, meaning he has spent too
         much)
+        :return: Dict(User: Integer)
         """
         act, exp = self.get_smart_totals()
         disbalance_dict = dict()
@@ -637,6 +700,7 @@ class Vivienda(models.Model):
         """
         Computes the instructions for users to balance out their shared
         expenses
+        :return: Dict(User: List( Pair( User, Integer ) )
         """
         (actual_totals,
          expected_totals) = self.get_smart_totals()
@@ -665,6 +729,7 @@ class ViviendaUsuario(models.Model):
         Changes the state of the ViviendaUsuario to "inactivo", and sets the
         "fecha_abandono" as the current datetime, and then returns True.
         If this ViviendaUsuario was not active, does nothing and returns False
+        :return: Boolean
         """
         if self.is_active():
             self.estado = "inactivo"
@@ -677,6 +742,7 @@ class ViviendaUsuario(models.Model):
         """
         Returns True if the ViviendaUsuario's state is active, or
         False otherwise
+        :return: Boolean
         """
         return self.estado == "activo"
 
@@ -689,6 +755,7 @@ class ViviendaUsuario(models.Model):
         and with a paid state
 
         If the user is not active, returns a Tuple of empty QuerySets
+        :return: Pair( QuerySet( Gasto ), QuerySet( Gasto ) )
         """
         if self.is_active():
             return (self.vivienda.get_gastos_pendientes(),
@@ -702,6 +769,8 @@ class ViviendaUsuario(models.Model):
         """
         Sets the state of the given Gasto as "pagado", and it's "usuario" field
         as the ViviendaUsuario.
+        :param gasto: Gasto
+        :param fecha_pago: Date
         """
         gasto.usuario = self
         gasto.fecha_pago = fecha_pago
@@ -718,6 +787,8 @@ class ViviendaUsuario(models.Model):
         """
         Returns True if the given Invite was sent by the ViviendaUsuario's
         User, or False otherwise.
+        :param invite: Invitacion
+        :return: Boolean
         """
         return invite.invitado_por.user == self.user
 
@@ -766,6 +837,7 @@ class Invitacion(models.Model):
         """
         Returns True if the state of the Invitacion is "cancelada", or
         False otherwise
+        :return: Boolean
         """
         return self.estado == "cancelada"
 
@@ -779,12 +851,16 @@ class Invitacion(models.Model):
     def is_invited_user(self, user):
         """
         Returns True if the given User is the one that's being invited
+        :param user: User
+        :return: Boolean
         """
         return self.invitado == user
 
     def is_invited_by_user(self, user):
         """
         Returns True if the given user is the one who sent the Invitacion
+        :param user: User
+        :return: Boolean
         """
         return user.sent_invite(self)
 
@@ -818,6 +894,7 @@ class Categoria(models.Model):
     def is_global(self):
         """
         Returns True if the Categoria is Global and shared with every Vivienda
+        :return: Boolean
         """
         return Categoria.objects.filter(
             vivienda=None,
@@ -826,6 +903,7 @@ class Categoria(models.Model):
     def is_hidden(self):
         """
         Returns it's hidden field's boolean value
+        :return: Boolean
         """
         return self.hidden
 
@@ -834,6 +912,7 @@ class Categoria(models.Model):
         If the Categoria is not hidden, changes this Categoria's hidden
         field to True and returns True. If it's already hidden, returns
         False and does nothing
+        :return: Boolean
         """
         if not self.is_hidden():
             self.hidden = True
@@ -845,6 +924,7 @@ class Categoria(models.Model):
         """
         If this Categoria is not hidden, it returns False. If it's
         hidden, changes the it's hidden field to False
+        :return: Boolean
         """
         if self.is_hidden():
             self.hidden = False
@@ -855,6 +935,7 @@ class Categoria(models.Model):
     def toggle(self):
         """
         Toggles the hidden field of this Categoria.
+        :return: Boolean
         """
         if self.is_hidden():
             return self.show()
@@ -890,6 +971,8 @@ class Item(models.Model):
         """
         Returns True if the Item is in the given ListaCompras, or
         False otherwise
+        :param lista: ListaCompras
+        :return: Boolean
         """
         return ItemLista.objects.filter(item=self, lista=lista).exists()
 
@@ -906,6 +989,7 @@ class YearMonth(models.Model):
         Returns a Tuple of Integers with:
         - the year of the period following this YearMonth
         - the month of the period following this YearMonth
+        :return: Pair( Integer, Integer )
         """
         next_month = self.month + 1
         next_year = self.year
@@ -919,6 +1003,7 @@ class YearMonth(models.Model):
         Returns a Tuple of Integers with:
         - the year of the period previous to this YearMonth
         - the month of the period previous to this YearMonth
+        :return: Pair( Integer, Integer )
         """
         prev_month = self.month - 1
         prev_year = self.year
@@ -953,6 +1038,7 @@ class Presupuesto(models.Model):
         """
         Returns the sum of all paid Gastos of the Presupuesto's Categoria in
         the Presupuesto's YearMonth for the Presupuesto's Vivienda
+        :return: Integer
         """
         return self.vivienda.get_total_expenses_categoria_period(
             self.categoria,
@@ -977,6 +1063,8 @@ class ListaCompras(models.Model):
         """
         Given an item name, returns the Item instance with that name that is
         related to this Lista's Vivienda
+        :param item_name: String
+        :return: Item
         """
         return Item.objects.filter(
             nombre=item_name,
@@ -988,6 +1076,9 @@ class ListaCompras(models.Model):
         quantity, and links it to the ListaCompras.
         If the Item is already in the ListaCompras, it doesn't do anything,
         and returns None.
+        :param item: Item
+        :param quantity: Integer
+        :return: ItemLista
         """
         if item is not None and item.id > 0 and not item.is_in_lista(self):
             new_list_item = ItemLista.objects.create(
@@ -1001,6 +1092,9 @@ class ListaCompras(models.Model):
     def add_item_by_name(self, item_name, quantity):
         """
         Same as add_item, but receives the Item's name instead of it's id
+        :param item_name: String
+        :param quantity: Integer
+        :return: ItemLista
         """
         item = self.get_item_by_name(item_name)
         return self.add_item(item, quantity)
@@ -1009,12 +1103,14 @@ class ListaCompras(models.Model):
         """
         Returns a QuerySet with all ItemLista objects linked to this
         ListaCompras.
+        :return: QuerySet( ItemLista )
         """
         return ItemLista.objects.filter(lista=self)
 
     def count_items(self):
         """
         Returns the number of ItemLista objects linked to this ListaCompras.
+        :return: Integer
         """
         this_list_items = self.get_items()
         return len(this_list_items)
@@ -1024,6 +1120,8 @@ class ListaCompras(models.Model):
         Returns True if the user is active in the Vivienda of the
         Viviendausuario that created the ListaCompras. Otherwise, it returns
         False.
+        :param usuario: User
+        :return: Boolean
         """
         vivienda_usuario = usuario.get_vu()
         return (vivienda_usuario is not None and
@@ -1032,6 +1130,7 @@ class ListaCompras(models.Model):
     def is_done(self):
         """
         Returns True if the state is "pagada", or False otherwise.
+        :return: Boolean
         """
         return self.estado == "pagada"
 
@@ -1040,6 +1139,7 @@ class ListaCompras(models.Model):
         If the state is not "pagada", it changes the state to "pagada" and
         returns True. If the state is already "pagada", doesn't do anything
         and returns False.
+        :return: Boolean
         """
         if not self.is_done():
             self.estado = "pagada"
@@ -1052,6 +1152,9 @@ class ListaCompras(models.Model):
         Changes the state of the ItemLista linked to the given Item and the
         current ListaCompras to "comprado", and sets it's "cantidad_comprada"
         field to the given quantity
+        :param item: Item
+        :param quantity: Integer
+        :return: ItemLista
         """
         il = ItemLista.objects.get(id=item)
         return il.buy(quantity)
@@ -1060,13 +1163,17 @@ class ListaCompras(models.Model):
         """
         Receives a list of tuples (item_id, quantity), and changes
         the state of the ItemLista linked to each item_id to "comprado", and
-        sets the "cantidad comprada" field to thr given quantity.
+        sets the "cantidad comprada" field to the given quantity.
         Then, changes the state of the ListaCompras to "pagada", and creates
         a new Gasto object linked to this ListaCompras.
         It sets the usuario field of the Gasto with the given
         vivienda_usuario. The Categoria of the Gasto is set to
         "Supermercado".
         Returns the newly created Gasto object.
+        :param item_list: List( Pair( Integer, Integer ) )
+        :param monto_total: Integer
+        :param vivienda_usuario: ViviendaUsuario
+        :return: Gasto
         """
         # mark items as bought
         if item_list is None or len(item_list) < 1:
@@ -1089,6 +1196,7 @@ class ListaCompras(models.Model):
         """
         Returns the Gasto object linked to the ListaCompras.
         If there's no Gasto linked to it, returns None.
+        :return: Gasto
         """
         gastos = Gasto.objects.filter(lista_compras=self)
         if len(gastos) == 0 or len(gastos) > 1:
@@ -1101,6 +1209,7 @@ class ListaCompras(models.Model):
         """
         Returns a QuerySet with all ItemLista objects linked to the
         ListaCompras that have a pending state
+        :return: QuerySet( ItemLista )
         """
         return ItemLista.objects.filter(lista=self, estado="pendiente")
 
@@ -1108,6 +1217,7 @@ class ListaCompras(models.Model):
         """
         Returns True if there's at least 1 ItemLista object with a
         pending state linked to the ListaCompras.
+        :return: Boolean
         """
         return len(self.get_missing_items()) > 0
 
@@ -1116,6 +1226,8 @@ class ListaCompras(models.Model):
         Creates and returns a new ListaComrpas using the pending Items
         form the current ListaCompras. If there are no pending Itemista
         objects, it returns None
+        :param vivienda_usuario: ViviendaUsuario
+        :return: ListaCompras
         """
         cond1 = self.has_missing_items()
         cond2 = self.count_items() != self.get_missing_items().count()
@@ -1163,12 +1275,14 @@ class ItemLista(models.Model):
     def is_pending(self):
         """
         Returns True if the state is "pendiente"
+        :return: Boolean
         """
         return self.estado == "pendiente"
 
     def get_state(self):
         """
         Returns the state
+        :return: String
         """
         return self.estado
 
@@ -1176,6 +1290,8 @@ class ItemLista(models.Model):
         """
         Changes the state to "comprado" and sets the cantidad_comprada
         to the given quantity
+        :param quantity: Integer
+        :return: ItemLista
         """
         if quantity > 0 and self.is_pending():
             self.cantidad_comprada = quantity
@@ -1193,12 +1309,14 @@ class EstadoGasto(models.Model):
     def is_pending(self):
         """
         Returns True is the state is "pendiente"
+        :return: Boolean
         """
         return self.estado == "pendiente"
 
     def is_paid(self):
         """
         Returns True is the state is "pagado"
+        :return: Boolean
         """
         return self.estado == "pagado"
 
@@ -1235,18 +1353,22 @@ class Gasto(models.Model):
         """
         It receives a User or a ViviendaUsuario object and changes the
         state of the Gasto to "pagado" by the given User/ViviendaUsuario.
+        :param user: User or ViviendaUsuario
+        :param fecha_pago: Date
         """
         user.confirm_pay(self, fecha_pago)
 
     def is_pending(self):
         """
         Returns True if the state is "pendiente"
+        :return: Boolean
         """
         return self.estado.is_pending()
 
     def is_paid(self):
         """
         Returns True if the state is "pagado"
+        :return: Boolean
         """
         return self.estado.is_paid()
 
@@ -1254,6 +1376,8 @@ class Gasto(models.Model):
         """
         Returns True if the User is active in the Vivienda linked
         to the Gasto
+        :param user: User
+        :return: Boolean
         """
         return (user.has_vivienda() and
                 not self.categoria.is_transfer and
@@ -1262,9 +1386,9 @@ class Gasto(models.Model):
     def get_responsible_users(self, all_users, vac_dict):
         """
         Returns all users that were supposed to pay for this Gasto.
-        :param all_users: Set(ViviendaUsuario)
-        :param vac_dict: dict(ViviendaUsuario -> List(UserIsOut))
-        :return: Set(ViviendaUsuario)
+        :param all_users: Set( ViviendaUsuario )
+        :param vac_dict: Dict( ViviendaUsuario -> List( UserIsOut ) )
+        :return: Set( ViviendaUsuario )
         """
         pay_date = self.fecha_pago
         # users active at the time that should have payed

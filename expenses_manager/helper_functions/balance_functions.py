@@ -112,7 +112,7 @@ def compute_balance(actual, expected):
     same.
     :param actual: dict(User: Integer)
     :param expected: dict(User: Integer)
-    :return: dict(User: List( Pair( User, Integer ) )
+    :return: Dict(User: List( Pair( User, Integer ) )
     """
     balance = get_balance_from_totals(actual, expected)
     if balance is not None:
