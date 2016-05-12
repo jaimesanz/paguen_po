@@ -181,7 +181,7 @@ class ProxyUserModelTest(TestCase):
         self.assertFalse(gasto.is_paid())
         self.assertTrue(gasto.is_pending())
         self.assertTrue(gasto.allow_user(user1))
-        user1.pagar(gasto)
+        user1.confirm_pay(gasto)
         self.assertFalse(gasto.is_pending())
         self.assertTrue(gasto.is_paid())
         self.assertTrue(gasto.allow_user(user1))
@@ -265,34 +265,34 @@ class ProxyUserModelTest(TestCase):
             monto=1000,
             creado_por=user1.get_vu(),
             categoria=cat_1)
-        user1_viv.pagar(g1_1, date1)
+        user1_viv.confirm_pay(g1_1, date1)
         g1_2 = Gasto.objects.create(
             monto=2000,
             creado_por=user1.get_vu(),
             categoria=cat_2)
-        user1_viv.pagar(g1_2, date1)
+        user1_viv.confirm_pay(g1_2, date1)
         # gastos user2
         g2_1 = Gasto.objects.create(
             monto=500,
             creado_por=user2.get_vu(),
             categoria=cat_1)
-        user2_viv.pagar(g2_1, date1)
+        user2_viv.confirm_pay(g2_1, date1)
         g2_2 = Gasto.objects.create(
             monto=1700,
             creado_por=user2.get_vu(),
             categoria=cat_2)
-        user2_viv.pagar(g2_2, date2)
+        user2_viv.confirm_pay(g2_2, date2)
         # gastos user3
         g3_1 = Gasto.objects.create(
             monto=1200,
             creado_por=user3.get_vu(),
             categoria=cat_1)
-        user3_viv.pagar(g3_1, date1)
+        user3_viv.confirm_pay(g3_1, date1)
         g3_2 = Gasto.objects.create(
             monto=700,
             creado_por=user3.get_vu(),
             categoria=cat_1)
-        user3_viv.pagar(g3_2, date1)
+        user3_viv.confirm_pay(g3_2, date1)
 
         # create presupuesto for each categoria
         presupuesto_1_p1 = Presupuesto.objects.create(
@@ -531,7 +531,7 @@ class ViviendaModelTest(TestCase):
     def test_get_gastos_from_vivienda_with_gastos_pagados(self):
         user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
         gasto, dummy_categoria = get_dummy_gasto_pendiente(user1_viv)
-        user1.pagar(gasto)
+        user1.confirm_pay(gasto)
 
         gastos_pendientes_direct = correct_vivienda.get_gastos_pendientes()
         gastos_pagados_direct = correct_vivienda.get_gastos_pagados()
@@ -594,19 +594,19 @@ class ViviendaModelTest(TestCase):
             monto=1200,
             creado_por=user1.get_vu(),
             categoria=db["cat_not_shared_on_leave"])
-        user1.pagar(gnsl1, fecha_pago=db["pA"])
+        user1.confirm_pay(gnsl1, fecha_pago=db["pA"])
         # Gnsl2 = user2 makes gasto cat_not_shared_on_leave on C for 2000
         gnsl2 = Gasto.objects.create(
             monto=2000,
             creado_por=user2.get_vu(),
             categoria=db["cat_not_shared_on_leave"])
-        user2.pagar(gnsl2, fecha_pago=db["pC"])
+        user2.confirm_pay(gnsl2, fecha_pago=db["pC"])
         # Gsl1 = user3 makes gasto cat_shared_on_leave on B for 1500
         gsl1 = Gasto.objects.create(
             monto=1500,
             creado_por=user3.get_vu(),
             categoria=db["cat_shared_on_leave"])
-        user3.pagar(gsl1, fecha_pago=db["pB"])
+        user3.confirm_pay(gsl1, fecha_pago=db["pB"])
         # periods  :    A   |    B   | C
         # gastos   :  gnsl1 |  gsl1  | gnsl2
         # users out:  none  |  user1 | (user1, user3)
@@ -703,13 +703,13 @@ class ViviendaModelTest(TestCase):
             monto=1200,
             creado_por=user1_viv,
             categoria=cat_shared_on_leave)
-        user1_viv.pagar(gasto_1, fecha_pago=db["pB"])
+        user1_viv.confirm_pay(gasto_1, fecha_pago=db["pB"])
 
         gasto_2 = Gasto.objects.create(
             monto=3000,
             creado_por=user2_viv,
             categoria=cat_shared_on_leave)
-        user2_viv.pagar(gasto_2, fecha_pago=db["pD"])
+        user2_viv.confirm_pay(gasto_2, fecha_pago=db["pD"])
 
         gasto_user_dict = vivienda.get_smart_gasto_dict(
             active_users=all_users,
@@ -743,13 +743,13 @@ class ViviendaModelTest(TestCase):
             monto=1200,
             creado_por=user1_viv,
             categoria=cat_shared_on_leave)
-        user1_viv.pagar(gasto_1, fecha_pago=db["pB"])
+        user1_viv.confirm_pay(gasto_1, fecha_pago=db["pB"])
 
         gasto_2 = Gasto.objects.create(
             monto=3000,
             creado_por=user3_viv,
             categoria=cat_not_shared_on_leave)
-        user3_viv.pagar(gasto_2, fecha_pago=db["pD"])
+        user3_viv.confirm_pay(gasto_2, fecha_pago=db["pD"])
 
         gasto_user_dict = vivienda.get_smart_gasto_dict(
             active_users=all_users,
@@ -790,19 +790,19 @@ class ViviendaModelTest(TestCase):
             monto=1200,
             creado_por=user2_viv,
             categoria=cat_not_shared_on_leave)
-        user2_viv.pagar(gasto_1, fecha_pago=db["pB"])
+        user2_viv.confirm_pay(gasto_1, fecha_pago=db["pB"])
 
         gasto_2 = Gasto.objects.create(
             monto=1500,
             creado_por=user3_viv,
             categoria=cat_shared_on_leave)
-        user3_viv.pagar(gasto_2, fecha_pago=db["pC"])
+        user3_viv.confirm_pay(gasto_2, fecha_pago=db["pC"])
 
         gasto_3 = Gasto.objects.create(
             monto=2000,
             creado_por=user1_viv,
             categoria=cat_shared_on_leave)
-        user1_viv.pagar(gasto_3, fecha_pago=db["pE"])
+        user1_viv.confirm_pay(gasto_3, fecha_pago=db["pE"])
 
         # save so that the fields are actually modified
         user2_viv.save()
@@ -982,13 +982,13 @@ class ViviendaModelTest(TestCase):
             monto=1200,
             creado_por=user1_viv,
             categoria=cat_shared_on_leave)
-        user1_viv.pagar(gasto_1, fecha_pago=db["pB"])
+        user1_viv.confirm_pay(gasto_1, fecha_pago=db["pB"])
 
         gasto_2 = Gasto.objects.create(
             monto=3000,
             creado_por=user2_viv,
             categoria=cat_shared_on_leave)
-        user2_viv.pagar(gasto_2, fecha_pago=db["pD"])
+        user2_viv.confirm_pay(gasto_2, fecha_pago=db["pD"])
 
         gasto_user_dict = dict()
         gasto_user_dict[gasto_1] = (all_users, all_users)
@@ -1029,13 +1029,13 @@ class ViviendaModelTest(TestCase):
             monto=1200,
             creado_por=user1_viv,
             categoria=cat_shared_on_leave)
-        user1_viv.pagar(gasto_1, fecha_pago=db["pB"])
+        user1_viv.confirm_pay(gasto_1, fecha_pago=db["pB"])
 
         gasto_2 = Gasto.objects.create(
             monto=3000,
             creado_por=user3_viv,
             categoria=cat_not_shared_on_leave)
-        user3_viv.pagar(gasto_2, fecha_pago=db["pD"])
+        user3_viv.confirm_pay(gasto_2, fecha_pago=db["pD"])
 
         gasto_user_dict = dict()
         gasto_user_dict[gasto_1] = (all_users, all_users)
@@ -1081,19 +1081,19 @@ class ViviendaModelTest(TestCase):
             monto=1200,
             creado_por=user2_viv,
             categoria=cat_not_shared_on_leave)
-        user2_viv.pagar(gasto_1, fecha_pago=db["pB"])
+        user2_viv.confirm_pay(gasto_1, fecha_pago=db["pB"])
 
         gasto_2 = Gasto.objects.create(
             monto=1500,
             creado_por=user3_viv,
             categoria=cat_shared_on_leave)
-        user3_viv.pagar(gasto_2, fecha_pago=db["pC"])
+        user3_viv.confirm_pay(gasto_2, fecha_pago=db["pC"])
 
         gasto_3 = Gasto.objects.create(
             monto=2000,
             creado_por=user1_viv,
             categoria=cat_shared_on_leave)
-        user1_viv.pagar(gasto_3, fecha_pago=db["pE"])
+        user1_viv.confirm_pay(gasto_3, fecha_pago=db["pE"])
 
         # save so that the fields are actually modified
         user2_viv.save()
@@ -1233,13 +1233,13 @@ class ViviendaModelTest(TestCase):
             monto=1200,
             creado_por=user1_viv,
             categoria=cat_shared_on_leave)
-        user1_viv.pagar(gasto_1, fecha_pago=db["pB"])
+        user1_viv.confirm_pay(gasto_1, fecha_pago=db["pB"])
 
         gasto_2 = Gasto.objects.create(
             monto=3000,
             creado_por=user2_viv,
             categoria=cat_shared_on_leave)
-        user2_viv.pagar(gasto_2, fecha_pago=db["pD"])
+        user2_viv.confirm_pay(gasto_2, fecha_pago=db["pD"])
 
         transfers = vivienda.get_smart_balance()
 
@@ -1278,13 +1278,13 @@ class ViviendaModelTest(TestCase):
             monto=1200,
             creado_por=user1_viv,
             categoria=cat_shared_on_leave)
-        user1_viv.pagar(gasto_1, fecha_pago=db["pB"])
+        user1_viv.confirm_pay(gasto_1, fecha_pago=db["pB"])
 
         gasto_2 = Gasto.objects.create(
             monto=3000,
             creado_por=user3_viv,
             categoria=cat_not_shared_on_leave)
-        user3_viv.pagar(gasto_2, fecha_pago=db["pD"])
+        user3_viv.confirm_pay(gasto_2, fecha_pago=db["pD"])
 
         transfers = vivienda.get_smart_balance()
 
@@ -1327,19 +1327,19 @@ class ViviendaModelTest(TestCase):
             monto=1200,
             creado_por=user2_viv,
             categoria=cat_not_shared_on_leave)
-        user2_viv.pagar(gasto_1, fecha_pago=db["pB"])
+        user2_viv.confirm_pay(gasto_1, fecha_pago=db["pB"])
 
         gasto_2 = Gasto.objects.create(
             monto=1500,
             creado_por=user3_viv,
             categoria=cat_shared_on_leave)
-        user3_viv.pagar(gasto_2, fecha_pago=db["pC"])
+        user3_viv.confirm_pay(gasto_2, fecha_pago=db["pC"])
 
         gasto_3 = Gasto.objects.create(
             monto=2000,
             creado_por=user1_viv,
             categoria=cat_shared_on_leave)
-        user1_viv.pagar(gasto_3, fecha_pago=db["pE"])
+        user1_viv.confirm_pay(gasto_3, fecha_pago=db["pE"])
 
         # save so that the fields are actually modified
         user2_viv.save()
@@ -1395,19 +1395,19 @@ class ViviendaModelTest(TestCase):
             monto=1200,
             creado_por=user1.get_vu(),
             categoria=db["cat_not_shared_on_leave"])
-        user1.pagar(gnsl1, fecha_pago=db["pA"])
+        user1.confirm_pay(gnsl1, fecha_pago=db["pA"])
 
         gnsl2 = Gasto.objects.create(
             monto=2000,
             creado_por=user2.get_vu(),
             categoria=db["cat_not_shared_on_leave"])
-        user2.pagar(gnsl2, fecha_pago=db["pC"])
+        user2.confirm_pay(gnsl2, fecha_pago=db["pC"])
 
         gsl1 = Gasto.objects.create(
             monto=1500,
             creado_por=user3.get_vu(),
             categoria=db["cat_shared_on_leave"])
-        user3.pagar(gsl1, fecha_pago=db["pB"])
+        user3.confirm_pay(gsl1, fecha_pago=db["pB"])
 
         # periods  :    A   |    B   | C
         # gastos   :  gnsl1 |  gsl1  | gnsl2
@@ -1702,7 +1702,7 @@ class ViviendaUsuarioModelTest(TestCase):
     def test_user_gets_gastos_of_vivienda_that_has_gastos_pagados(self):
         user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
         gasto, dummy_categoria = get_dummy_gasto_pendiente(user1_viv)
-        user1.pagar(gasto)
+        user1.confirm_pay(gasto)
 
         gastos_pendientes, gastos_pagados = user1_viv.get_gastos_vivienda()
 
@@ -1712,7 +1712,7 @@ class ViviendaUsuarioModelTest(TestCase):
     def test_user_gets_gastos_of_viv_that_has_gastos_pend_and_pays_them(self):
         user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
         gasto, dummy_categoria = get_dummy_gasto_pendiente(user1_viv)
-        user1_viv.pagar(gasto)
+        user1_viv.confirm_pay(gasto)
 
         gastos_pendientes, gastos_pagados = user1_viv.get_gastos_vivienda()
 
@@ -1919,7 +1919,7 @@ class PresupuestoModelTest(TestCase):
             monto=2000,
             creado_por=user1_viv,
             categoria=dummy_categoria)
-        gasto_2.pagar(user1)
+        gasto_2.confirm_pay(user1)
 
         self.assertTrue(gasto_1.is_pending())
         self.assertFalse(gasto_2.is_pending())
@@ -1949,8 +1949,8 @@ class PresupuestoModelTest(TestCase):
             monto=9000,
             creado_por=user1_viv,
             categoria=dummy_categoria_2)
-        gasto_1.pagar(user1)
-        gasto_2.pagar(user1)
+        gasto_1.confirm_pay(user1)
+        gasto_2.confirm_pay(user1)
 
         self.assertFalse(gasto_1.is_pending())
         self.assertFalse(gasto_2.is_pending())
@@ -2554,7 +2554,7 @@ class GastoModelTest(TestCase):
         user1, correct_vivienda, user1_viv = get_vivienda_with_1_user()
         gasto, dummy_categoria = get_dummy_gasto_pendiente(user1_viv)
 
-        gasto.pagar(user1)
+        gasto.confirm_pay(user1)
 
         self.assertTrue(gasto.is_paid())
         self.assertFalse(gasto.is_pending())

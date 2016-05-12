@@ -282,14 +282,14 @@ def get_hard_balance_test_database():
             monto=monto,
             creado_por=user,
             categoria=cat_not_shared_on_leave)
-        user.pagar(gasto, fecha_pago=p)
+        user.confirm_pay(gasto, fecha_pago=p)
 
     def S(user, monto, p):
         gasto = Gasto.objects.create(
             monto=monto,
             creado_por=user,
             categoria=cat_shared_on_leave)
-        user.pagar(gasto, fecha_pago=p)
+        user.confirm_pay(gasto, fecha_pago=p)
 
     # create gastos per period
     monto = 1000
@@ -461,14 +461,14 @@ def get_HARDEST_balance_test_database():
             monto=monto,
             creado_por=user,
             categoria=cat_not_shared_on_leave)
-        user.pagar(gasto, fecha_pago=p)
+        user.confirm_pay(gasto, fecha_pago=p)
 
     def S(user, monto, p):
         gasto = Gasto.objects.create(
             monto=monto,
             creado_por=user,
             categoria=cat_shared_on_leave)
-        user.pagar(gasto, fecha_pago=p)
+        user.confirm_pay(gasto, fecha_pago=p)
     # create gastos per period
     # import random
     # dummy_monto = random.randint(10000, 50000)

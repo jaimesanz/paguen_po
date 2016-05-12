@@ -139,14 +139,14 @@ class ProxyUser(User):
             invitado_por__user=self, estado="pendiente")
         return invites_in, invites_out
 
-    def pagar(self, gasto, fecha_pago=timezone.now().date()):
+    def confirm_pay(self, gasto, fecha_pago=timezone.now().date()):
         """
         Sets the state of the given Gasto as "pagado", and it's "usuario" field
         as the User's active ViviendaUsuario.
         If the user has no active Vivienda, returns None and does nothing.
         """
         if self.has_vivienda():
-            self.get_vu().pagar(gasto, fecha_pago)
+            self.get_vu().confirm_pay(gasto, fecha_pago)
 
     def sent_invite(self, invite):
         """
@@ -279,12 +279,12 @@ class ProxyUser(User):
                 monto=monto,
                 creado_por=self.get_vu(),
                 categoria=transfer_categoria)
-            self.pagar(transfer_pos)
+            self.confirm_pay(transfer_pos)
             transfer_neg = Gasto.objects.create(
                 monto=monto * -1,
                 creado_por=user.get_vu(),
                 categoria=transfer_categoria)
-            user.pagar(transfer_neg)
+            user.confirm_pay(transfer_neg)
             return (transfer_pos, transfer_neg)
         # user can't transfer
         return (None, None)
@@ -698,7 +698,7 @@ class ViviendaUsuario(models.Model):
             empty_queryset = Gasto.objects.none()
             return (empty_queryset, empty_queryset)
 
-    def pagar(self, gasto, fecha_pago=timezone.now().date()):
+    def confirm_pay(self, gasto, fecha_pago=timezone.now().date()):
         """
         Sets the state of the given Gasto as "pagado", and it's "usuario" field
         as the ViviendaUsuario.
@@ -1082,7 +1082,7 @@ class ListaCompras(models.Model):
                 nombre="Supermercado",
                 vivienda=vivienda_usuario.vivienda)[0],
             lista_compras=self)
-        nuevo_gasto.pagar(vivienda_usuario)
+        nuevo_gasto.confirm_pay(vivienda_usuario)
         return nuevo_gasto
 
     def get_gasto(self):
@@ -1231,12 +1231,12 @@ class Gasto(models.Model):
                         "__",
                         str(self.year_month)))
 
-    def pagar(self, user, fecha_pago=timezone.now().date()):
+    def confirm_pay(self, user, fecha_pago=timezone.now().date()):
         """
         It receives a User or a ViviendaUsuario object and changes the
         state of the Gasto to "pagado" by the given User/ViviendaUsuario.
         """
-        user.pagar(self, fecha_pago)
+        user.confirm_pay(self, fecha_pago)
 
     def is_pending(self):
         """

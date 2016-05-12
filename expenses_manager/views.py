@@ -487,7 +487,7 @@ def nuevo_gasto(request):
             # check if it's paid
             is_paid = request.POST.get("is_paid", None)
             if is_paid == "yes":
-                nuevo_gasto.pagar(request.user, **kwargs)
+                nuevo_gasto.confirm_pay(request.user, **kwargs)
                 return HttpResponseRedirect("/gastos")
             elif is_paid == "no":
                 return HttpResponseRedirect("/gastos")
@@ -576,7 +576,7 @@ def detalle_gasto(request, gasto_id):
         messages.success(
             request,
             "El gasto fue pagado con éxito")
-        gasto.pagar(request.user)
+        gasto.confirm_pay(request.user)
         return HttpResponseRedirect("/detalle_gasto/%d/" % (gasto.id))
     return render(request, "gastos/detalle_gasto.html", locals())
 

@@ -550,9 +550,9 @@ class GastoViviendaPaidListViewTest(TestCase):
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
             self)
-        gasto_1.pagar(test_user_1)
-        gasto_2.pagar(test_user_2)
-        gasto_3.pagar(test_user_3)
+        gasto_1.confirm_pay(test_user_1)
+        gasto_2.confirm_pay(test_user_2)
+        gasto_3.confirm_pay(test_user_3)
 
         response = self.client.get("/gastos/", follow=True)
         # check that logged user can see both gastos
@@ -679,7 +679,7 @@ class GastoViviendaPayViewTest(TestCase):
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
             self)
-        gasto_1.pagar(test_user_1)
+        gasto_1.confirm_pay(test_user_1)
         self.assertTrue(gasto_1.is_paid())
         response = self.client.post(
             "/detalle_gasto/%d/" % (gasto_1.id),
@@ -737,7 +737,7 @@ class GastoViviendaPayViewTest(TestCase):
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
             self)
-        gasto_2.pagar(test_user_2)
+        gasto_2.confirm_pay(test_user_2)
         self.assertTrue(gasto_2.is_paid())
         response = self.client.post(
             "/detalle_gasto/%d/" % (gasto_2.id),
@@ -2554,8 +2554,8 @@ class BalanceViewTest(TestCase):
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
 
-        test_user_1.pagar(gasto_1)
-        test_user_1.pagar(gasto_2)
+        test_user_1.confirm_pay(gasto_1)
+        test_user_1.confirm_pay(gasto_2)
 
         response = self.client.get(
             self.url,
@@ -2582,8 +2582,8 @@ class BalanceViewTest(TestCase):
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
 
-        test_user_1.pagar(gasto_1)
-        test_user_2.pagar(gasto_2)
+        test_user_1.confirm_pay(gasto_1)
+        test_user_2.confirm_pay(gasto_2)
 
         response = self.client.get(
             self.url,
@@ -2765,8 +2765,8 @@ class CategoriaListViewTest(TestCase):
             gasto_2,
             __) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
         vivienda = test_user_1.get_vivienda()
-        gasto_1.pagar(test_user_1)
-        gasto_2.pagar(test_user_1)
+        gasto_1.confirm_pay(test_user_1)
+        gasto_2.confirm_pay(test_user_1)
         otros_cat = Categoria.objects.create(
             nombre="Otros",
             vivienda=vivienda)
@@ -2815,8 +2815,8 @@ class CategoriaListViewTest(TestCase):
             gasto_1,
             gasto_2,
             __) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
-        gasto_1.pagar(test_user_1)
-        gasto_2.pagar(test_user_1)
+        gasto_1.confirm_pay(test_user_1)
+        gasto_2.confirm_pay(test_user_1)
         vivienda = test_user_1.get_vivienda()
         # hide categoria
         dummy_categoria.hide()
