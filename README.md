@@ -35,4 +35,4 @@ Note that this does not actually make the transfer happen, it's only meant to gi
 
 Transfer
 -------------
-Once the instructions for balancing have been generated, users can actually "transfer" funds to one another. In reality, users are going to balance everything, but outside the system. The transactions are just meant to tell the system that users (in RL) have already balance the expenese.
+Once the instructions for balancing have been generated, users can actually "transfer" funds to one another. In reality, users are going to balance everything, but outside the system. The transactions are just meant to tell the system that users (in RL) have already balance the expenses.
