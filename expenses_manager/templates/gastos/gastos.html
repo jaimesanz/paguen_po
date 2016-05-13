@@ -19,7 +19,10 @@
 	<ul class="nav nav-tabs" role="tablist">
 		<li role="presentation" class="active"><a href="#nuevo_gasto" aria-controls="nuevo_gasto" role="tab" data-toggle="tab">Nuevo Gasto</a></li>
 		<li role="presentation"><a href="#pendientes" aria-controls="pendientes" role="tab" data-toggle="tab">Pendientes</a></li>
-		<li role="presentation"><a href="#pagados" aria-controls="pagados" role="tab" data-toggle="tab">Pagados</a></li>
+		<li role="presentation"><a href="#pendientes_confirmacion" aria-controls="pendientes_confirmacion"
+                                   role="tab" data-toggle="tab">Por
+            Confirmar</a></li>
+        <li role="presentation"><a href="#pagados" aria-controls="pagados" role="tab" data-toggle="tab">Pagados</a></li>
 	</ul>
 	<br>
 
@@ -69,6 +72,29 @@
 			</table>
 		</div>
 
+        <!-- pendientes confirmacion -->
+		<div role="tabpanel" class="tab-pane" id="pendientes_confirmacion">
+			<table id="tabla_gastos_pendientes_confirmacion" class="table
+			table-striped table-bordered" cellspacing="0" width="100%">
+			    <thead>
+			        <tr>
+			            <th>Fecha</th>
+			            <th>Categoría</th>
+			            <th>Monto</th>
+			        </tr>
+			    </thead>
+			    <tbody>
+			        {% for gasto in gastos_pendientes_confirmacion_list %}
+			        	<tr>
+				            <td><a href="/detalle_gasto/{{gasto.id}}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{gasto.fecha_creacion}}</td>
+				            <td>{{gasto.categoria}}</td>
+				            <td>$ {{gasto.monto|intcomma}}</td>
+			        	</tr>
+			        {% endfor %}
+			    </tbody>
+			</table>
+		</div>
+
 		<!-- pagados -->
 		<div role="tabpanel" class="tab-pane" id="pagados">
 			<div role="tabpanel" class="tab-pane" id="pendientes">
@@ -98,8 +124,8 @@
 	<script type="text/javascript">
 		$(document).ready(function(){
 			$("#id_fecha_pago").datepicker();
-			// TODO customize tables. Currently using the default argument-less dataTable
-			$('#tabla_gastos_pendientes, #tabla_gastos_pagados').each(function(){
+			$('#tabla_gastos_pendientes, #tabla_gastos_pagados, #tabla_gastos_pendientes_confirmacion').each
+            (function(){
 				$(this).DataTable({});
 			});
 			$("#id_fecha_pago").parent().hide();

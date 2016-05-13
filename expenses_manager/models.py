@@ -43,7 +43,7 @@ def get_default_estado_gasto():
     return estado_gasto.id
 
 
-def get_done_estado_gasto():
+def get_paid_state_gasto():
     """
     Returns an instance of EstadoGasto with value "pagado".
     If it doesn't exist, it creates it first.
@@ -52,13 +52,23 @@ def get_done_estado_gasto():
     return EstadoGasto.objects.get_or_create(estado="pagado")[0]
 
 
-def get_pending_estado_gasto():
+def get_pending_state_gasto():
     """
     Returns an instance of EstadoGasto with value "pendiente".
     If it doesn't exist, it creates it first.
     :return: EstadoGasto
     """
     return EstadoGasto.objects.get_or_create(estado="pendiente")[0]
+
+
+def get_pending_confirmation_state_gasto():
+    """
+    Returns an instance of EstadoGasto with value "pendiente_confirmacion".
+    If it doesn't exist, it creates it first.
+    :return: EstadoGasto
+    """
+    return EstadoGasto.objects.get_or_create(
+        estado="pendiente_confirmacion")[0]
 
 
 def get_default_others_categoria():
@@ -155,17 +165,6 @@ class ProxyUser(User):
         invites_out = Invitacion.objects.filter(
             invitado_por__user=self, estado="pendiente")
         return invites_in, invites_out
-
-    def confirm_pay(self, gasto, fecha_pago=timezone.now().date()):
-        """
-        Sets the state of the given Gasto as "pagado", and it's "usuario" field
-        as the User's active ViviendaUsuario.
-        If the user has no active Vivienda, returns None and does nothing.
-        :param gasto: Gasto
-        :param fecha_pago: Date
-        """
-        if self.has_vivienda():
-            self.get_vu().confirm_pay(gasto, fecha_pago)
 
     def sent_invite(self, invite):
         """
@@ -307,16 +306,19 @@ class ProxyUser(User):
                 vivienda=self.get_vivienda(),
                 is_transfer=True)
 
+            self_vu = self.get_vu()
             transfer_pos = Gasto.objects.create(
                 monto=monto,
-                creado_por=self.get_vu(),
+                creado_por=self_vu,
                 categoria=transfer_categoria)
-            self.confirm_pay(transfer_pos)
+            self_vu.pay(transfer_pos)
+
+            user_vu = user.get_vu()
             transfer_neg = Gasto.objects.create(
                 monto=monto * -1,
-                creado_por=user.get_vu(),
+                creado_por=user_vu,
                 categoria=transfer_categoria)
-            user.confirm_pay(transfer_neg)
+            user_vu.pay(transfer_neg)
             return (transfer_pos, transfer_neg)
         # user can't transfer
         return (None, None)
@@ -341,6 +343,16 @@ class Vivienda(models.Model):
                 descripcion=item.descripcion,
                 vivienda=self)
 
+    def get_active_users(self):
+        """
+        Returns all currently active ViviendaUsuario instances in the Vivienda
+        :return: QuerySet( ViviendaUsuario )
+        """
+        return ViviendaUsuario.objects.filter(
+            vivienda=self,
+            estado="activo"
+        )
+
     def get_gastos_pendientes(self):
         """
         Returns a QuerySet with the Gastos associated with the Vivienda,
@@ -349,8 +361,18 @@ class Vivienda(models.Model):
         """
         return Gasto.objects.filter(
             creado_por__vivienda=self,
-            estado=get_pending_estado_gasto(),
+            estado=get_pending_state_gasto(),
             categoria__is_transfer=False)
+
+    def get_pending_confirmation_gastos(self):
+        """
+        Returns a QuerySet with the Gastos associated with the Vivienda,
+        and with a pending_confirmation state
+        :return: QuerySet( Gasto )
+        """
+        return Gasto.objects.filter(
+            creado_por__vivienda=self,
+            estado=get_pending_confirmation_state_gasto())
 
     def get_gastos_pagados(self):
         """
@@ -360,7 +382,7 @@ class Vivienda(models.Model):
         """
         return Gasto.objects.filter(
             creado_por__vivienda=self,
-            estado=get_done_estado_gasto(),
+            estado=get_paid_state_gasto(),
             categoria__is_transfer=False)
 
     def get_categorias(self):
@@ -765,10 +787,55 @@ class ViviendaUsuario(models.Model):
             empty_queryset = Gasto.objects.none()
             return (empty_queryset, empty_queryset)
 
+    def pay(self, gasto, fecha_pago=timezone.now().date()):
+        """
+        Sets the state of the given Gasto as "pendiente_confirmacion", and it's
+        "usuario" field as the ViviendaUsuario. Also creates a
+        ConfirmacionUsuario instance per active user in the Vivienda.
+        :param gasto: Gasto
+        :param fecha_pago: Date
+        """
+        gasto.usuario = self
+        gasto.fecha_pago = fecha_pago
+        ym, __ = YearMonth.objects.get_or_create(
+            year=fecha_pago.year,
+            month=fecha_pago.month)
+        gasto.year_month = ym
+        gasto.set_pending_confirmation_state()
+        gasto.save()
+        for vu in self.vivienda.get_active_users():
+            ConfirmacionGasto.objects.create(vivienda_usuario=vu, gasto=gasto)
+        # the user that pays immediately confirms the payment
+        self.confirm(gasto)
+
+    def confirm(self, gasto):
+        """
+        Finds a ConfirmacionGasto instance realted to the given Gasto and
+        this ViviendaUsuario, and changes it's "confirmed" field to True.
+        If, after the change, all ConfirmacionGasto instances related to the
+        given Gasto are confirmed, changes the state to the
+        confirmed_paid_state
+        """
+        gasto_confirmation = ConfirmacionGasto.objects.filter(
+            gasto=gasto, vivienda_usuario=self).first()
+        if gasto_confirmation is not None:
+            gasto_confirmation.confirmed = True
+            gasto_confirmation.save()
+            if not ConfirmacionGasto.objects.filter(
+                    gasto=gasto,
+                    confirmed=False).exists():
+                # all users have confirmed
+                gasto.set_confirmed_paid_state()
+
     def confirm_pay(self, gasto, fecha_pago=timezone.now().date()):
         """
         Sets the state of the given Gasto as "pagado", and it's "usuario" field
         as the ViviendaUsuario.
+
+        This method is used for TESTING purposes, because it skips the
+        confirmation phase of paying a Gasto. However, this should never
+        happen in the actual application.
+
         :param gasto: Gasto
         :param fecha_pago: Date
         """
@@ -1129,10 +1196,27 @@ class ListaCompras(models.Model):
 
     def is_done(self):
         """
-        Returns True if the state is "pagada", or False otherwise.
+        Returns True if the state is "pagada", and the corresponding Gasto of
+        the Lista has an is_paid state. Returns False otherwise.
         :return: Boolean
         """
-        return self.estado == "pagada"
+        if self.estado != "pagada":
+            return False
+        gasto = self.gasto_set.first()
+        if gasto is None:
+            return False
+        return gasto.is_paid()
+
+    def is_pending_confirm(self):
+        """
+        Returns True if the state of the related Gasto has a pending_confirm
+        state. Returns False otherwise.
+        :return: Boolean
+        """
+        gasto = self.gasto_set.first()
+        if gasto is not None:
+            return gasto.is_pending_confirm()
+        return False
 
     def set_done_state(self):
         """
@@ -1141,7 +1225,7 @@ class ListaCompras(models.Model):
         and returns False.
         :return: Boolean
         """
-        if not self.is_done():
+        if not self.estado == "pagada":
             self.estado = "pagada"
             self.save()
             return True
@@ -1189,7 +1273,7 @@ class ListaCompras(models.Model):
                 nombre="Supermercado",
                 vivienda=vivienda_usuario.vivienda)[0],
             lista_compras=self)
-        nuevo_gasto.confirm_pay(vivienda_usuario)
+        nuevo_gasto.pay(vivienda_usuario)
         return nuevo_gasto
 
     def get_gasto(self):
@@ -1313,6 +1397,13 @@ class EstadoGasto(models.Model):
         """
         return self.estado == "pendiente"
 
+    def is_pending_confirm(self):
+        """
+        Returns True is the state is "pendiente_confirmacion"
+        :return: Boolean
+        """
+        return self.estado == get_pending_confirmation_state_gasto().estado
+
     def is_paid(self):
         """
         Returns True is the state is "pagado"
@@ -1349,14 +1440,24 @@ class Gasto(models.Model):
                         "__",
                         str(self.year_month)))
 
-    def confirm_pay(self, user, fecha_pago=timezone.now().date()):
+    def pay(self, vivienda_usuario, fecha_pago=timezone.now().date()):
         """
-        It receives a User or a ViviendaUsuario object and changes the
-        state of the Gasto to "pagado" by the given User/ViviendaUsuario.
-        :param user: User or ViviendaUsuario
+        It receives a ViviendaUsuario object and changes the state of the
+        Gasto to "pendiente_confirmacion" and the "usuario" field to the given
+        ViviendaUsuario.
+        :param vivienda_usuario: ViviendaUsuario
         :param fecha_pago: Date
         """
-        user.confirm_pay(self, fecha_pago)
+        vivienda_usuario.pay(self, fecha_pago)
+
+    def confirm_pay(self, vivienda_usuario, fecha_pago=timezone.now().date()):
+        """
+        It receives a ViviendaUsuario object and changes the state of the
+        Gasto to "pagado" by the given ViviendaUsuario.
+        :param vivienda_usuario: ViviendaUsuario
+        :param fecha_pago: Date
+        """
+        vivienda_usuario.confirm_pay(self, fecha_pago)
 
     def is_pending(self):
         """
@@ -1364,6 +1465,27 @@ class Gasto(models.Model):
         :return: Boolean
         """
         return self.estado.is_pending()
+
+    def is_pending_confirm(self):
+        """
+        Returns True if the state is "pendiente_confirmacion"
+        :return: Boolean
+        """
+        return self.estado.is_pending_confirm()
+
+    def set_pending_confirmation_state(self):
+        """
+        Changes the state of the Gasto to "pendiente_confirmacion"
+        """
+        self.estado = get_pending_confirmation_state_gasto()
+        self.save()
+
+    def set_confirmed_paid_state(self):
+        """
+        Changes the state of the Gasto to "pagado"
+        """
+        self.estado = get_paid_state_gasto()
+        self.save()
 
     def is_paid(self):
         """
@@ -1380,7 +1502,6 @@ class Gasto(models.Model):
         :return: Boolean
         """
         return (user.has_vivienda() and
-                not self.categoria.is_transfer and
                 user.get_vivienda() == self.creado_por.vivienda)
 
     def get_responsible_users(self, all_users, vac_dict):
@@ -1403,3 +1524,31 @@ class Gasto(models.Model):
         # make sure the user that payed is always responsible
         share_holders.add(self.usuario)
         return share_holders
+
+    def get_confirmed_users(self):
+        """
+        Returns all ViviendaUsuarios who have already confirmed this Gasto
+        :return: List( Dict( "vivienda_usuario__user__username" -> String ) )
+        """
+        return self.confirmaciongasto_set.filter(
+            confirmed=True).values("vivienda_usuario__user__username")
+
+    def get_unconfirmed_users(self):
+        """
+        Returns all ViviendaUsuarios who are yet to confirm this Gasto
+        :return: List( Dict( "vivienda_usuario__user__username" -> String ) )
+        """
+        return self.confirmaciongasto_set.filter(
+            confirmed=False).values("vivienda_usuario__user__username")
+
+
+class ConfirmacionGasto(models.Model):
+
+    class Meta:
+        unique_together = ('vivienda_usuario', 'gasto')
+
+    vivienda_usuario = models.ForeignKey(
+        ViviendaUsuario,
+        on_delete=models.CASCADE)
+    confirmed = models.BooleanField(default=False)
+    gasto = models.ForeignKey(Gasto, on_delete=models.CASCADE)

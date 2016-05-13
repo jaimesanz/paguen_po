@@ -487,7 +487,7 @@ def nuevo_gasto(request):
             # check if it's paid
             is_paid = request.POST.get("is_paid", None)
             if is_paid == "yes":
-                nuevo_gasto.confirm_pay(request.user, **kwargs)
+                nuevo_gasto.pay(request.user.get_vu(), **kwargs)
                 return HttpResponseRedirect("/gastos")
             elif is_paid == "no":
                 return HttpResponseRedirect("/gastos")
@@ -503,6 +503,8 @@ def gastos(request):
         return HttpResponseRedirect("/error")
     # get list of gastos
     gastos_pendientes_list, gastos_pagados_list = vu.get_gastos_vivienda()
+    gastos_pendientes_confirmacion_list = \
+        vu.vivienda.get_pending_confirmation_gastos()
     gasto_form = GastoForm()
     gasto_form.fields["categoria"].queryset = vu.vivienda.get_categorias()
     today = timezone.now().date().strftime(settings.DATE_FORMAT)
@@ -568,17 +570,60 @@ def detalle_gasto(request, gasto_id):
         return HttpResponseRedirect("/error")
     gasto_form = GastoForm(model_to_dict(gasto))
     if request.POST:
-        if gasto.is_paid():
+        if gasto.is_paid() or gasto.is_pending_confirm():
             messages.error(
                 request,
-                "El gasto ya se encuentra pagado")
-            return HttpResponseRedirect("/error")
+                "El gasto ya se encuentra pagado.")
+            return redirect("error")
         messages.success(
             request,
             "El gasto fue pagado con éxito")
-        gasto.confirm_pay(request.user)
+        gasto.pay(request.user.get_vu())
         return HttpResponseRedirect("/detalle_gasto/%d/" % (gasto.id))
+
+    show_confirm_form = False
+    if gasto.is_pending_confirm():
+        # if it's confirmed, don't show the "confirm" button. Likewise,
+        # if it's not confirmed, show the button
+        show_confirm_form = not ConfirmacionGasto.objects.get(
+            vivienda_usuario=request.user.get_vu(),
+            gasto=gasto
+        ).confirmed
+
     return render(request, "gastos/detalle_gasto.html", locals())
+
+
+@login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
+def confirm_gasto(request, gasto_id):
+    gasto = get_object_or_404(Gasto, id=gasto_id)
+    if not gasto.allow_user(request.user):
+        messages.error(
+            request,
+            "Usted no está autorizado para ver esta página")
+        return redirect("error")
+    if request.POST:
+        vu = request.user.get_vu()
+        if ConfirmacionGasto.objects.get(
+                gasto=gasto,
+                vivienda_usuario=vu).confirmed:
+            messages.error(request, "Usted ya confirmó este Gasto")
+        else:
+            vu.confirm(gasto)
+            if gasto.is_paid():
+                # this means everyone confirmed
+                messages.success(
+                    request,
+                    "El gasto fue confirmado por todos los usuarios "
+                    "pertinentes.")
+            else:
+                messages.success(
+                    request,
+                    "Gasto confirmado.")
+
+    return redirect("/detalle_gasto/%d" % (gasto.id))
 
 
 @login_required

@@ -70,7 +70,32 @@
 					<td><b>Estado:</b></td>
 					<td>{{gasto.estado}}</td>
 				</tr>
+                {% if gasto.is_pending_confirm %}
+                    <tr>
+                        <td><b>Confirmado por:</b></td>
+                        <td>
+                        {% for cg in gasto.get_confirmed_users %}
+                            {{ cg.vivienda_usuario__user__username }}
+                        {% endfor %}
+                        </td>
+				    </tr>
+                    <tr>
+                        <td><b>Por confirmar:</b></td>
+                        <td>
+                        {% for cg in gasto.get_unconfirmed_users %}
+                            {{ cg.vivienda_usuario__user__username }}
+                        {% endfor %}
+                        </td>
+				    </tr>
+                {% endif %}
 			</tbody>
 		</table>
+        {% if show_confirm_form %}
+            <form method="post" action="/confirm/{{ gasto.id }}/">
+			    {% csrf_token %}
+                <button type="submit" class="btn
+                btn-primary">Confirmar</button>
+            </form>
+        {% endif %}
 	{% endif %}
 {% endblock %}

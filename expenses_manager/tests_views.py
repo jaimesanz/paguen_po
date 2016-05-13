@@ -406,7 +406,16 @@ class NewGastoViewTest(TestCase):
         paid_gastos = Gasto.objects.filter(
             creado_por__vivienda=test_user_1.get_vivienda(),
             estado__estado="pagado")
-        for gasto in paid_gastos:
+        self.assertEqual(
+            paid_gastos.count(),
+            0)
+        pending_confirm_gastos = Gasto.objects.filter(
+            creado_por__vivienda=test_user_1.get_vivienda(),
+            estado__estado="pendiente_confirmacion")
+        self.assertEqual(
+            pending_confirm_gastos.count(),
+            1)
+        for gasto in pending_confirm_gastos:
             self.assertContains(response, gasto.monto)
             self.assertContains(
                 response, "href=\"/detalle_gasto/%d\"" % gasto.id)
@@ -446,7 +455,8 @@ class NewGastoViewTest(TestCase):
         new_gasto = Gasto.objects.get(categoria=unique_categoria)
         self.assertEqual(new_gasto.fecha_pago, not_today)
         self.assertEqual(new_gasto.year_month, not_this_period)
-        self.assertTrue(new_gasto.is_paid())
+        self.assertFalse(new_gasto.is_paid())
+        self.assertTrue(new_gasto.is_pending_confirm())
 
     def test_user_CANT_create_paid_gasto_with_custom_future_fecha_pago(self):
         (test_user_1,
@@ -459,7 +469,7 @@ class NewGastoViewTest(TestCase):
             self)
 
         not_today = timezone.now().date() + timezone.timedelta(weeks=20)
-        not_this_period, __ = YearMonth.objects.get_or_create(
+        YearMonth.objects.get_or_create(
             year=not_today.year,
             month=not_today.month)
         unique_categoria = Categoria.objects.create(
@@ -525,6 +535,42 @@ class GastoViviendaPendingListViewTest(TestCase):
             response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
 
 
+class GastoViviendaPendingConfirmListViewTest(TestCase):
+
+    url = "/gastos/"
+
+    def test_user_can_see_pending_confirm_gastos_only_of_his_vivienda(self):
+        (test_user_1,
+         test_user_2,
+         test_user_3,
+         dummy_categoria,
+         gasto_1,
+         gasto_2,
+         gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+
+        test_user_1.get_vu().pay(gasto_1)
+        test_user_2.get_vu().pay(gasto_2)
+        test_user_3.get_vu().pay(gasto_3)
+
+        response = self.client.get(
+            self.url,
+            follow=True
+        )
+        # check that logged user can see both gastos
+        self.assertContains(response, dummy_categoria.nombre)
+        self.assertContains(response, gasto_1.monto)
+        self.assertContains(
+            response, "href=\"/detalle_gasto/%d\"" % gasto_1.id)
+        self.assertContains(response, gasto_2.monto)
+        self.assertContains(
+            response, "href=\"/detalle_gasto/%d\"" % gasto_2.id)
+        # check that logged user can't see the gasto from the other vivienda
+        self.assertNotContains(response, gasto_3.monto)
+        self.assertNotContains(
+            response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+
+
 class GastoViviendaPaidListViewTest(TestCase):
 
     def test_basics_paid_gasto_list_url(self):
@@ -550,9 +596,9 @@ class GastoViviendaPaidListViewTest(TestCase):
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
             self)
-        gasto_1.confirm_pay(test_user_1)
-        gasto_2.confirm_pay(test_user_2)
-        gasto_3.confirm_pay(test_user_3)
+        gasto_1.confirm_pay(test_user_1.get_vu())
+        gasto_2.confirm_pay(test_user_2.get_vu())
+        gasto_3.confirm_pay(test_user_3.get_vu())
 
         response = self.client.get("/gastos/", follow=True)
         # check that logged user can see both gastos
@@ -567,6 +613,298 @@ class GastoViviendaPaidListViewTest(TestCase):
         self.assertNotContains(response, gasto_3.monto)
         self.assertNotContains(
             response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+
+
+class GastoViviendaPendingConfirmViewTest(TestCase):
+
+    def test_not_logged_user_cant_confirm_gasto(self):
+        (test_user_1,
+         test_user_2,
+         test_user_3,
+         dummy_categoria,
+         gasto_1,
+         gasto_2,
+         gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+        url = "/confirm/%d/" % (gasto_1.id)
+        test_user_2.get_vu().pay(gasto_1)
+
+        self.client.logout()
+
+        response = self.client.post(
+            url,
+            data={
+                "csrfmiddlewaretoken": "rubbish"
+            },
+            follow=True)
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=/confirm/%d/" % (gasto_1.id))
+        has_not_logged_navbar(self, response)
+
+    def test_homeless_cant_confirm_gasto(self):
+        (test_user_1,
+         test_user_2,
+         test_user_3,
+         dummy_categoria,
+         gasto_1,
+         gasto_2,
+         gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+        url = "/confirm/%d/" % (gasto_1.id)
+        test_user_2.get_vu().pay(gasto_1)
+
+        test_user_1.leave()
+
+        response = self.client.post(
+            url,
+            data={
+                "csrfmiddlewaretoken": "rubbish"
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/error/")
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+
+    def test_outsider_cant_confirm_gasto(self):
+        (test_user_1,
+         test_user_2,
+         test_user_3,
+         dummy_categoria,
+         gasto_1,
+         gasto_2,
+         gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+
+        # roommate for user3 (so that the Gasto doesn't immediately get a
+        # confirmed paid state)
+        test_user_4 = ProxyUser.objects.create(
+            username="test_user_4", email="d@d.com")
+        test_user_4_viv = ViviendaUsuario.objects.create(
+            vivienda=test_user_3.get_vivienda(), user=test_user_4)
+
+        test_user_3.get_vu().pay(gasto_3)  # is pending_confirm; user4 must
+        # still confirm
+        url = "/confirm/%d/" % (gasto_3.id)
+
+        response = self.client.post(
+            url,
+            data={
+                "csrfmiddlewaretoken": "rubbish"
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/error/")
+        self.assertContains(
+            response,
+            "Usted no está autorizado para ver esta página")
+        # assert the Gasto did not change
+        self.assertFalse(Gasto.objects.get(id=gasto_3.id).is_paid())
+        self.assertTrue(Gasto.objects.get(id=gasto_3.id).is_pending_confirm())
+        self.assertFalse(Gasto.objects.get(id=gasto_3.id).is_pending())
+
+    def test_user_can_see_confirm_button(self):
+        (test_user_1,
+         test_user_2,
+         test_user_3,
+         dummy_categoria,
+         gasto_1,
+         gasto_2,
+         gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+
+        url = "/confirm/%d/" % (gasto_1.id)
+        test_user_2.get_vu().pay(gasto_1)
+
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertContains(response, "Confirmar")
+
+    def test_user_cant_see_confirm_button_if_he_already_confirmed(self):
+        (test_user_1,
+         test_user_2,
+         test_user_3,
+         dummy_categoria,
+         gasto_1,
+         gasto_2,
+         gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+
+        url = "/confirm/%d/" % (gasto_1.id)
+        test_user_1.get_vu().pay(gasto_1)
+
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertNotContains(response, "Confirmar")
+
+    def test_user_can_confirm_gasto(self):
+        (test_user_1,
+         test_user_2,
+         test_user_3,
+         dummy_categoria,
+         gasto_1,
+         gasto_2,
+         gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+
+        # third roommate (so that the Gasto doesn't immediately get a
+        # confirmed paid state when the logged user confirms)
+        test_user_4 = ProxyUser.objects.create(
+            username="test_user_4", email="d@d.com")
+        test_user_4_viv = ViviendaUsuario.objects.create(
+            vivienda=test_user_1.get_vivienda(), user=test_user_4)
+        self.assertEqual(
+            test_user_1.get_vivienda().get_active_users().count(),
+            3
+        )
+        url = "/confirm/%d/" % (gasto_1.id)
+        test_user_2.get_vu().pay(gasto_1)
+
+        response = self.client.post(
+            url,
+            data={
+                "csrfmiddlewaretoken": "rubbish"
+            },
+            follow=True)
+
+        self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto_1.id))
+        self.assertContains(response, "Gasto confirmado.")
+        # assert the Gasto DID change
+        self.assertFalse(Gasto.objects.get(id=gasto_1.id).is_paid())
+        self.assertTrue(Gasto.objects.get(id=gasto_1.id).is_pending_confirm())
+        self.assertFalse(Gasto.objects.get(id=gasto_1.id).is_pending())
+        self.assertTrue(
+            ConfirmacionGasto.objects.get(
+                vivienda_usuario=test_user_1.get_vu(),
+                gasto=gasto_1
+            ).confirmed
+        )
+
+        self.assertTrue(
+            ConfirmacionGasto.objects.get(
+                vivienda_usuario=test_user_2.get_vu(),
+                gasto=gasto_1
+            ).confirmed
+        )
+
+        self.assertFalse(
+            ConfirmacionGasto.objects.get(
+                vivienda_usuario=test_user_4.get_vu(),
+                gasto=gasto_1
+            ).confirmed
+        )
+
+    def test_user_can_confirm_gasto_and_it_changes_to_paid(self):
+        (test_user_1,
+         test_user_2,
+         test_user_3,
+         dummy_categoria,
+         gasto_1,
+         gasto_2,
+         gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+
+        url = "/confirm/%d/" % (gasto_1.id)
+        test_user_2.get_vu().pay(gasto_1)
+
+        response = self.client.post(
+            url,
+            data={
+                "csrfmiddlewaretoken": "rubbish"
+            },
+            follow=True)
+
+        self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto_1.id))
+        self.assertNotContains(response, "Gasto confirmado.")
+        self.assertContains(response, "El gasto fue confirmado por todos los "
+                                      "usuarios pertinentes.")
+
+        # assert the Gasto DID change
+        self.assertTrue(Gasto.objects.get(id=gasto_1.id).is_paid())
+        self.assertFalse(Gasto.objects.get(id=gasto_1.id).is_pending_confirm())
+        self.assertFalse(Gasto.objects.get(id=gasto_1.id).is_pending())
+        self.assertTrue(
+            ConfirmacionGasto.objects.get(
+                vivienda_usuario=test_user_1.get_vu(),
+                gasto=gasto_1
+            ).confirmed
+        )
+
+        self.assertTrue(
+            ConfirmacionGasto.objects.get(
+                vivienda_usuario=test_user_2.get_vu(),
+                gasto=gasto_1
+            ).confirmed
+        )
+
+    def test_user_cant_confirm_more_than_once(self):
+        (test_user_1,
+         test_user_2,
+         test_user_3,
+         dummy_categoria,
+         gasto_1,
+         gasto_2,
+         gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+
+        # third roommate (so that the Gasto doesn't immediately get a
+        # confirmed paid state when the logged user confirms)
+        test_user_4 = ProxyUser.objects.create(
+            username="test_user_4", email="d@d.com")
+        test_user_4_viv = ViviendaUsuario.objects.create(
+            vivienda=test_user_1.get_vivienda(), user=test_user_4)
+        self.assertEqual(
+            test_user_1.get_vivienda().get_active_users().count(),
+            3
+        )
+        url = "/confirm/%d/" % (gasto_1.id)
+        test_user_2.get_vu().pay(gasto_1)
+        test_user_1.get_vu().confirm(gasto_1)
+
+        response = self.client.post(
+            url,
+            data={
+                "csrfmiddlewaretoken": "rubbish"
+            },
+            follow=True)
+
+        self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto_1.id))
+        self.assertContains(response, "Usted ya confirmó este Gasto")
+
+        # assert the Gasto did NOT change
+        self.assertFalse(Gasto.objects.get(id=gasto_1.id).is_paid())
+        self.assertTrue(Gasto.objects.get(id=gasto_1.id).is_pending_confirm())
+        self.assertFalse(Gasto.objects.get(id=gasto_1.id).is_pending())
+        self.assertTrue(
+            ConfirmacionGasto.objects.get(
+                vivienda_usuario=test_user_1.get_vu(),
+                gasto=gasto_1
+            ).confirmed
+        )
+
+        self.assertTrue(
+            ConfirmacionGasto.objects.get(
+                vivienda_usuario=test_user_2.get_vu(),
+                gasto=gasto_1
+            ).confirmed
+        )
+
+        self.assertFalse(
+            ConfirmacionGasto.objects.get(
+                vivienda_usuario=test_user_4.get_vu(),
+                gasto=gasto_1
+            ).confirmed
+        )
 
 
 class GastoViviendaPayViewTest(TestCase):
@@ -666,6 +1004,12 @@ class GastoViviendaPayViewTest(TestCase):
                 creado_por__vivienda=test_user_1.get_vivienda(),
                 estado__estado="pagado")
             .count(),
+            0)
+        self.assertEqual(
+            Gasto.objects.filter(
+                creado_por__vivienda=test_user_1.get_vivienda(),
+                estado__estado="pendiente_confirmacion")
+            .count(),
             1)
         self.assertNotContains(response, "<a href=\"/detalle_lista/")
         self.assertNotContains(response, "<td><b>Lista compras:</b></td>")
@@ -679,7 +1023,7 @@ class GastoViviendaPayViewTest(TestCase):
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
             self)
-        gasto_1.confirm_pay(test_user_1)
+        gasto_1.confirm_pay(test_user_1.get_vu())
         self.assertTrue(gasto_1.is_paid())
         response = self.client.post(
             "/detalle_gasto/%d/" % (gasto_1.id),
@@ -724,9 +1068,53 @@ class GastoViviendaPayViewTest(TestCase):
                 creado_por__vivienda=test_user_1.get_vivienda(),
                 estado__estado="pagado")
             .count(),
+            0)
+        self.assertEqual(
+            Gasto.objects.filter(
+                creado_por__vivienda=test_user_1.get_vivienda(),
+                estado__estado="pendiente_confirmacion")
+                .count(),
             1)
         self.assertNotContains(response, "<a href=\"/detalle_lista/")
         self.assertNotContains(response, "<td><b>Lista compras:</b></td>")
+
+    def test_user_cant_pay_a_pending_confirm_gasto(self):
+        (test_user_1,
+         test_user_2,
+         test_user_3,
+         dummy_categoria,
+         gasto_1,
+         gasto_2,
+         gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+        test_user_1.get_vu().pay(gasto_1)
+
+        # user attempts to pay it again, but it no longer has a "pending" state
+        response = self.client.post(
+            "/detalle_gasto/%d/" % (gasto_1.id),
+            data={"submit": "submit"},
+            follow=True)
+        self.assertRedirects(response, "/error/")
+        self.assertContains(response, "El gasto ya se encuentra pagado.")
+        self.assertEqual(
+            Gasto.objects.filter(
+                creado_por__vivienda=test_user_1.get_vivienda(),
+                estado__estado="pendiente")
+                .count(),
+            1)
+        self.assertEqual(
+            Gasto.objects.filter(
+                creado_por__vivienda=test_user_1.get_vivienda(),
+                estado__estado="pagado")
+                .count(),
+            0)
+
+        self.assertEqual(
+            Gasto.objects.filter(
+                creado_por__vivienda=test_user_1.get_vivienda(),
+                estado__estado="pendiente_confirmacion")
+                .count(),
+            1)
 
     def test_roommate_cannot_pay_paid_gasto(self):
         (test_user_1,
@@ -737,7 +1125,7 @@ class GastoViviendaPayViewTest(TestCase):
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
             self)
-        gasto_2.confirm_pay(test_user_2)
+        gasto_2.confirm_pay(test_user_2.get_vu())
         self.assertTrue(gasto_2.is_paid())
         response = self.client.post(
             "/detalle_gasto/%d/" % (gasto_2.id),
@@ -1162,6 +1550,8 @@ class PayListaViewTest(TestCase):
             },
             follow=True)
         gasto = Gasto.objects.get(lista_compras=lista)
+        self.assertFalse(gasto.is_paid())
+        self.assertTrue(gasto.is_pending_confirm())
         self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto.id))
 
     def test_user_cant_pay_lista_without_monto_no_recicle(self):
@@ -1213,14 +1603,21 @@ class PayListaViewTest(TestCase):
             },
             follow=True)
         gasto = Gasto.objects.get(lista_compras=lista)
+        self.assertFalse(gasto.is_paid())
+        self.assertTrue(gasto.is_pending_confirm())
         self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto.id))
 
-        # old lista only has item_2, and is paid
+        # old lista only has item_2
         self.assertEqual(lista.get_items().count(), 1)
         self.assertEqual(
             lista.get_items().first().item.nombre,
             item_lista_2.item.nombre)
-        self.assertTrue(ListaCompras.objects.get(id=lista.id).is_done())
+
+        # it's not paid, it's pending confirm
+        self.assertFalse(ListaCompras.objects.get(id=lista.id).is_done())
+        self.assertTrue(ListaCompras.objects.get(
+            id=lista.id).is_pending_confirm())
+
         # created new lista with item_1
         new_lista = ListaCompras.objects.latest("fecha")
         self.assertEqual(new_lista.get_items().count(), 1)
@@ -1228,6 +1625,7 @@ class PayListaViewTest(TestCase):
             new_lista.get_items().first().item.nombre,
             item_lista_1.item.nombre)
         self.assertFalse(new_lista.is_done())
+        self.assertFalse(new_lista.is_pending_confirm())
 
     def test_user_paying_full_lista_doesnt_create_a_Lista_with_recicle(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -1251,13 +1649,17 @@ class PayListaViewTest(TestCase):
             Gasto.objects.count(),
             original_gasto_count + 1)
         gasto = Gasto.objects.get(lista_compras=lista)
+        self.assertFalse(gasto.is_paid())
+        self.assertTrue(gasto.is_pending_confirm())
         self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto.id))
 
         # created new lista with item_2
         self.assertEqual(original_lista_count, ListaCompras.objects.count())
         # old lista only has both items, and is paid
         self.assertEqual(lista.get_items().count(), 2)
-        self.assertTrue(ListaCompras.objects.get(id=lista.id).is_done())
+        self.assertFalse(ListaCompras.objects.get(id=lista.id).is_done())
+        self.assertTrue(ListaCompras.objects.get(
+            id=lista.id).is_pending_confirm())
 
     def test_user_cant_pay_lista_without_monto_with_recicle(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -1280,6 +1682,8 @@ class PayListaViewTest(TestCase):
         self.assertEqual(ListaCompras.objects.count(), original_lista_count)
         self.assertEqual(Gasto.objects.count(), original_gasto_count)
         self.assertFalse(ListaCompras.objects.get(id=lista.id).is_done())
+        self.assertFalse(ListaCompras.objects.get(
+            id=lista.id).is_pending_confirm())
 
     def test_user_cant_pay_lista_without_items_selected_with_recicle(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -1301,6 +1705,8 @@ class PayListaViewTest(TestCase):
         self.assertEqual(ListaCompras.objects.count(), original_lista_count)
         self.assertEqual(Gasto.objects.count(), original_gasto_count)
         self.assertFalse(ListaCompras.objects.get(id=lista.id).is_done())
+        self.assertFalse(ListaCompras.objects.get(
+            id=lista.id).is_pending_confirm())
 
 
 class PresupuestoViewTest(TestCase):
@@ -2554,8 +2960,8 @@ class BalanceViewTest(TestCase):
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
 
-        test_user_1.confirm_pay(gasto_1)
-        test_user_1.confirm_pay(gasto_2)
+        test_user_1.get_vu().confirm_pay(gasto_1)
+        test_user_1.get_vu().confirm_pay(gasto_2)
 
         response = self.client.get(
             self.url,
@@ -2582,8 +2988,8 @@ class BalanceViewTest(TestCase):
             gasto_2,
             gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
 
-        test_user_1.confirm_pay(gasto_1)
-        test_user_2.confirm_pay(gasto_2)
+        test_user_1.get_vu().confirm_pay(gasto_1)
+        test_user_2.get_vu().confirm_pay(gasto_2)
 
         response = self.client.get(
             self.url,
@@ -2765,8 +3171,8 @@ class CategoriaListViewTest(TestCase):
             gasto_2,
             __) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
         vivienda = test_user_1.get_vivienda()
-        gasto_1.confirm_pay(test_user_1)
-        gasto_2.confirm_pay(test_user_1)
+        gasto_1.confirm_pay(test_user_1.get_vu())
+        gasto_2.confirm_pay(test_user_1.get_vu())
         otros_cat = Categoria.objects.create(
             nombre="Otros",
             vivienda=vivienda)
@@ -2815,8 +3221,8 @@ class CategoriaListViewTest(TestCase):
             gasto_1,
             gasto_2,
             __) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(self)
-        gasto_1.confirm_pay(test_user_1)
-        gasto_2.confirm_pay(test_user_1)
+        gasto_1.confirm_pay(test_user_1.get_vu())
+        gasto_2.confirm_pay(test_user_1.get_vu())
         vivienda = test_user_1.get_vivienda()
         # hide categoria
         dummy_categoria.hide()
@@ -4421,4 +4827,5 @@ class NewTransferViewTest(TestCase):
         self.assertContains(
             response,
             "Transferencia realizada con éxito.")
+        # assert that the new Gastos' states are not paid, but pending_confirm
         self.assertEqual(Gasto.objects.count(), 5)
