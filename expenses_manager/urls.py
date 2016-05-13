@@ -72,6 +72,8 @@ urlpatterns = [
     url(r'^nuevo_gasto/$', views.nuevo_gasto, name='nuevo_gasto'),
     url(r'^detalle_gasto/(?P<gasto_id>.*)/$',
         views.detalle_gasto, name='detalle_gasto'),
+    url(r'^edit_gasto/(\d+)/$',
+        views.edit_gasto, name='edit_gasto'),
     url(r'^graphs/gastos/$', views.graph_gastos, name='graph_gastos'),
     url(r'^confirm/(\d+)/$',
         views.confirm_gasto,

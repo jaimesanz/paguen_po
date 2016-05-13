@@ -1146,6 +1146,548 @@ class GastoViviendaPayViewTest(TestCase):
             1)
 
 
+class GastoEditViewTest(TestCase):
+
+    def setup(self):
+        """
+        Creates a database with the necessary objects to execute most tests
+        for this TestCase.
+        :return: Dict
+        """
+        (test_user_1,
+         test_user_2,
+         test_user_3,
+         dummy_categoria,
+         gasto_1,
+         gasto_2,
+         gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+
+        db = dict()
+        db["test_user_1"] = test_user_1
+        db["test_user_2"] = test_user_2
+        db["test_user_3"] = test_user_3
+        db["dummy_categoria"] = dummy_categoria
+        db["gasto_1"] = gasto_1
+        db["gasto_2"] = gasto_2
+        db["gasto_3"] = gasto_3
+
+        for i in range(1,4):
+            gasto = db["gasto_" + str(i)]
+            db["original_date_" + str(i)] = gasto.fecha_pago
+            db["original_monto_" + str(i)] = gasto.monto
+            db["original_year_month_" + str(i)] = gasto.year_month
+            db["url_gasto_" + str(i)] = "/edit_gasto/%d/" % (gasto.id)
+
+        db["not_today"] = timezone.now().date() - timezone.timedelta(weeks=20)
+
+        return db
+
+    def assert_gasto_did_not_change(self, db, gasto_index):
+        """
+        Asserts that the Gasto given by the given index has not changed.
+        :param db: Dict
+        :param gasto_index: Integer
+        """
+        gasto = db["gasto_" + str(gasto_index)]
+        self.assertEqual(
+            Gasto.objects.get(id=gasto.id).fecha_pago,
+            db["original_date_" + str(gasto_index)]
+        )
+        self.assertEqual(
+            Gasto.objects.get(id=gasto.id).monto,
+            db["original_monto_" + str(gasto_index)]
+        )
+        self.assertEqual(
+            Gasto.objects.get(id=gasto.id).year_month,
+            db["original_year_month_" + str(gasto_index)]
+        )
+
+    def test_not_logged_user_cant_edit(self):
+        db = self.setup()
+        gasto_1 = db["gasto_1"]
+
+        self.client.logout()
+
+        response = self.client.post(
+            db["url_gasto_1"],
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "monto": 1000,
+                "fecha_pago": db["not_today"]
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=/edit_gasto/%d/" % (gasto_1.id))
+        has_not_logged_navbar(self, response)
+
+        self.assert_gasto_did_not_change(db, 1)
+
+    def test_homeless_user_cant_edit(self):
+        db = self.setup()
+        gasto_1 = db["gasto_1"]
+        test_user_1 = db["test_user_1"]
+
+        test_user_1.leave()
+
+        response = self.client.post(
+            db["url_gasto_1"],
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "monto": 1000,
+                "fecha_pago": db["not_today"]
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/error/")
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+
+        self.assert_gasto_did_not_change(db, 1)
+
+    def test_outsider_user_cant_edit(self):
+        db = self.setup()
+
+        response = self.client.post(
+            db["url_gasto_3"],
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "monto": 1000,
+                "fecha_pago": db["not_today"]
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/error/")
+        self.assertContains(
+            response,
+            "Usted no está autorizado para ver esta página.")
+
+        self.assert_gasto_did_not_change(db, 3)
+
+    def test_user_can_edit_own_pending_gasto(self):
+        db = self.setup()
+        gasto_1 = db["gasto_1"]
+
+        response = self.client.post(
+            db["url_gasto_1"],
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "monto": 1000,
+                "fecha_pago": db["not_today"]
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/detalle_gasto/%d/" % gasto_1.id)
+        self.assertContains(
+            response,
+            "Gasto editado.")
+
+        self.assertNotEqual(
+            Gasto.objects.get(id=gasto_1.id).monto,
+            db["original_monto_1"]
+        )
+        self.assertEqual(
+            Gasto.objects.get(id=gasto_1.id).fecha_pago,
+            db["original_date_1"]
+        )
+        self.assertEqual(
+            Gasto.objects.get(id=gasto_1.id).year_month,
+            db["original_year_month_1"]
+        )
+
+        self.assertNotEqual(
+            Gasto.objects.get(id=gasto_1.id).fecha_pago,
+            db["not_today"]
+        )
+        self.assertEqual(
+            Gasto.objects.get(id=gasto_1.id).monto,
+            1000
+        )
+
+        self.assertFalse(
+            Gasto.objects.get(id=gasto_1.id).is_pending_confirm()
+        )
+        self.assertFalse(
+            Gasto.objects.get(id=gasto_1.id).is_paid()
+        )
+        self.assertTrue(
+            Gasto.objects.get(id=gasto_1.id).is_pending()
+        )
+
+    def test_user_can_edit_other_user_pending_gasto(self):
+        db = self.setup()
+        gasto = db["gasto_2"]
+
+        response = self.client.post(
+            db["url_gasto_2"],
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "monto": 1000,
+                "fecha_pago": db["not_today"]
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/detalle_gasto/%d/" % gasto.id)
+        self.assertContains(
+            response,
+            "Gasto editado.")
+
+        self.assertNotEqual(
+            Gasto.objects.get(id=gasto.id).monto,
+            db["original_monto_2"]
+        )
+        self.assertEqual(
+            Gasto.objects.get(id=gasto.id).fecha_pago,
+            db["original_date_2"]
+        )
+        self.assertEqual(
+            Gasto.objects.get(id=gasto.id).year_month,
+            db["original_year_month_2"]
+        )
+
+        self.assertNotEqual(
+            Gasto.objects.get(id=gasto.id).fecha_pago,
+            db["not_today"]
+        )
+        self.assertEqual(
+            Gasto.objects.get(id=gasto.id).monto,
+            1000
+        )
+
+        self.assertFalse(
+            Gasto.objects.get(id=gasto.id).is_pending_confirm()
+        )
+        self.assertFalse(
+            Gasto.objects.get(id=gasto.id).is_paid()
+        )
+        self.assertTrue(
+            Gasto.objects.get(id=gasto.id).is_pending()
+        )
+
+    def test_user_can_edit_own_pending_confirm_gasto(self):
+        db = self.setup()
+
+        gasto_1 = db["gasto_1"]
+        db["test_user_1"].get_vu().pay(gasto_1)
+        self.assertTrue(
+            Gasto.objects.get(id=gasto_1.id).is_pending_confirm()
+        )
+
+        response = self.client.post(
+            db["url_gasto_1"],
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "monto": 1000,
+                "fecha_pago": db["not_today"]
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/detalle_gasto/%d/" % db["gasto_1"].id)
+        self.assertContains(
+            response,
+            "Gasto editado. Se cambió el estado a pendiente.")
+
+        self.assertNotEqual(
+            Gasto.objects.get(id=gasto_1.id).fecha_pago,
+            db["original_date_1"]
+        )
+        self.assertNotEqual(
+            Gasto.objects.get(id=gasto_1.id).monto,
+            db["original_monto_1"]
+        )
+        self.assertNotEqual(
+            Gasto.objects.get(id=gasto_1.id).year_month,
+            db["original_year_month_1"]
+        )
+
+        self.assertEqual(
+            Gasto.objects.get(id=gasto_1.id).fecha_pago,
+            db["not_today"]
+        )
+        self.assertEqual(
+            Gasto.objects.get(id=gasto_1.id).monto,
+            1000
+        )
+
+        self.assertTrue(
+            Gasto.objects.get(id=gasto_1.id).is_pending_confirm()
+        )
+        self.assertFalse(
+            Gasto.objects.get(id=gasto_1.id).is_paid()
+        )
+        self.assertFalse(
+            Gasto.objects.get(id=gasto_1.id).is_pending()
+        )
+
+        self.assertTrue(
+            ConfirmacionGasto.objects.get(
+                gasto=gasto_1,
+                vivienda_usuario=db["test_user_1"].get_vu()).confirmed
+        )
+
+    def test_user_cant_edit_other_user_pending_confirm_gasto(self):
+        db = self.setup()
+
+        gasto = db["gasto_2"]
+        db["test_user_2"].get_vu().pay(gasto)
+        db["original_date_2"] = Gasto.objects.get(id=gasto.id).fecha_pago
+        db["original_year_month_2"] = Gasto.objects.get(id=gasto.id).year_month
+        self.assertTrue(
+            Gasto.objects.get(id=gasto.id).is_pending_confirm()
+        )
+
+        response = self.client.post(
+            db["url_gasto_2"],
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "monto": 1000,
+                "fecha_pago": db["not_today"]
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/detalle_gasto/%d/" % gasto.id)
+        self.assertContains(
+            response,
+            "No tiene permiso para editar este Gasto")
+
+        self.assert_gasto_did_not_change(db, 2)
+
+        self.assertTrue(
+            Gasto.objects.get(id=gasto.id).is_pending_confirm()
+        )
+        self.assertFalse(
+            Gasto.objects.get(id=gasto.id).is_paid()
+        )
+        self.assertFalse(
+            Gasto.objects.get(id=gasto.id).is_pending()
+        )
+
+    def test_user_can_edit_own_paid_gasto(self):
+        db = self.setup()
+
+        gasto_1 = db["gasto_1"]
+        db["test_user_1"].get_vu().pay(gasto_1)
+        db["test_user_2"].get_vu().confirm(gasto_1)
+        self.assertTrue(
+            Gasto.objects.get(id=gasto_1.id).is_paid()
+        )
+
+        response = self.client.post(
+            db["url_gasto_1"],
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "monto": 1000,
+                "fecha_pago": db["not_today"]
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/detalle_gasto/%d/" % db["gasto_1"].id)
+        self.assertContains(
+            response,
+            "Gasto editado. Se cambió el estado a pendiente.")
+
+        self.assertNotEqual(
+            Gasto.objects.get(id=gasto_1.id).fecha_pago,
+            db["original_date_1"]
+        )
+        self.assertNotEqual(
+            Gasto.objects.get(id=gasto_1.id).monto,
+            db["original_monto_1"]
+        )
+        self.assertNotEqual(
+            Gasto.objects.get(id=gasto_1.id).year_month,
+            db["original_year_month_1"]
+        )
+
+        self.assertEqual(
+            Gasto.objects.get(id=gasto_1.id).fecha_pago,
+            db["not_today"]
+        )
+        self.assertEqual(
+            Gasto.objects.get(id=gasto_1.id).monto,
+            1000
+        )
+
+        self.assertTrue(
+            Gasto.objects.get(id=gasto_1.id).is_pending_confirm()
+        )
+        self.assertFalse(
+            Gasto.objects.get(id=gasto_1.id).is_paid()
+        )
+        self.assertFalse(
+            Gasto.objects.get(id=gasto_1.id).is_pending()
+        )
+
+    def test_user_cant_edit_other_user_paid_gasto(self):
+        db = self.setup()
+
+        gasto = db["gasto_2"]
+        db["test_user_2"].get_vu().pay(gasto)
+        db["test_user_1"].get_vu().confirm(gasto)
+        db["original_date_2"] = Gasto.objects.get(id=gasto.id).fecha_pago
+        db["original_year_month_2"] = Gasto.objects.get(id=gasto.id).year_month
+        self.assertTrue(
+            Gasto.objects.get(id=gasto.id).is_paid()
+        )
+
+        response = self.client.post(
+            db["url_gasto_2"],
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "monto": 1000,
+                "fecha_pago": db["not_today"]
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/detalle_gasto/%d/" % gasto.id)
+        self.assertContains(
+            response,
+            "No tiene permiso para editar este Gasto")
+
+        self.assert_gasto_did_not_change(db, 2)
+
+        self.assertFalse(
+            Gasto.objects.get(id=gasto.id).is_pending_confirm()
+        )
+        self.assertTrue(
+            Gasto.objects.get(id=gasto.id).is_paid()
+        )
+        self.assertFalse(
+            Gasto.objects.get(id=gasto.id).is_pending()
+        )
+
+    def test_user_cant_edit_paid_gasto_with_broken_date(self):
+        db = self.setup()
+
+        gasto = db["gasto_1"]
+        db["test_user_1"].get_vu().pay(gasto)
+        db["test_user_2"].get_vu().confirm(gasto)
+        db["original_date_1"] = Gasto.objects.get(id=gasto.id).fecha_pago
+        db["original_year_month_1"] = Gasto.objects.get(id=gasto.id).year_month
+        self.assertTrue(
+            Gasto.objects.get(id=gasto.id).is_paid()
+        )
+
+        response = self.client.post(
+            db["url_gasto_1"],
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "monto": 1000,
+                "fecha_pago": "some_random_string"
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/edit_gasto/%d/" % gasto.id)
+        self.assertContains(
+            response,
+            "La fecha ingresada no es válida")
+
+        self.assert_gasto_did_not_change(db, 1)
+
+        self.assertFalse(
+            Gasto.objects.get(id=gasto.id).is_pending_confirm()
+        )
+        self.assertTrue(
+            Gasto.objects.get(id=gasto.id).is_paid()
+        )
+        self.assertFalse(
+            Gasto.objects.get(id=gasto.id).is_pending()
+        )
+
+    def test_user_cant_post_negative_monto(self):
+        db = self.setup()
+
+        gasto = db["gasto_1"]
+        self.assertTrue(
+            Gasto.objects.get(id=gasto.id).is_pending()
+        )
+
+        response = self.client.post(
+            db["url_gasto_1"],
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "monto": -1000,
+                "fecha_pago": db["not_today"]
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/edit_gasto/%d/" % gasto.id)
+        self.assertContains(
+            response,
+            "El monto ingresado debe ser un número mayor que 0.")
+
+        self.assert_gasto_did_not_change(db, 1)
+
+        self.assertFalse(
+            Gasto.objects.get(id=gasto.id).is_pending_confirm()
+        )
+        self.assertFalse(
+            Gasto.objects.get(id=gasto.id).is_paid()
+        )
+        self.assertTrue(
+            Gasto.objects.get(id=gasto.id).is_pending()
+        )
+
+    def test_user_cant_post_random_string_as_monto(self):
+        db = self.setup()
+
+        gasto = db["gasto_1"]
+        self.assertTrue(
+            Gasto.objects.get(id=gasto.id).is_pending()
+        )
+
+        response = self.client.post(
+            db["url_gasto_1"],
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "monto": "some_weird_string",
+                "fecha_pago": db["not_today"]
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/edit_gasto/%d/" % gasto.id)
+        self.assertContains(
+            response,
+            "El monto ingresado debe ser un número mayor que 0.")
+
+        self.assert_gasto_did_not_change(db, 1)
+
+        self.assertFalse(
+            Gasto.objects.get(id=gasto.id).is_pending_confirm()
+        )
+        self.assertFalse(
+            Gasto.objects.get(id=gasto.id).is_paid()
+        )
+        self.assertTrue(
+            Gasto.objects.get(id=gasto.id).is_pending()
+        )
+
+
 class GastoGraphsTest(TestCase):
 
     url = "/graphs/gastos/"

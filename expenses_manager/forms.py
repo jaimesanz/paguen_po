@@ -36,6 +36,16 @@ class GastoForm(forms.ModelForm):
         fields = ('categoria', 'monto', 'fecha_pago')
 
 
+class EditGastoForm(forms.ModelForm):
+
+    class Meta:
+        model = Gasto
+        fields = ('monto', 'fecha_pago')
+        widgets = {
+            'fecha_pago': forms.DateInput(format=settings.DATE_FORMAT)
+        }
+
+
 class PresupuestoForm(forms.ModelForm):
 
     class Meta:

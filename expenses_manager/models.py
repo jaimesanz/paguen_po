@@ -1459,6 +1459,36 @@ class Gasto(models.Model):
         """
         vivienda_usuario.confirm_pay(self, fecha_pago)
 
+    def edit(self, vivienda_usuario, new_monto, new_fecha):
+        """
+        Changes the fields of the Gasto with the given parameters
+        :param vivienda_usuario: ViviendaUsuario
+        :param new_monto: Integer
+        :param new_fecha: Date
+        :return: String
+        """
+        message = "Gasto editado."
+        if not self.is_pending():
+            if vivienda_usuario != self.usuario:
+                return "No tiene permiso para editar este Gasto"
+            # it's either confirmed_payed or pending_confirmation, meaning it
+            #  has a not-None "usuario" field
+            message = "Gasto editado. Se cambió el estado a pendiente."
+            self.fecha_pago = new_fecha
+            ym, __ = YearMonth.objects.get_or_create(
+                year=new_fecha.year,
+                month=new_fecha.month)
+            self.year_month = ym
+            self.set_pending_confirmation_state()
+            for cg in self.confirmaciongasto_set.exclude(
+                    vivienda_usuario=self.usuario):
+                cg.confirmed = False
+                cg.save()
+        self.monto = new_monto
+        self.save()
+
+        return message
+
     def is_pending(self):
         """
         Returns True if the state is "pendiente"

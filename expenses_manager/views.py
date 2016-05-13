@@ -597,6 +597,53 @@ def detalle_gasto(request, gasto_id):
 @request_passes_test(user_has_vivienda,
                      login_url="/error/",
                      redirect_field_name=None)
+def edit_gasto(request, gasto_id):
+    gasto = get_object_or_404(Gasto, id=gasto_id)
+    if not gasto.allow_user(request.user):
+        messages.error(
+            request,
+            "Usted no está autorizado para ver esta página.")
+        return HttpResponseRedirect("/error")
+    if request.POST:
+        new_monto = request.POST.get("monto", None)
+        new_fecha = request.POST.get("fecha_pago", None)
+        parsed_new_fecha = None
+        parsed_new_monto = None
+        # validate new_fecha
+        try:
+            parsed_new_fecha = datetime.strptime(
+                new_fecha,
+                settings.DATE_FORMAT).date()
+        except ValueError:
+            messages.error(
+                request,
+                "La fecha ingresada no es válida."
+            )
+            return HttpResponseRedirect("/edit_gasto/%d/" % (gasto.id))
+        # validate new_monto
+        try:
+            parsed_new_monto = int(new_monto)
+        except ValueError:
+            pass
+        if parsed_new_monto is None or parsed_new_monto <= 0:
+            messages.error(
+                request,
+                "El monto ingresado debe ser un número mayor que 0."
+            )
+            return HttpResponseRedirect("/edit_gasto/%d/" % (gasto.id))
+
+        msg = gasto.edit(request.user.get_vu(), new_monto, parsed_new_fecha)
+        messages.success(request, msg)
+        return HttpResponseRedirect("/detalle_gasto/%d/" % (gasto.id))
+
+    form = EditGastoForm(request.POST or None, instance=gasto)
+    return render(request, "gastos/edit_gasto.html", locals())
+
+
+@login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
 def confirm_gasto(request, gasto_id):
     gasto = get_object_or_404(Gasto, id=gasto_id)
     if not gasto.allow_user(request.user):
