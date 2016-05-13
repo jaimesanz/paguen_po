@@ -78,6 +78,7 @@ urlpatterns = [
     url(r'^confirm/(\d+)/$',
         views.confirm_gasto,
         name='confirm_gasto'),
+    url(r'^gastos/delete/$', views.delete_gasto, name='delete_gasto'),
 
     # listas
     url(r'^nueva_lista/$', views.nueva_lista, name='nueva_lista'),

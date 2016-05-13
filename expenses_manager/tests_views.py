@@ -603,14 +603,11 @@ class GastoViviendaPaidListViewTest(TestCase):
         response = self.client.get("/gastos/", follow=True)
         # check that logged user can see both gastos
         self.assertContains(response, dummy_categoria.nombre)
-        self.assertContains(response, gasto_1.monto)
         self.assertContains(
             response, "href=\"/detalle_gasto/%d\"" % gasto_1.id)
-        self.assertContains(response, gasto_2.monto)
         self.assertContains(
             response, "href=\"/detalle_gasto/%d\"" % gasto_2.id)
         # check that logged user can't see the gasto from the other vivienda
-        self.assertNotContains(response, gasto_3.monto)
         self.assertNotContains(
             response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
 
@@ -1854,6 +1851,312 @@ class GastoEditViewTest(TestCase):
         self.assertFalse(
             Gasto.objects.get(id=gasto_1.id).is_pending()
         )
+
+
+class GastoDeleteViewTest(TestCase):
+
+    url = "/gastos/delete/"
+
+    def setup(self):
+        """
+        Creates a database with the necessary objects to execute most tests
+        for this TestCase.
+        :return: Dict
+        """
+        (test_user_1,
+         test_user_2,
+         test_user_3,
+         dummy_categoria,
+         gasto_1,
+         gasto_2,
+         gasto_3) = get_setup_viv_2_users_viv_1_user_cat_1_gastos_3(
+            self)
+
+        db = dict()
+        db["test_user_1"] = test_user_1
+        db["test_user_2"] = test_user_2
+        db["test_user_3"] = test_user_3
+        db["dummy_categoria"] = dummy_categoria
+        db["gasto_1"] = gasto_1
+        db["gasto_2"] = gasto_2
+        db["gasto_3"] = gasto_3
+
+        for i in range(1, 4):
+            gasto = db["gasto_" + str(i)]
+            db["original_date_" + str(i)] = gasto.fecha_pago
+            db["original_monto_" + str(i)] = gasto.monto
+            db["original_year_month_" + str(i)] = gasto.year_month
+            db["url_gasto_" + str(i)] = "/edit_gasto/%d/" % (gasto.id)
+
+        db["not_today"] = timezone.now().date() - timezone.timedelta(weeks=20)
+
+        return db
+
+    def test_not_logged_cant_delete(self):
+        db = self.setup()
+        gasto = db["gasto_1"]
+
+        self.client.logout()
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "gasto": gasto.id
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/accounts/login/?next=/gastos/delete/")
+        has_not_logged_navbar(self, response)
+
+    def test_homeless_cant_delete(self):
+        db = self.setup()
+        gasto = db["gasto_1"]
+        test_user_1 = db["test_user_1"]
+
+        test_user_1.leave()
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "gasto": gasto.id
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/error/")
+        self.assertContains(
+            response,
+            "Para tener acceso a esta página debe pertenecer a una vivienda")
+
+    def test_user_can_delete_own_pending_gasto(self):
+        db = self.setup()
+        gasto = db["gasto_1"]
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "gasto": gasto.id
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/gastos/")
+        self.assertContains(
+            response,
+            "Gasto eliminado.")
+        self.assertFalse(
+            Gasto.objects.filter(id=gasto.id).exists()
+        )
+
+    def test_user_can_delete_own_pending_confirmation_gasto(self):
+        db = self.setup()
+        gasto = db["gasto_1"]
+        db["test_user_1"].get_vu().pay(gasto)
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "gasto": gasto.id
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/gastos/")
+        self.assertContains(
+            response,
+            "Gasto eliminado.")
+        self.assertFalse(
+            Gasto.objects.filter(id=gasto.id).exists()
+        )
+
+    def test_user_can_delete_own_paid_gasto(self):
+        db = self.setup()
+        gasto = db["gasto_1"]
+        db["test_user_1"].get_vu().pay(gasto)
+        db["test_user_2"].get_vu().confirm(gasto)
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "gasto": gasto.id
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/gastos/")
+        self.assertContains(
+            response,
+            "Gasto eliminado.")
+        self.assertFalse(
+            Gasto.objects.filter(id=gasto.id).exists()
+        )
+
+    def test_user_can_delete_other_user_pending_gasto(self):
+        db = self.setup()
+        gasto = db["gasto_2"]
+
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "gasto": gasto.id
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/gastos/")
+        self.assertContains(
+            response,
+            "Gasto eliminado.")
+        self.assertFalse(
+            Gasto.objects.filter(id=gasto.id).exists()
+        )
+
+    def test_user_cant_delete_other_user_pending_confirmation_gasto(self):
+        db = self.setup()
+        gasto = db["gasto_2"]
+        db["test_user_2"].get_vu().pay(gasto)
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "gasto": gasto.id
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/detalle_gasto/%d/" % gasto.id)
+        self.assertContains(
+            response,
+            "No tiene permiso para eliminar este Gasto")
+        self.assertTrue(
+            Gasto.objects.filter(id=gasto.id).exists()
+        )
+
+    def test_user_cant_delete_other_user_paid_gasto(self):
+        db = self.setup()
+        gasto = db["gasto_2"]
+        db["test_user_2"].get_vu().pay(gasto)
+        db["test_user_1"].get_vu().confirm(gasto)
+        response = self.client.post(
+            self.url,
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "gasto": gasto.id
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/detalle_gasto/%d/" % gasto.id)
+        self.assertContains(
+            response,
+            "No tiene permiso para eliminar este Gasto")
+        self.assertTrue(
+            Gasto.objects.filter(id=gasto.id).exists()
+        )
+
+    def test_user_can_see_delete_btn_own_pending_gasto(self):
+        db = self.setup()
+        gasto = db["gasto_1"]
+        url = "/edit_gasto/%d/" % gasto.id
+
+        response = self.client.get(
+            url,
+            follow=True
+        )
+
+        self.assertContains(
+            response,
+            "Eliminar")
+
+    def test_user_can_see_delete_btn_own_pending_confirmation_gasto(self):
+        db = self.setup()
+        gasto = db["gasto_1"]
+        db["test_user_1"].get_vu().pay(gasto)
+        url = "/edit_gasto/%d/" % gasto.id
+
+        response = self.client.get(
+            url,
+            follow=True
+        )
+
+        self.assertContains(
+            response,
+            "Eliminar")
+
+    def test_user_can_see_delete_btn_own_paid_gasto(self):
+        db = self.setup()
+        gasto = db["gasto_1"]
+        db["test_user_1"].get_vu().pay(gasto)
+        db["test_user_2"].get_vu().confirm(gasto)
+        url = "/edit_gasto/%d/" % gasto.id
+
+        response = self.client.get(
+            url,
+            follow=True
+        )
+
+        self.assertContains(
+            response,
+            "Eliminar")
+
+    def test_user_can_see_delete_btn_other_user_pending_gasto(self):
+        db = self.setup()
+        gasto = db["gasto_2"]
+        url = "/edit_gasto/%d/" % gasto.id
+
+        response = self.client.get(
+            url,
+            follow=True
+        )
+
+        self.assertContains(
+            response,
+            "Eliminar")
+
+    def test_user_cant_see_delete_btn_other_user_pending_confirmation_gasto(
+            self):
+        db = self.setup()
+        gasto = db["gasto_2"]
+        db["test_user_2"].get_vu().pay(gasto)
+        url = "/edit_gasto/%d/" % gasto.id
+
+        response = self.client.get(
+            url,
+            follow=True
+        )
+
+        self.assertNotContains(
+            response,
+            "Eliminar")
+
+    def test_user_cant_see_delete_btn_other_user_paid_gasto(self):
+        db = self.setup()
+        gasto = db["gasto_2"]
+        db["test_user_2"].get_vu().pay(gasto)
+        db["test_user_1"].get_vu().confirm(gasto)
+        url = "/edit_gasto/%d/" % gasto.id
+
+        response = self.client.get(
+            url,
+            follow=True
+        )
+
+        self.assertNotContains(
+            response,
+            "Eliminar")
 
 
 class GastoGraphsTest(TestCase):

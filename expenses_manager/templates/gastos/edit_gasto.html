@@ -5,6 +5,14 @@
 {% block content_title %}{{vivienda}}{% endblock %}
 {% block content %}
     <h3>Editar Gasto</h3>
+    {% if show_delete_button %}
+        <form action="/gastos/delete/" method="post">
+            {% csrf_token %}
+            <button name="gasto" value="{{gasto.id}}" class="btn btn-danger">
+                {% bootstrap_icon "trash" %} Eliminar
+            </button>
+        </form>
+    {% endif %}
     <hr>
 
     <form method="post" action=".">

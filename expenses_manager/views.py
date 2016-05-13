@@ -649,8 +649,21 @@ def edit_gasto(request, gasto_id):
             return HttpResponseRedirect("/edit_gasto/%d/" % (gasto.id))
 
         msg = gasto.edit(request.user.get_vu(), new_monto, parsed_new_fecha)
-        messages.success(request, msg)
+        if msg == "No tiene permiso para editar este Gasto":
+            messages.error(request, msg)
+        else:
+            messages.success(request, msg)
         return HttpResponseRedirect("/detalle_gasto/%d/" % (gasto.id))
+
+    show_delete_button = gasto.is_pending() or \
+                         gasto.usuario == request.user.get_vu()
+
+    if not show_delete_button:
+        messages.error(
+            request,
+            "Usted no está autorizado para ver esta página."
+        )
+        return redirect("/detalle_gasto/%d/" % (gasto.id))
 
     form = EditGastoForm(request.POST or None, instance=gasto)
     return render(request, "gastos/edit_gasto.html", locals())
@@ -687,6 +700,28 @@ def confirm_gasto(request, gasto_id):
                     "Gasto confirmado.")
 
     return redirect("/detalle_gasto/%d" % (gasto.id))
+
+
+@login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="/error/",
+                     redirect_field_name=None)
+def delete_gasto(request):
+    if request.POST:
+        gasto_id = request.POST.get("gasto", None)
+        if gasto_id is not None:
+            gasto = get_object_or_404(Gasto, id=gasto_id)
+            if gasto.is_pending() or gasto.usuario==request.user.get_vu():
+                messages.success(request, "Gasto eliminado.")
+                gasto.delete()
+            else:
+                messages.error(
+                    request,
+                    "No tiene permiso para eliminar este Gasto")
+                return redirect("/detalle_gasto/%d" % (gasto.id))
+
+    # do nothing
+    return redirect("gastos")
 
 
 @login_required
