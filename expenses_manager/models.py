@@ -1196,27 +1196,10 @@ class ListaCompras(models.Model):
 
     def is_done(self):
         """
-        Returns True if the state is "pagada", and the corresponding Gasto of
-        the Lista has an is_paid state. Returns False otherwise.
+        Returns True if the state is "pagada".
         :return: Boolean
         """
-        if self.estado != "pagada":
-            return False
-        gasto = self.gasto_set.first()
-        if gasto is None:
-            return False
-        return gasto.is_paid()
-
-    def is_pending_confirm(self):
-        """
-        Returns True if the state of the related Gasto has a pending_confirm
-        state. Returns False otherwise.
-        :return: Boolean
-        """
-        gasto = self.gasto_set.first()
-        if gasto is not None:
-            return gasto.is_pending_confirm()
-        return False
+        return self.estado == "pagada"
 
     def set_done_state(self):
         """

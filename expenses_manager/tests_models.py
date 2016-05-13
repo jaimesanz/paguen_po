@@ -2182,7 +2182,7 @@ class ListaComprasModelTest(TestCase):
             user1_viv)
         ret = lista.set_done_state()
 
-        self.assertEqual(lista.estado, "pagada")
+        self.assertTrue(lista.is_done())
         self.assertTrue(ret)
 
     def test_set_done_state_returns_false_if_state_was_already_done(self):
@@ -2196,7 +2196,7 @@ class ListaComprasModelTest(TestCase):
         ret1 = lista.set_done_state()
         ret2 = lista.set_done_state()
 
-        self.assertEqual(lista.estado, "pagada")
+        self.assertTrue(lista.is_done())
         self.assertFalse(ret2)
 
     def test_buy_item_changes_state_of_item(self):

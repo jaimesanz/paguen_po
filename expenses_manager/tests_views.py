@@ -1785,7 +1785,7 @@ class GastoEditViewTest(TestCase):
                 response,
                 "/detalle_gasto/%d/" % transfer_id)
 
-    def test_user_cant_edit_see_edit_button_on_transfer(self):
+    def test_user_cant_see_edit_button_on_transfer(self):
         db = self.setup()
         test_user_1 = db["test_user_1"]
         test_user_2 = db["test_user_2"]
@@ -1811,6 +1811,49 @@ class GastoEditViewTest(TestCase):
         self.assertNotContains(
             response,
             "Editar")
+
+    def test_user_cant_change_fecha_pago_to_future_date(self):
+        db = self.setup()
+
+        gasto_1 = db["gasto_1"]
+        db["test_user_1"].get_vu().pay(gasto_1)
+        db["test_user_2"].get_vu().confirm(gasto_1)
+        db["original_date_1"] = Gasto.objects.get(id=gasto_1.id).fecha_pago
+        db["original_year_month_1"] = Gasto.objects.get(
+            id=gasto_1.id).year_month
+        self.assertTrue(
+            Gasto.objects.get(id=gasto_1.id).is_paid()
+        )
+
+        future_date = timezone.now().date() + timezone.timedelta(weeks=20)
+
+        response = self.client.post(
+            db["url_gasto_1"],
+            data={
+                "csrfmiddlewaretoken": "rubbish",
+                "monto": 1000,
+                "fecha_pago": future_date
+            },
+            follow=True)
+
+        self.assertRedirects(
+            response,
+            "/edit_gasto/%d/" % gasto_1.id)
+        self.assertContains(
+            response,
+            "No puede crear un Gasto para una fecha futura.")
+
+        self.assert_gasto_did_not_change(db, 1)
+
+        self.assertFalse(
+            Gasto.objects.get(id=gasto_1.id).is_pending_confirm()
+        )
+        self.assertTrue(
+            Gasto.objects.get(id=gasto_1.id).is_paid()
+        )
+        self.assertFalse(
+            Gasto.objects.get(id=gasto_1.id).is_pending()
+        )
 
 
 class GastoGraphsTest(TestCase):
@@ -2218,7 +2261,7 @@ class PayListaViewTest(TestCase):
             follow=True)
         gasto = Gasto.objects.get(lista_compras=lista)
         self.assertFalse(gasto.is_paid())
-        self.assertTrue(gasto.is_pending_confirm())
+        self.assertTrue(ListaCompras.objects.get(id=lista.id).is_done())
         self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto.id))
 
     def test_user_cant_pay_lista_without_monto_no_recicle(self):
@@ -2271,7 +2314,7 @@ class PayListaViewTest(TestCase):
             follow=True)
         gasto = Gasto.objects.get(lista_compras=lista)
         self.assertFalse(gasto.is_paid())
-        self.assertTrue(gasto.is_pending_confirm())
+        self.assertTrue(ListaCompras.objects.get(id=lista.id).is_done())
         self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto.id))
 
         # old lista only has item_2
@@ -2280,11 +2323,6 @@ class PayListaViewTest(TestCase):
             lista.get_items().first().item.nombre,
             item_lista_2.item.nombre)
 
-        # it's not paid, it's pending confirm
-        self.assertFalse(ListaCompras.objects.get(id=lista.id).is_done())
-        self.assertTrue(ListaCompras.objects.get(
-            id=lista.id).is_pending_confirm())
-
         # created new lista with item_1
         new_lista = ListaCompras.objects.latest("fecha")
         self.assertEqual(new_lista.get_items().count(), 1)
@@ -2292,7 +2330,6 @@ class PayListaViewTest(TestCase):
             new_lista.get_items().first().item.nombre,
             item_lista_1.item.nombre)
         self.assertFalse(new_lista.is_done())
-        self.assertFalse(new_lista.is_pending_confirm())
 
     def test_user_paying_full_lista_doesnt_create_a_Lista_with_recicle(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -2318,15 +2355,13 @@ class PayListaViewTest(TestCase):
         gasto = Gasto.objects.get(lista_compras=lista)
         self.assertFalse(gasto.is_paid())
         self.assertTrue(gasto.is_pending_confirm())
+        self.assertTrue(ListaCompras.objects.get(id=lista.id).is_done())
         self.assertRedirects(response, "/detalle_gasto/%d/" % (gasto.id))
 
         # created new lista with item_2
         self.assertEqual(original_lista_count, ListaCompras.objects.count())
         # old lista only has both items, and is paid
         self.assertEqual(lista.get_items().count(), 2)
-        self.assertFalse(ListaCompras.objects.get(id=lista.id).is_done())
-        self.assertTrue(ListaCompras.objects.get(
-            id=lista.id).is_pending_confirm())
 
     def test_user_cant_pay_lista_without_monto_with_recicle(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -2348,9 +2383,6 @@ class PayListaViewTest(TestCase):
         self.assertRedirects(response, "/error/")
         self.assertEqual(ListaCompras.objects.count(), original_lista_count)
         self.assertEqual(Gasto.objects.count(), original_gasto_count)
-        self.assertFalse(ListaCompras.objects.get(id=lista.id).is_done())
-        self.assertFalse(ListaCompras.objects.get(
-            id=lista.id).is_pending_confirm())
 
     def test_user_cant_pay_lista_without_items_selected_with_recicle(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -2371,9 +2403,6 @@ class PayListaViewTest(TestCase):
         self.assertRedirects(response, "/error/")
         self.assertEqual(ListaCompras.objects.count(), original_lista_count)
         self.assertEqual(Gasto.objects.count(), original_gasto_count)
-        self.assertFalse(ListaCompras.objects.get(id=lista.id).is_done())
-        self.assertFalse(ListaCompras.objects.get(
-            id=lista.id).is_pending_confirm())
 
 
 class PresupuestoViewTest(TestCase):

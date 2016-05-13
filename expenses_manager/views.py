@@ -624,6 +624,12 @@ def edit_gasto(request, gasto_id):
             parsed_new_fecha = datetime.strptime(
                 new_fecha,
                 settings.DATE_FORMAT).date()
+            if parsed_new_fecha>timezone.now().date():
+                messages.error(
+                    request,
+                    "No puede crear un Gasto para una fecha futura."
+                )
+                return HttpResponseRedirect("/edit_gasto/%d/" % (gasto.id))
         except ValueError:
             messages.error(
                 request,
