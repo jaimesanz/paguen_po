@@ -590,6 +590,9 @@ def detalle_gasto(request, gasto_id):
             gasto=gasto
         ).confirmed
 
+    allowed_user = gasto.is_pending() or gasto.usuario==request.user.get_vu()
+    show_edit_button = allowed_user and not gasto.categoria.is_transfer
+
     return render(request, "gastos/detalle_gasto.html", locals())
 
 
@@ -604,6 +607,13 @@ def edit_gasto(request, gasto_id):
             request,
             "Usted no está autorizado para ver esta página.")
         return HttpResponseRedirect("/error")
+
+    if gasto.categoria.is_transfer:
+        messages.error(
+            request,
+            "Usted no está autorizado para ver esta página.")
+        return HttpResponseRedirect("/detalle_gasto/%d/" % (gasto.id))
+
     if request.POST:
         new_monto = request.POST.get("monto", None)
         new_fecha = request.POST.get("fecha_pago", None)

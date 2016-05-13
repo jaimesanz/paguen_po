@@ -1687,6 +1687,131 @@ class GastoEditViewTest(TestCase):
             Gasto.objects.get(id=gasto.id).is_pending()
         )
 
+    def test_user_can_see_edit_button_on_own_pending(self):
+        db = self.setup()
+        gasto = db["gasto_1"]
+        url = "/detalle_gasto/%d/" % gasto.id
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertContains(
+            response,
+            "Editar")
+
+    def test_user_can_see_edit_button_on_own_pending_confirm(self):
+        db = self.setup()
+        gasto = db["gasto_1"]
+        db["test_user_1"].get_vu().pay(gasto)
+        url = "/detalle_gasto/%d/" % gasto.id
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertContains(
+            response,
+            "Editar")
+
+    def test_user_can_see_edit_button_on_own_paid(self):
+        db = self.setup()
+        gasto = db["gasto_1"]
+        db["test_user_1"].get_vu().pay(gasto)
+        db["test_user_2"].get_vu().confirm(gasto)
+        url = "/detalle_gasto/%d/" % gasto.id
+
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertContains(
+            response,
+            "Editar")
+
+    def test_user_can_see_edit_button_on_other_user_pending(self):
+        db = self.setup()
+        gasto = db["gasto_2"]
+        url = "/detalle_gasto/%d/" % gasto.id
+
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertContains(
+            response,
+            "Editar")
+
+    def test_user_cant_see_edit_button_on_other_user_pending_confirm(self):
+        db = self.setup()
+        gasto = db["gasto_2"]
+        db["test_user_2"].get_vu().pay(gasto)
+        url = "/detalle_gasto/%d/" % gasto.id
+
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertNotContains(
+            response,
+            "Editar")
+
+    def test_user_cant_see_edit_button_on_other_user_paid(self):
+        db = self.setup()
+        gasto = db["gasto_2"]
+        db["test_user_2"].get_vu().pay(gasto)
+        db["test_user_1"].get_vu().confirm(gasto)
+        url = "/detalle_gasto/%d/" % gasto.id
+
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertNotContains(
+            response,
+            "Editar")
+
+    def test_user_cant_see_edit_transfer_form(self):
+        db = self.setup()
+        test_user_1 = db["test_user_1"]
+        test_user_2 = db["test_user_2"]
+
+        transfer_pos, transfer_neg = test_user_1.transfer(test_user_2, 1000)
+
+        for transfer_id in [transfer_pos.id, transfer_neg.id]:
+            url = "/edit_gasto/%d/" % transfer_id
+            response = self.client.get(
+                url,
+                follow=True)
+            self.assertRedirects(
+                response,
+                "/detalle_gasto/%d/" % transfer_id)
+
+    def test_user_cant_edit_see_edit_button_on_transfer(self):
+        db = self.setup()
+        test_user_1 = db["test_user_1"]
+        test_user_2 = db["test_user_2"]
+
+        transfer_pos, transfer_neg = test_user_1.transfer(test_user_2, 1000)
+
+        url = "/detalle_gasto/%d/" % transfer_pos.id
+
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertNotContains(
+            response,
+            "Editar")
+
+        url = "/detalle_gasto/%d/" % transfer_neg.id
+
+        response = self.client.get(
+            url,
+            follow=True)
+
+        self.assertNotContains(
+            response,
+            "Editar")
+
 
 class GastoGraphsTest(TestCase):
 

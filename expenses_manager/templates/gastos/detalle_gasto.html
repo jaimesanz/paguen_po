@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load bootstrap3 %}
 {% load humanize %}
 
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
@@ -98,4 +99,9 @@
             </form>
         {% endif %}
 	{% endif %}
+    {% if show_edit_button %}
+        <a href="/edit_gasto/{{ gasto.id }}" class="btn btn-warning" role="button">
+            {% bootstrap_icon "pencil" %} Editar
+        </a>
+    {% endif %}
 {% endblock %}
