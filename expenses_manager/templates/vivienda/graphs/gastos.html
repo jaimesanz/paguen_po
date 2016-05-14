@@ -210,3 +210,25 @@
 		});
 	</script>
 {% endblock %}
+
+{% block info_title %}
+    Graficando los Gastos
+{% endblock %}
+
+{% block info_content %}
+    En esta página puede ver de forma gráfica los totales de gasto por
+    categoría y por período. Debe seleccionar el rango de períodos deseado, y
+    las categorías a graficar. Notar que:
+    <br><br>
+    <ul>
+        <li>El <b>Total</b> corresponde a la suma de los gastos compartidos
+            de ese período, y <b>no</b> a la suma de los totales de las
+            categorías selecionadas.</li>
+        <br>
+        <li>El gráfico de la categoría <b>Otros</b> corresponde a la suma
+            de los totales de las categorías <i>ocultas</i>, además de la
+            categoría Otros.</li>
+    </ul>
+    Actualmente sólo se permite gráficar un rango de 12 meses, pero se tiene
+    planeado permitir un margen arbitrario en el futuro.
+{% endblock %}

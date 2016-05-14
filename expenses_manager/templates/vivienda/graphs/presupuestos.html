@@ -19,16 +19,16 @@
 
 {% block buttons %}
     <a href="/graphs/presupuestos/{{prev_year}}/{{prev_month}}" class="btn btn-primary" role="button">
-        {% bootstrap_icon "chevron-left" %} Período Anterior
+        {% bootstrap_icon "chevron-left" %} Anterior
     </a>
     <a href="/graphs/presupuestos/{{next_year}}/{{next_month}}" class="btn btn-primary" role="button">
-        Próximo período {% bootstrap_icon "chevron-right" %}
+        Siguiente {% bootstrap_icon "chevron-right" %}
     </a>
     <a href="/presupuestos/{{year}}/{{month}}" class="btn btn-primary" role="button">
-        {% bootstrap_icon "th-list" %} Ver histórico
+        {% bootstrap_icon "th-list" %} Resumen
     </a>
     <a href="/presupuestos/new/" class="btn btn-warning" role="button">
-        {% bootstrap_icon "plus" %} Nuevo Presupuesto
+        {% bootstrap_icon "plus" %} Nuevo
     </a>
 {% endblock %}
 
@@ -149,4 +149,24 @@
 		});
 	</script>
 
+{% endblock %}
+
+{% block info_title %}
+    Graficando los Presupuestos
+{% endblock %}
+
+{% block info_content %}
+    En esta página puede ver de forma gráfica los presupuesto definidos para
+    este período.
+    <br><br>
+    Las áreas grises corresponden a cuánto se ha invertido en
+    esa categoría en este período, mientras que las áreas verdes muestran
+    cuánto margen queda antes de completar el presupuesto.
+    <br><br>
+    Un círculo rojizo indica que el presupuesto fue superado, y por lo tanto
+    no queda margen.
+    <br><br>
+    Puede avanzar o retroceder a o otro período utilizando los botónes
+    "Anterior" y "Siguiente", o crear uno nuevo con el botón "Nuevo". El
+    botón "Resumen" le mostrará la misma información, pero en formato de tablas.
 {% endblock %}
