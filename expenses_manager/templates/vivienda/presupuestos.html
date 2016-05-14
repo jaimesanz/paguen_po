@@ -14,16 +14,16 @@
 
 {% block buttons %}
     <a href="/presupuestos/{{prev_year}}/{{prev_month}}" class="btn btn-primary" role="button">
-        {% bootstrap_icon "chevron-left" %} Período Anterior
+        {% bootstrap_icon "chevron-left" %} Anterior
     </a>
     <a href="/presupuestos/{{next_year}}/{{next_month}}" class="btn btn-primary" role="button">
-        Próximo período {% bootstrap_icon "chevron-right" %}
+        Siguiente {% bootstrap_icon "chevron-right" %}
     </a>
     <a href="/graphs/presupuestos/{{year}}/{{month}}" class="btn btn-primary" role="button">
         {% bootstrap_icon "signal" %} Gráficos
     </a>
     <a href="/presupuestos/new/" class="btn btn-warning" role="button">
-        {% bootstrap_icon "plus" %} Nuevo Presupuesto
+        {% bootstrap_icon "plus" %} Nuevo
     </a>
 {% endblock %}
 
@@ -52,4 +52,16 @@
 			});
 		});
 	</script>
+{% endblock %}
+
+{% block info_title %}
+    Sobre los Presupuestos
+{% endblock %}
+
+{% block info_content %}
+    En esta página puede ver los presupuesto definidos para este período.
+    <br><br>
+    Puede avanzar o retroceder a otro período utilizando los botónes
+    "Anterior" y "Siguiente", o crear uno nuevo con el botón "Nuevo". El
+    botón "Gráficos" le mostrará la misma información, pero de forma gráfica.
 {% endblock %}

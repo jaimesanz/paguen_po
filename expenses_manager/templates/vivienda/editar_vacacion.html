@@ -12,7 +12,11 @@
     Editar Vacación
 {% endblock %}
 
+{% block help_info_button %}
+{% endblock %}
+
 {% block content %}
+    <hr>
     <form method="post" action=".">
         {% csrf_token %}
         {% bootstrap_form form %}
@@ -25,4 +29,7 @@
             $("#id_fecha_fin").datepicker();
         });
     </script>
+{% endblock %}
+
+{% block help_info_modal %}
 {% endblock %}

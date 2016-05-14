@@ -13,7 +13,7 @@
 
 {% block buttons %}
     <a href="/vivienda/vacaciones/new/" class="btn btn-warning" role="button">
-        {% bootstrap_icon "plus" %} Agregar nuevo
+        {% bootstrap_icon "plus" %} Nueva
     </a>
 {% endblock %}
 
@@ -49,4 +49,28 @@
             });
         });
     </script>
+{% endblock %}
+
+{% block info_title %}
+    ¿Vacaciones?
+{% endblock %}
+
+{% block info_content %}
+    En esta página puede ver los períodos de <i>vacaciones</i> o
+    <i>salidas</i> de los usuarios activos.
+    <br><br>
+    ¿Pero de qué sirve hacer esto?
+    <br><br>
+    <ul>
+        <li>
+            Es posible definir qué <a href="/vivienda/categorias/"
+                                      target="_blank"> categorías</a>
+            <b>no</b> se comparten cuando se está afuera del
+            departamento, y cuales <b>sí</b> se comparten aunque se esté de
+            viaje (como puede ocurrir, por ejemplo, con el arriendo).
+        </li>
+    </ul>
+    De esta forma, al definir períodos de vacaciones, es posible calcular un
+    <a href="/vivienda/balance/" target="_blank">balance</a> más fiel a la
+    realidad del departamento.
 {% endblock %}

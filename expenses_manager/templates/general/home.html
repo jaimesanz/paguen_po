@@ -1,11 +1,23 @@
 {% extends "base.html" %}
 
+{% block content_title %}
+    ¡Bienvenido!
+{% endblock %}
+
+{% block help_info_button %}
+{% endblock %}
+
 {% block content %}
 	<p>
-		{% if user.is_authenticated %}
-			¡Hola {{user.username}}! Esta es la página de inicio.
-		{% else %}
-			¡Hola! Esta es la página de inicio.
-		{% endif %}
+		{% if user.is_authenticated %} ¡Hola {{user.username}}
+            !{% else %}¡Hola!{% endif %}
 	</p>
+    <p>Esta es la página de inicio de <i>PaguenPo</i>, una aplicación web
+        cuyo objetivo consiste en ayudar a estudiantes que comparten techo a
+        organizarse con sus gastos, y transparentar las contribuciones de
+        cada uno a la Vivienda.
+    </p>
+{% endblock %}
+
+{% block help_info_modal %}
 {% endblock %}
