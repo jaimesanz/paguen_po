@@ -34,11 +34,14 @@
 
                 {% block buttons %}{% endblock %}
 
+                {% block help_info_button %}
                 <button type="button" class="btn btn-info"
                         data-toggle="modal" data-target="#HelpInfoModal">
                     {% bootstrap_icon "info-sign" %}
                 </button>
                 <hr>
+                {% endblock %}
+
 
 				{% block content %}
 				{% endblock %}
@@ -46,29 +49,31 @@
 			</div>
 
             <!-- Help Info Modal -->
-            <div id="HelpInfoModal" class="modal fade" role="dialog">
-                <div class="modal-dialog">
+            {% block help_info_modal %}
+                <div id="HelpInfoModal" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
 
-                    <!-- Modal content-->
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h4 class="modal-title">
-                                {% block info_title %}
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">
+                                    {% block info_title %}
+                                    {% endblock %}
+                                </h4>
+                            </div>
+                            <div class="modal-body">
+                                {% block info_content %}
                                 {% endblock %}
-                            </h4>
-                        </div>
-                        <div class="modal-body">
-                            {% block info_content %}
-                            {% endblock %}
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default"
-                            data-dismiss="modal">Cerrar</button>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default"
+                                data-dismiss="modal">Cerrar</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            {% endblock %}
 
 		</div>
 		<div id="footer">

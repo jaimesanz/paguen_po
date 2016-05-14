@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% load bootstrap3 %}
 
+{% block help_info_button %}
+{% endblock %}
+
 {% block content %}
 <form method="post" action=".">
   {% csrf_token %}
@@ -11,4 +14,7 @@
 <br>
 <p>¿Olvidaste tu clave? <a href="{% url 'auth_password_reset' %}">¡Recuperar contraseña!</a></p>
 <p>¿No estas registrado? <a href="{% url 'registration_register' %}">¡Regístrate!</a></p>
+{% endblock %}
+
+{% block help_info_modal %}
 {% endblock %}
