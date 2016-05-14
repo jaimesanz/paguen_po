@@ -170,3 +170,27 @@
 		} );
 	</script>
 {% endblock %}
+
+{% block info_title %}
+    Sobre las Listas
+{% endblock %}
+
+{% block info_content %}
+    En esta página puede crear una nueva lista de compras. Para esto, debe
+    agregar al menos 1 ítem a la lista, y especificar la cantidad solicitada.
+    <br><br>
+    Sólo es posible ingresar <i>ítems</i> que se encuentren definidos en la
+    lista de ítems de la Vivienda. Puede consultar la lista completa y
+    <b>agregar nuevos ítems haciendo click <a href="/vivienda/items/"
+                                           target="_blank">aquí</a></b>, o bien
+    ingresando a Vivienda->Items->Administrar.
+    <br><br>
+    Luego de crear la lista, cualquier usuario de la Vivienda podrá verla en
+    la pestaña de listas pendientes. Para acceder a una lista y comenzar a
+    completarla, debe hacer click en el botón <a href="#">
+    {% bootstrap_icon "log-in" %}</a>.
+    <br><br>
+    Al completar una lista, se genera un Gasto de categoría <b>Supermercado</b>
+    asociado al usuario que la completó,
+
+{% endblock %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load bootstrap3 %}
 
 {% block custom_head %}
 <style type="text/css">
@@ -138,4 +139,45 @@
 		});
 	</script>
 	{% endif %}
+{% endblock %}
+
+{% block info_title %}
+    {% if lista.is_done %}
+        Detalle de Lista
+    {% else %}
+        Completar Listas
+    {% endif %}
+{% endblock %}
+
+{% block info_content %}
+    {% if lista.is_done %}
+        En esta página puede ver el detalle de la Lista que se encuentra
+        comprada. Si hace click en el monto total, podrá ver el detalle del
+        Gasto asociado a esta compra.
+    {% else %}
+        Para completar la lista puede utilizar los botónes "+" y "-", o bien
+        hacer click en el botón
+        {% bootstrap_button "" icon="arrow-right" button_type="submit" button_class="btn-info btn-sm" %}
+        para copiar la cantidad solicitada.
+        <br><br>
+        Todo <i>ítem</i> cuya cantidad comprada sea mayor a 0 se considera
+        <i>comprado</i>. Usted debe especificar qué hacer con los ítems que
+        <b>no</b> marcó como comprados:
+        <br><br>
+        <ul>
+            <li>Si elige la opción <b>descartar</b>, los ítems no comprados
+                serán eliminados.</li>
+            <li>En cambio, si elige la opción <b>nueva lista</b>, se creará
+                una nueva lista sólamente con los ítems no
+                comprados.</li>
+        </ul>
+        Finalmente, debe ingresar el monto total de la compra, el cual debe
+        ser un número mayor a 0.
+        <br><br>
+        Al hacer click en "Pagar", se generará un
+        Gasto con categoría <b>Supermercado</b> a su nombre, con el monto que
+        indicó en el formulario. Este Gasto, al igual que todos los demás,
+        debe ser confirmado por sus compañeros antes de ser considerado
+        "pagado".
+    {% endif %}
 {% endblock %}
