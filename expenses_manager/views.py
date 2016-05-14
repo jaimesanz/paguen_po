@@ -175,7 +175,7 @@ def invite_user(request):
         if form.is_valid():
             # TODO check that no user with that mail is already in the Vivienda
             if post['email'] == request.user.email:
-                messages.error(request, "¡No puede invitarse a usetd mismo!")
+                messages.error(request, "¡No puede invitarse a usted mismo!")
                 return HttpResponseRedirect("/vivienda/")
             invited_user = User.objects.filter(email=post['email']).first()
             if invited_user is not None:

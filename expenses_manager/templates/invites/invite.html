@@ -10,10 +10,28 @@
 			<input type="submit" name="SubmitButton" value="Declinar"></input>
 		</form>
 	{% else %}
-		<p>Has invitado a {{invite.invitado}} a formar parte de {{invite.invitado_por.vivienda}} </p>
+
+		<p>
+            Has invitado a {% if invite.invitado %}{{invite.invitado}}{% else %}{{invite.email}}{% endif %} a formar parte de {{invite.invitado_por.vivienda}}
+        </p>
 		<form action="" method="post">
 			{% csrf_token %}
 			<input type="submit" name="SubmitButton" value="Cancelar"></input>
 		</form>
 	{% endif %}
+{% endblock %}
+
+{% block info_title %}
+    Sobre las invitaciones
+{% endblock %}
+
+{% block info_content %}
+    {% if invite_in %}
+        Si acepta la invitación, usted se unirá inmediatamente a la Vivienda
+        indicada. Si rechaza la invitación, esta se eliminará, y no podrá
+        aceptarla más tarde.
+    {% else %}
+        Si hace click en cancelar, la invitación se eliminará y no podrá ser
+        recuperada más tarde.
+    {% endif %}
 {% endblock %}
