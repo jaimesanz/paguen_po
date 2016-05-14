@@ -6,10 +6,16 @@
     Configuración
 {% endblock %}
 
+{% block help_info_button %}
+{% endblock %}
+
 {% block content %}
-	<p>Hola {{user.username}}, qué quieres hacer?</p>
-	<ul>
-		<li><a href="/accounts/password/change">Cambiar Clave</a></li>
-		<li><a href="/invites_list">Ver invitaciones</a></li>
-	</ul>
+    <p>Hola {{user.username}}, qué quieres hacer?</p>
+    <ul>
+        <li><a href="/accounts/password/change">Cambiar Clave</a></li>
+        <li><a href="/invites_list">Ver invitaciones</a></li>
+    </ul>
+{% endblock %}
+
+{% block help_info_modal %}
 {% endblock %}
