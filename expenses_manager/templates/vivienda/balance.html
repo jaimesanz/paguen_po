@@ -141,3 +141,50 @@
 		});
 	</script>
 {% endblock %}
+
+{% block info_title %}
+    Sobre los balances
+{% endblock %}
+
+{% block info_content %}
+    En esta página puede ver de forma gráfica qué tan desbalanceados se
+    encuentran las contribuciones a la Vivienda por parte de cada usuario.
+    <br><br>
+    Para computar este balance, se toman en cuenta las siguientes
+    consideraciones:
+    <br><br>
+    <ul>
+        <li>Los Gastos sólo se cuentan para los usuarios que pertenecían a la
+            Vivienda el día que se realizó el Gasto.
+        </li>
+        <br>
+        <li>Sólo se consideran Gastos cuya categoría esta marcada como
+            <i>compartida</i>.
+        </li>
+        <br>
+        <li>Los Gastos cuya categoría, además de ser compartida, es también
+            <i>compartida en vacaciones</i> se cuentan para todos los usuarios.
+        </li>
+        <br>
+        <li>Los Gastos cuya categoría esta marcada como <b>no
+            compartida en vacaciones</b> sólo se cuentan para los usuarios
+            que <b>no</b> estaban de vacaciones al momento de realizar el
+            Gasto, <b>independiente de cuántos días se encontraban afuera los
+            usuarios de vacaciones</b>.
+        </li>
+    </ul>
+    Debido a estos motivos, se recomienda hacer los ajustes necesarios en
+    <a href="/vivienda/categorias/" target="_blank">categorías</a> antes de
+    llevar a cabo el balance.
+    <br><br>
+    Luego de realizar el balance fuera del sistema, es necesario que se
+    ingresen las transferencias realizadas haciendo click en "Transferir", de
+    tal forma que el sistema entienda que efectivamente se llevó a cabo el
+    balance, y pueda seguir llevando el balance de forma correcta.
+    <br><br>
+    <b>Notar que si se llega a un balance distinto al que indica el sistema,
+        de todas formas se sugiere que, en el sistema, se ingresen las
+        transacciones indicadas, de tal forma que el sistema vea que estan
+        balanceados, y el gráfico de balance sea coherente con la realidad de
+        la vivienda.</b>
+{% endblock %}
