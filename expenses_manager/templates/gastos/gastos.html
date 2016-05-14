@@ -143,3 +143,30 @@
 		} );
 	</script>
 {% endblock %}
+
+{% block info_title %}
+    Sobre los Gastos
+{% endblock %}
+
+{% block info_content %}
+    Un <i>Gasto</i> corresponde a:
+    <ul>
+        <li>algo que debe ser pagado (estado "pendiente")</li>
+        <li>algo que ya fué pagado (estado "pagado")</li>
+    </ul>
+    Al crear un Gasto <b>pendiente</b>, este puede ser pagado por cualquier otro
+    usuario de la Vivienda.
+    <br><br>
+    Por ejemplo, un usuario puede ingresar la cuenta
+    de la Luz y dejar el registro de cuánto se <i>debe</i> pagar, para que
+    luego otro usuario efectivamente realice el pago. Esto sirve como un
+    recordatorio para que la cuenta no quede en el olvido.
+    <br><br>
+    Por otro lado, al crear un Gasto <b>pagado</b>, inmediatamente queda el
+    registro de que fue Usted quien pagó el Gasto. Sin embargo, no se marca
+    inmediatamente como "pagado", sino como "pendiente_confirmación".
+    <br><br>
+    Una vez que el Gasto es confirmado por todos sus compañeros, se cambia el
+    estado a "pagado", <b>y sólo entonces se considera el Gasto para el
+    computo de totales por período y para el balance.</b>
+{% endblock %}

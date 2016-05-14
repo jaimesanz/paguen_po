@@ -112,3 +112,22 @@
         {% endif %}
 	{% endif %}
 {% endblock %}
+
+{% block info_title %}
+    ¿Cómo se confirma un Gasto?
+{% endblock %}
+
+{% block info_content %}
+    Los Gastos pueden estar en 3 estados: "pendiente", "pendiente_confirmacion" o
+    "pagado".
+    <br><br>
+    Cuando alguien crea un Gasto, este queda en estado "pendiente".
+    <br><br>
+    Si alguien lo paga, pasa al estado "pendiente_confirmacion". Para
+    que finalmente llegue al estado "pagado", primero debe ser
+    confirmado por los otros usuarios de la Vivienda.
+    <br><br>
+    <strong>Notar que si se edita un Gasto con estado "pagado", este pasa a
+        estar
+    "pendiente_confirmacion".</strong>
+{% endblock %}

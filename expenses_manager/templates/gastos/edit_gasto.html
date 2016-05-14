@@ -31,3 +31,26 @@
         })
     </script>
 {% endblock %}
+
+{% block info_title %}
+    Sobre la edición de Gastos
+{% endblock %}
+
+{% block info_content %}
+    Un Gasto pendiente puede ser editado por cualquier usuario, mientras que
+    un Gasto "pendiente_confirmación" o "pagado" puede ser editado sólo por
+    el usuario que pagó.
+    <br><br>
+    Las condiciones para la edición son las mismas que para la creación: el
+    monto debe ser un número mayor a 0, y la fecha no puede ser posterior al
+    día actual.
+    <br><br>
+    <strong>Al editar un Gasto "pagado", este vuelve al estado
+        "pendiente_confirmación".</strong>
+    <br><br>
+    Un Gasto puede ser eliminado bajo las siguientes condiciones:
+    <ul>
+        <li>Se encuentra pendiente, ó</li>
+        <li>Fue pagado por el usuario que esta eliminándolo.</li>
+    </ul>
+{% endblock %}

@@ -26,14 +26,50 @@
 			{% include "navbar/navbar.html" %}
 			<hr>
 			{% bootstrap_messages %}
+
 			<h1 id="content_title">{% block content_title %}{% endblock %}</h1>
+
 			<div id="content_body">
                 <h3>{% block subtitle %}{% endblock %}</h3>
+
                 {% block buttons %}{% endblock %}
+
+                <button type="button" class="btn btn-info"
+                        data-toggle="modal" data-target="#HelpInfoModal">
+                    {% bootstrap_icon "info-sign" %}
+                </button>
                 <hr>
+
 				{% block content %}
 				{% endblock %}
+
 			</div>
+
+            <!-- Help Info Modal -->
+            <div id="HelpInfoModal" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">
+                                {% block info_title %}
+                                {% endblock %}
+                            </h4>
+                        </div>
+                        <div class="modal-body">
+                            {% block info_content %}
+                            {% endblock %}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default"
+                            data-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 		</div>
 		<div id="footer">
 			{% block footer %}
