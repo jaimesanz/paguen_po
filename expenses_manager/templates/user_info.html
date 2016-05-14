@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
 {% block content_title %} Perfil {% endblock %}
+
+{% block subtitle %}
+    Configuración
+{% endblock %}
+
 {% block content %}
 	<p>Hola {{user.username}}, qué quieres hacer?</p>
 	<ul>

@@ -3,14 +3,20 @@
 {% load humanize %}
 
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
-{% block content %}
-	<h3>Detalle Gasto</h3>
+
+{% block subtitle %}
+    Detalle Gasto
+{% endblock %}
+
+{% block buttons %}
     {% if show_edit_button %}
         <a href="/edit_gasto/{{ gasto.id }}" class="btn btn-warning" role="button">
             {% bootstrap_icon "pencil" %} Editar
         </a>
     {% endif %}
-    <hr>
+{% endblock %}
+
+{% block content %}
 	{% if gasto.is_pending %}
 		<form method="post" action="">
 			{% csrf_token %}

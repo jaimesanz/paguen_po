@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
+
+{% block subtitle %}
+    Gestionar Usuarios
+{% endblock %}
+
 {% block content %}
-	<h3>Gestionar Usuarios</h3>
-	<hr>
 	<p>Usuarios de la vivienda:</p>
 	<ul>
 		{% for rm in request.user.get_roommates %}

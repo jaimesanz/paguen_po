@@ -8,13 +8,18 @@
 {% endblock %}
 
 {% block content_title %}{{request.user.get_vivienda}}{% endblock %}
-{% block content %}
 
-	<h3>Gastos</h3>
-	<a href="/graphs/gastos" class="btn btn-primary" role="button">
+{% block subtitle %}
+    Gastos
+{% endblock %}
+
+{% block buttons %}
+    <a href="/graphs/gastos" class="btn btn-primary" role="button">
 		{% bootstrap_icon "signal" %} Gráficos
 	</a>
-	<hr>
+{% endblock %}
+
+{% block content %}
 	<!-- Nav tabs -->
 	<ul class="nav nav-tabs" role="tablist">
 		<li role="presentation" class="active"><a href="#nuevo_gasto" aria-controls="nuevo_gasto" role="tab" data-toggle="tab">Nuevo Gasto</a></li>

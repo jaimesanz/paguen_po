@@ -2,21 +2,27 @@
 {% load bootstrap3 %}
 {% load static %}
 
+{% block custom_head %}
+    <script type='text/javascript' src='{% static 'js/jquery.ui.datepicker-es.js' %}'></script>
+{% endblock %}
 
-{% block content_title %}{{presupuesto.vivienda}}{% endblock %}
+{% block content_title %}{{request.user.get_vivienda}}{% endblock %}
+
+{% block subtitle %}
+    Editar Vacación
+{% endblock %}
+
 {% block content %}
-    <h3>Editar Vacación</h3>
     <form method="post" action=".">
         {% csrf_token %}
         {% bootstrap_form form %}
         {% bootstrap_button "Actualizar" button_type="submit" button_class="btn-primary" %}
     </form>
-    <script type='text/javascript' src='{% static 'js/jquery.ui.datepicker-es.js' %}'></script>
+
     <script type="text/javascript">
         $(document).ready(function(){
             $("#id_fecha_inicio").datepicker();
             $("#id_fecha_fin").datepicker();
-        })
-
+        });
     </script>
 {% endblock %}

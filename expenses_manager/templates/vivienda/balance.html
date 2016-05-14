@@ -10,10 +10,17 @@
 
 
 {% block content_title %}{{vivienda}}{% endblock %}
+
+{% block subtitle %}
+    Balance de Gastos
+{% endblock %}
+
+{% block buttons %}
+    {% bootstrap_button "Transferir" icon="share-alt" name="transfer_button" button_class="btn-warning" %}
+    {% bootstrap_button "¿Cómo balancear?" icon="transfer" name="instructions_button" button_class="btn-success" %}
+{% endblock %}
+
 {% block content %}
-	<h3>Balance de Gastos</h3>
-	{% bootstrap_button "Transferir" icon="share-alt" name="transfer_button" button_class="btn-warning" %}
-	{% bootstrap_button "¿Cómo balancear?" icon="transfer" name="instructions_button" button_class="btn-success" %}
 	<div id="transfer_modal" class="modal fade" role="dialog">
 		<div class="modal-dialog">
 			<!-- Modal content-->
@@ -35,7 +42,6 @@
 			</div>
 		</div>
 	</div>
-    <hr>
     <div id="instructions_div" style="display: none">
         {% if instructions %}
             <p>Para balancear los gastos de todos los usuarios, se deben seguir
@@ -57,7 +63,9 @@
         {% endif %}
         <hr>
     </div>
+
 	<canvas id="user_expenses_chart"></canvas>
+
 	<script type="text/javascript">
 		$(document).ready(function(){
             $("button[name=instructions_button]").click(function() {

@@ -1,10 +1,13 @@
 {% extends "base.html" %}
 {% load bootstrap3 %}
 
-{% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
+{% block content_title %}{{ request.user.get_vivienda }}{% endblock %}
+
+{% block subtitle %}
+    Transferencias
+{% endblock %}
+
 {% block content %}
-    <h3>Transferencias</h3>
-    <hr>
     <form method="post" action=".">
       {% csrf_token %}
       {% bootstrap_form form %}

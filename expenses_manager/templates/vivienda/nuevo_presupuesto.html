@@ -2,9 +2,16 @@
 {% load bootstrap3 %}
 
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
+
+{% block subtitle %}
+    Nuevo Presupuesto
+{% endblock %}
+
+{% block buttons %}
+    {% bootstrap_button "¿Reutilizar existente?" name="copy_old" button_type="submit" button_class="btn-warning" %}
+{% endblock %}
+
 {% block content %}
-	<h3>Nuevo Presupuesto</h3>
-	{% bootstrap_button "¿Reutilizar existente?" name="copy_old" button_type="submit" button_class="btn-warning" %}
 	<div id="copy_old_form" class="modal fade" role="dialog">
 		<div class="modal-dialog">
 			<!-- Modal content-->
@@ -46,7 +53,7 @@
 			</div>
 		</div>
 	</div>
-	<hr>
+
 	<form method="POST" action="">
 		{% csrf_token %}
 		{% bootstrap_form form %}

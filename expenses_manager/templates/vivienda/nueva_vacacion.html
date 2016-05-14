@@ -2,21 +2,28 @@
 {% load bootstrap3 %}
 {% load static %}
 
-{% block content_title %}{{vivienda}}{% endblock %}
-{% block content %}
-    <h3>Nueva Vacación</h3>
-    <hr>
-
-    <form method="post" action=".">
-      {% csrf_token %}
-      {% bootstrap_form form %}
-      {% bootstrap_button "Crear" button_type="submit" button_class="btn-primary" %}
-    </form>
+{% block custom_head %}
     <script type='text/javascript' src='{% static 'js/jquery.ui.datepicker-es.js' %}'></script>
+{% endblock %}
+
+{% block content_title %}{{ request.user.get_vivienda }}{% endblock %}
+
+{% block subtitle %}
+    Nueva Vacación
+{% endblock %}
+
+{% block content %}
+    <form method="post" action=".">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% bootstrap_button "Crear" button_type="submit" button_class="btn-primary" %}
+    </form>
+
     <script type="text/javascript">
         $(document).ready(function(){
             $("#id_fecha_inicio").datepicker();
             $("#id_fecha_fin").datepicker();
-        })
+        });
     </script>
+
 {% endblock %}

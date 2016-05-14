@@ -12,22 +12,27 @@
 {% endblock %}
 
 {% block content_title %}{{request.user.get_vivienda}}{% endblock %}
+
+{% block subtitle %}
+    Presupuestos {{year}}-{{month}}
+{% endblock %}
+
+{% block buttons %}
+    <a href="/graphs/presupuestos/{{prev_year}}/{{prev_month}}" class="btn btn-primary" role="button">
+        {% bootstrap_icon "chevron-left" %} Período Anterior
+    </a>
+    <a href="/graphs/presupuestos/{{next_year}}/{{next_month}}" class="btn btn-primary" role="button">
+        Próximo período {% bootstrap_icon "chevron-right" %}
+    </a>
+    <a href="/presupuestos/{{year}}/{{month}}" class="btn btn-primary" role="button">
+        {% bootstrap_icon "th-list" %} Ver histórico
+    </a>
+    <a href="/presupuestos/new/" class="btn btn-warning" role="button">
+        {% bootstrap_icon "plus" %} Nuevo Presupuesto
+    </a>
+{% endblock %}
+
 {% block content %}
-	<h3>Presupuestos {{year}}-{{month}}</h3>
-	<a href="/graphs/presupuestos/{{prev_year}}/{{prev_month}}" class="btn btn-primary" role="button">
-		{% bootstrap_icon "chevron-left" %} Período Anterior
-	</a>
-	<a href="/graphs/presupuestos/{{next_year}}/{{next_month}}" class="btn btn-primary" role="button">
-		Próximo período {% bootstrap_icon "chevron-right" %}
-	</a>
-	<a href="/presupuestos/{{year}}/{{month}}" class="btn btn-primary" role="button">
-		{% bootstrap_icon "th-list" %} Ver histórico
-	</a>
-	<a href="/presupuestos/new/" class="btn btn-warning" role="button">
-		{% bootstrap_icon "plus" %} Nuevo Presupuesto
-	</a>
-	<br>
-	<hr>
 	<div class="row">
 		{% for p in presupuestos %}
 			<div class="col-sm-4">

@@ -28,6 +28,9 @@
 			{% bootstrap_messages %}
 			<h1 id="content_title">{% block content_title %}{% endblock %}</h1>
 			<div id="content_body">
+                <h3>{% block subtitle %}{% endblock %}</h3>
+                {% block buttons %}{% endblock %}
+                <hr>
 				{% block content %}
 				{% endblock %}
 			</div>

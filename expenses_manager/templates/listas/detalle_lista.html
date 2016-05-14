@@ -9,8 +9,10 @@
 {% endblock %}
 
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
+{% block subtitle %}
+    Lista {{lista.fecha}}
+{% endblock %}
 {% block content %}
-	<h3>Lista {{lista.fecha}}</h3>
 	{% if lista.is_done %}
 		<table id="items_lista" class="table table-striped table-bordered" cellspacing="0" width="100%">
 			<thead>

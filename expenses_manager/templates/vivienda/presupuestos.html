@@ -7,22 +7,27 @@
 {% endblock %}
 
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
+
+{% block subtitle %}
+    Presupuestos {{year}}-{{month}}
+{% endblock %}
+
+{% block buttons %}
+    <a href="/presupuestos/{{prev_year}}/{{prev_month}}" class="btn btn-primary" role="button">
+        {% bootstrap_icon "chevron-left" %} Período Anterior
+    </a>
+    <a href="/presupuestos/{{next_year}}/{{next_month}}" class="btn btn-primary" role="button">
+        Próximo período {% bootstrap_icon "chevron-right" %}
+    </a>
+    <a href="/graphs/presupuestos/{{year}}/{{month}}" class="btn btn-primary" role="button">
+        {% bootstrap_icon "signal" %} Gráficos
+    </a>
+    <a href="/presupuestos/new/" class="btn btn-warning" role="button">
+        {% bootstrap_icon "plus" %} Nuevo Presupuesto
+    </a>
+{% endblock %}
+
 {% block content %}
-	<h3>Presupuestos {{year}}-{{month}}</h3>
-	<a href="/presupuestos/{{prev_year}}/{{prev_month}}" class="btn btn-primary" role="button">
-		{% bootstrap_icon "chevron-left" %} Período Anterior
-	</a>
-	<a href="/presupuestos/{{next_year}}/{{next_month}}" class="btn btn-primary" role="button">
-		Próximo período {% bootstrap_icon "chevron-right" %}
-	</a>
-	<a href="/graphs/presupuestos/{{year}}/{{month}}" class="btn btn-primary" role="button">
-		{% bootstrap_icon "signal" %} Gráficos
-	</a>
-	<a href="/presupuestos/new/" class="btn btn-warning" role="button">
-		{% bootstrap_icon "plus" %} Nuevo Presupuesto
-	</a>
-	<br>
-	<br>
 	<table id="tabla_presupuestos" class="table table-striped table-bordered" cellspacing="0" width="100%">
 		<thead>
 			<tr>
@@ -43,7 +48,6 @@
 	<script type="text/javascript">
 		$(document).ready(function(){
 			$('#tabla_presupuestos').DataTable({
-				paging: false,
 				filter: false
 			});
 		});

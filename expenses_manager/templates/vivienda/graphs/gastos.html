@@ -23,10 +23,13 @@
 	</style>
 {% endblock %}
 
-
 {% block content_title %}{{vivienda}}{% endblock %}
+
+{% block subtitle %}
+    Gastos
+{% endblock %}
+
 {% block content %}
-	<h3>Gastos</h3>
 	<div class="alert alert-danger" style="display: none;">
 		¡Debe seleccionar al menos una opción para graficar!
 	</div>
@@ -36,7 +39,6 @@
 	<div class="alert alert-warning" style="display: none;">
 		Cargando...
 	</div>
-	<hr>
 	<input id="ex19" type="text"
 		data-provide="slider"
 		data-slider-ticks="{{periods_indexes}}"

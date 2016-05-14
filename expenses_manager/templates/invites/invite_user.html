@@ -2,9 +2,10 @@
 {% load bootstrap3 %}
 
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
+{% block subtitle %}
+    Invitar Usuario
+{% endblock %}
 {% block content %}
-    <h3>Invitar usuarios</h3>
-    <hr>
     <form method="post" action=".">
       {% csrf_token %}
       {% bootstrap_form invite_form %}
