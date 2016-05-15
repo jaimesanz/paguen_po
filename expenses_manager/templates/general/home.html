@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content_title %}
     ¡Bienvenido!
@@ -17,6 +18,40 @@
         organizarse con sus gastos, y transparentar las contribuciones de
         cada uno a la Vivienda.
     </p>
+
+    <h3>Gastos</h3>
+    <p>LLeva un registro histórico de los gastos que se han hecho en cada
+        período y para cada categoría.</p>
+    <img src="{% static 'img/gastos.png' %}">
+
+    <hr>
+    <h3>Presupuestos</h3>
+    <p>Define presupuestos para cada período y cada categoría para poder
+        administrar mejor los recursos de la vivienda.</p>
+    <img src="{% static 'img/presupuestos.png' %}">
+    <hr>
+
+    <h3>Listas de Compras</h3>
+    <p>Crea listas de compras que tus compañeros podrán ver de forma remota,
+        para que todos sepan qué cosas faltan, y si esque alguien más ya
+        compró lo que faltaba.
+    </p>
+    <img src="{% static 'img/lista_compras.png' %}">
+    <hr>
+
+    <h3>Balance</h3>
+    <p>Mantén balanceados los gastos con tus compañeros, de forma que nadie
+        se vea perjudicado.</p>
+    <img src="{% static 'img/balance.png' %}">
+    <hr>
+
+    <h3>Acerca de</h3>
+    <p>Si te interesa saber más acerca del proyecto, puedes dirigirte al
+        <a href="/about/" target="_blank">acerca de</a>.</p>
+{% endblock %}
+
+{% block footer %}
+    
 {% endblock %}
 
 {% block help_info_modal %}
