@@ -17,6 +17,8 @@ import json
 
 
 def home(request):
+    if request.user.is_authenticated() and request.user.has_vivienda():
+        return redirect("/vivienda/")
     return render(request, 'general/home.html', locals())
 
 
