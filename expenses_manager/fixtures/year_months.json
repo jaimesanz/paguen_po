@@ -3,7 +3,7 @@
     "model": "expenses_manager.yearmonth",
     "pk": 1,
     "fields": {
-        "year": 2016,
+        "year": 2015,
         "month": 4
     }
 },
@@ -12,7 +12,7 @@
     "pk": 2,
     "fields": {
         "year": 2015,
-        "month": 4
+        "month": 5
     }
 },
 {
@@ -20,7 +20,7 @@
     "pk": 3,
     "fields": {
         "year": 2015,
-        "month": 5
+        "month": 6
     }
 },
 {
@@ -28,7 +28,7 @@
     "pk": 4,
     "fields": {
         "year": 2015,
-        "month": 6
+        "month": 7
     }
 },
 {
@@ -36,7 +36,7 @@
     "pk": 5,
     "fields": {
         "year": 2015,
-        "month": 7
+        "month": 8
     }
 },
 {
@@ -44,7 +44,7 @@
     "pk": 6,
     "fields": {
         "year": 2015,
-        "month": 8
+        "month": 9
     }
 },
 {
@@ -52,7 +52,7 @@
     "pk": 7,
     "fields": {
         "year": 2015,
-        "month": 9
+        "month": 10
     }
 },
 {
@@ -60,7 +60,7 @@
     "pk": 8,
     "fields": {
         "year": 2015,
-        "month": 10
+        "month": 11
     }
 },
 {
@@ -68,20 +68,12 @@
     "pk": 9,
     "fields": {
         "year": 2015,
-        "month": 11
-    }
-},
-{
-    "model": "expenses_manager.yearmonth",
-    "pk": 10,
-    "fields": {
-        "year": 2015,
         "month": 12
     }
 },
 {
     "model": "expenses_manager.yearmonth",
-    "pk": 11,
+    "pk": 10,
     "fields": {
         "year": 2016,
         "month": 1
@@ -89,7 +81,7 @@
 },
 {
     "model": "expenses_manager.yearmonth",
-    "pk": 12,
+    "pk": 11,
     "fields": {
         "year": 2016,
         "month": 2
@@ -97,10 +89,26 @@
 },
 {
     "model": "expenses_manager.yearmonth",
-    "pk": 13,
+    "pk": 12,
     "fields": {
         "year": 2016,
         "month": 3
+    }
+},
+{
+    "model": "expenses_manager.yearmonth",
+    "pk": 13,
+    "fields": {
+        "year": 2016,
+        "month": 4
+    }
+},
+{
+    "model": "expenses_manager.yearmonth",
+    "pk": 14,
+    "fields": {
+        "year": 2016,
+        "month": 5
     }
 }
 ]
