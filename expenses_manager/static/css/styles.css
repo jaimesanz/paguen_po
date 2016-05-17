@@ -18,3 +18,7 @@
     margin:0 auto;/*this will center the content*/
   }
 }
+
+div {
+  text-align: justify;
+}
