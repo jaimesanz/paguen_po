@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse
-from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
-from django.contrib import messages
 from django.db import IntegrityError
-from django.utils import timezone
-from django.conf import settings
 from .forms import *
 from .models import *
 from .helper_functions.custom_decorators import *
@@ -18,7 +13,7 @@ import json
 
 def home(request):
     if request.user.is_authenticated() and request.user.has_vivienda():
-        return redirect("/vivienda/")
+        return redirect("vivienda")
     return render(request, 'general/home.html', locals())
 
 
@@ -39,7 +34,7 @@ def error(request):
 def login_post_process(request):
     # set session variables here
     request.session['user_has_vivienda'] = request.user.has_vivienda()
-    return HttpResponseRedirect("/home")
+    return redirect("home")
 
 
 @login_required
@@ -49,7 +44,7 @@ def user_info(request):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def vacations(request):
     vacations = UserIsOut.objects.filter(
@@ -60,7 +55,7 @@ def vacations(request):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def new_vacation(request):
     """
@@ -113,7 +108,7 @@ def new_vacation(request):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def edit_vacation(request, vacation_id):
     vacation = get_object_or_404(
@@ -166,7 +161,7 @@ def invites_list(request):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def invite_user(request):
     vivienda_usuario = request.user.get_vu()
@@ -178,7 +173,7 @@ def invite_user(request):
             # TODO check that no user with that mail is already in the Vivienda
             if post['email'] == request.user.email:
                 messages.error(request, "¡No puede invitarse a usted mismo!")
-                return HttpResponseRedirect("/vivienda/")
+                return redirect("vivienda")
             invited_user = User.objects.filter(email=post['email']).first()
             if invited_user is not None:
                 invite = Invitacion(
@@ -192,9 +187,9 @@ def invite_user(request):
                     invitado_por=vivienda_usuario)
                 # TODO send email with link accept/decline
             invite.save()
-            return HttpResponseRedirect("/invites_list")
+            return redirect("invites_list")
         else:
-            return HttpResponseRedirect("/about")
+            return redirect("about")
     invite_form = InvitacionForm()
     return render(request, "invites/invite_user.html", locals())
 
@@ -205,7 +200,7 @@ def invite(request, invite_id):
     invite_in = invite.is_invited_user(request.user)
     if invite_in:
         if invite.is_cancelled():
-            return HttpResponseRedirect("/error")
+            return redirect("error")
         if request.POST:
             ans = request.POST['SubmitButton']
             if ans == "Aceptar":
@@ -215,17 +210,17 @@ def invite(request, invite_id):
                         """Usted ya pertenece a una vivienda. Para aceptar la
                          invitación debe abandonar su vivienda actual.
                         """)
-                    return HttpResponseRedirect("/error")
+                    return redirect("error")
                 invite.accept()
                 request.session['user_has_vivienda'] = True
                 messages.success(request, "La invitación fue aceptada.")
-                return HttpResponseRedirect("/vivienda")
+                return redirect("vivienda")
             elif ans == "Declinar":
                 invite.reject()
                 messages.success(request, "La invitación fue rechazada.")
-                return HttpResponseRedirect("/home")
+                return redirect("home")
             messages.error(request, "Hubo un error al procesar la invitación")
-            return HttpResponseRedirect("/error")
+            return redirect("error")
 
         return render(request, "invites/invite.html", locals())
     elif invite.is_invited_by_user(request.user):
@@ -233,12 +228,12 @@ def invite(request, invite_id):
             ans = request.POST['SubmitButton']
             if ans == "Cancelar":
                 invite.cancel()
-                return HttpResponseRedirect("/invites_list")
+                return redirect("invites_list")
 
         return render(request, "invites/invite.html", locals())
     else:
         # redirect to page showing message "restricted"
-        return HttpResponseRedirect("/error")
+        return redirect("error")
 
 
 @login_required
@@ -254,7 +249,7 @@ def nueva_vivienda(request):
                 vivienda=new_viv, user=request.user)
             vivienda_usuario.save()
             request.session['user_has_vivienda'] = True
-            return HttpResponseRedirect("/vivienda")
+            return redirect("vivienda")
 
     vivienda_form = ViviendaForm()
     return render(request, "vivienda/nueva_vivienda.html", locals())
@@ -275,7 +270,7 @@ def manage_users(request):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def balance(request):
     vivienda = request.user.get_vivienda()
@@ -293,12 +288,12 @@ def abandon(request):
             ViviendaUsuario, user=request.user, estado="activo")
         vu.leave()
         request.session['user_has_vivienda'] = False
-    return HttpResponseRedirect("/home")
+    return redirect("home")
 
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def categorias(request):
     vivienda = request.user.get_vivienda()
@@ -310,12 +305,12 @@ def categorias(request):
                 nombre=categoria_nombre,
                 vivienda=vivienda)
             categoria.toggle()
-            return HttpResponseRedirect("/vivienda/categorias")
+            return redirect("categorias")
         else:
             messages.error(
                 request,
                 "Se produjo un error procesando la solicitud")
-            return HttpResponseRedirect("/error")
+            return redirect("error")
     this_viv_global = vivienda.get_vivienda_global_categorias()
     custom_cats = vivienda.get_vivienda_custom_categorias()
     return render(request, "vivienda/categorias.html", locals())
@@ -323,7 +318,7 @@ def categorias(request):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def nueva_categoria(request):
     vivienda = request.user.get_vivienda()
@@ -334,20 +329,20 @@ def nueva_categoria(request):
                 nueva_categoria_nombre)
             if not nueva_categoria:
                 messages.error(request, mensaje)
-                return HttpResponseRedirect("/vivienda/categorias/new")
+                return redirect("nueva_categoria")
             else:
                 messages.success(request, mensaje)
-                return HttpResponseRedirect("/vivienda/categorias")
+                return redirect("categorias")
         else:
             messages.error(request, "Debe ingresar un nombre de categoría")
-            return HttpResponseRedirect("/vivienda/categorias/new")
+            return redirect("nueva_categoria")
     form = CategoriaForm()
     return render(request, "vivienda/nueva_categoria.html", locals())
 
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def delete_categoria(request):
     if request.POST:
@@ -358,11 +353,11 @@ def delete_categoria(request):
             if categoria.vivienda != vivienda:
                 messages.error(request,
                                "No tiene permiso para editar esta Categoría")
-                return HttpResponseRedirect("/error")
+                return redirect("error")
             elif categoria.is_global():
                 messages.error(request,
                                "No puede eliminar una categoría global")
-                return HttpResponseRedirect("/vivienda/categorias")
+                return redirect("categorias")
             else:
                 gastos = Gasto.objects.filter(
                     categoria=categoria,
@@ -386,12 +381,12 @@ def delete_categoria(request):
             messages.error(request,
                            "Debe especificar una categoría para eliminar")
 
-    return HttpResponseRedirect("/vivienda/categorias")
+    return redirect("categorias")
 
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def items(request):
     vivienda = request.user.get_vivienda()
@@ -401,7 +396,7 @@ def items(request):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def new_item(request):
     if request.POST:
@@ -411,24 +406,24 @@ def new_item(request):
                 new_item = form.save(commit=False)
                 new_item.vivienda = request.user.get_vivienda()
                 new_item.save()
-                return HttpResponseRedirect("/vivienda/items")
+                return redirect("items")
             except IntegrityError as e:
                 messages.error(
                     request,
                     "Ya existe el Item '%s'" % (request.POST.get("nombre")))
-                return redirect("/vivienda/items/new/")
+                return redirect("new_item")
         else:
             messages.error(
                 request,
                 "Se produjo un error procesando los datos ingresados")
-            return HttpResponseRedirect("/vivienda/items")
+            return redirect("items")
     form = ItemForm()
     return render(request, "vivienda/new_item.html", locals())
 
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def edit_item(request, item_name):
     item = get_object_or_404(
@@ -445,12 +440,12 @@ def edit_item(request, item_name):
                 messages.error(
                     request,
                     "Ya existe el Item '%s'" % (request.POST.get("nombre")))
-                return redirect("/vivienda/item/%s/" % (item_name))
+                return redirect("edit_item" , item_name)
         else:
             messages.error(
                 request,
                 "Se produjo un error procesando la solicitud")
-            return redirect("/vivienda/item/%s/" % (item_name))
+            return redirect("edit_item" , item_name)
     return render(request, "vivienda/edit_item.html", locals())
 
 
@@ -475,7 +470,7 @@ def nuevo_gasto(request):
                         messages.error(
                             request,
                             "No puede crear un Gasto para una fecha futura.")
-                        return HttpResponseRedirect("/gastos")
+                        return redirect("gastos")
                 except ValueError:
                     # can't parse date, invalid format!
                     pass
@@ -490,19 +485,19 @@ def nuevo_gasto(request):
             is_paid = request.POST.get("is_paid", None)
             if is_paid == "yes":
                 nuevo_gasto.pay(request.user.get_vu(), **kwargs)
-                return HttpResponseRedirect("/gastos")
+                return redirect("gastos")
             elif is_paid == "no":
-                return HttpResponseRedirect("/gastos")
+                return redirect("gastos")
         # form is not valid or missing/invalid "is_paid" field
-        return HttpResponseRedirect("/error")
-    return HttpResponseRedirect("/gastos")
+        return redirect("error")
+    return redirect("gastos")
 
 
 @login_required
 def gastos(request):
     vu = request.user.get_vu()
     if vu is None:
-        return HttpResponseRedirect("/error")
+        return redirect("error")
     # get list of gastos
     gastos_pendientes_list, gastos_pagados_list = vu.get_gastos_vivienda()
     gastos_pendientes_confirmacion_list = \
@@ -516,7 +511,7 @@ def gastos(request):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def graph_gastos(request):
     vivienda = request.user.get_vivienda()
@@ -569,7 +564,7 @@ def detalle_gasto(request, gasto_id):
         messages.error(
             request,
             "Usted no está autorizado para ver esta página")
-        return HttpResponseRedirect("/error")
+        return redirect("error")
     gasto_form = GastoForm(model_to_dict(gasto))
     if request.POST:
         if gasto.is_paid() or gasto.is_pending_confirm():
@@ -581,7 +576,7 @@ def detalle_gasto(request, gasto_id):
             request,
             "El gasto fue pagado con éxito")
         gasto.pay(request.user.get_vu())
-        return HttpResponseRedirect("/detalle_gasto/%d/" % (gasto.id))
+        return redirect("detalle_gasto", gasto.id)
 
     show_confirm_form = False
     if gasto.is_pending_confirm():
@@ -600,7 +595,7 @@ def detalle_gasto(request, gasto_id):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def edit_gasto(request, gasto_id):
     gasto = get_object_or_404(Gasto, id=gasto_id)
@@ -608,13 +603,13 @@ def edit_gasto(request, gasto_id):
         messages.error(
             request,
             "Usted no está autorizado para ver esta página.")
-        return HttpResponseRedirect("/error")
+        return redirect("error")
 
     if gasto.categoria.is_transfer:
         messages.error(
             request,
             "Usted no está autorizado para ver esta página.")
-        return HttpResponseRedirect("/detalle_gasto/%d/" % (gasto.id))
+        return redirect("detalle_gasto", gasto.id)
 
     if request.POST:
         new_monto = request.POST.get("monto", None)
@@ -631,13 +626,13 @@ def edit_gasto(request, gasto_id):
                     request,
                     "No puede crear un Gasto para una fecha futura."
                 )
-                return HttpResponseRedirect("/edit_gasto/%d/" % (gasto.id))
+                return redirect("edit_gasto", gasto.id)
         except ValueError:
             messages.error(
                 request,
                 "La fecha ingresada no es válida."
             )
-            return HttpResponseRedirect("/edit_gasto/%d/" % (gasto.id))
+            return redirect("edit_gasto", gasto.id)
         # validate new_monto
         try:
             parsed_new_monto = int(new_monto)
@@ -648,14 +643,14 @@ def edit_gasto(request, gasto_id):
                 request,
                 "El monto ingresado debe ser un número mayor que 0."
             )
-            return HttpResponseRedirect("/edit_gasto/%d/" % (gasto.id))
+            return redirect("edit_gasto", gasto.id)
 
         msg = gasto.edit(request.user.get_vu(), new_monto, parsed_new_fecha)
         if msg == "No tiene permiso para editar este Gasto":
             messages.error(request, msg)
         else:
             messages.success(request, msg)
-        return HttpResponseRedirect("/detalle_gasto/%d/" % (gasto.id))
+        return redirect("detalle_gasto", gasto.id)
 
     show_delete_button = gasto.is_pending() or \
                          gasto.usuario == request.user.get_vu()
@@ -665,7 +660,7 @@ def edit_gasto(request, gasto_id):
             request,
             "Usted no está autorizado para ver esta página."
         )
-        return redirect("/detalle_gasto/%d/" % (gasto.id))
+        return redirect("detalle_gasto", gasto.id)
 
     form = EditGastoForm(request.POST or None, instance=gasto)
     return render(request, "gastos/edit_gasto.html", locals())
@@ -673,7 +668,7 @@ def edit_gasto(request, gasto_id):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def confirm_gasto(request, gasto_id):
     gasto = get_object_or_404(Gasto, id=gasto_id)
@@ -701,12 +696,12 @@ def confirm_gasto(request, gasto_id):
                     request,
                     "Gasto confirmado.")
 
-    return redirect("/detalle_gasto/%d" % (gasto.id))
+    return redirect("detalle_gasto", gasto.id)
 
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def delete_gasto(request):
     if request.POST:
@@ -720,7 +715,7 @@ def delete_gasto(request):
                 messages.error(
                     request,
                     "No tiene permiso para eliminar este Gasto")
-                return redirect("/detalle_gasto/%d" % (gasto.id))
+                return redirect("detalle_gasto", gasto.id)
 
     # do nothing
     return redirect("gastos")
@@ -728,7 +723,7 @@ def delete_gasto(request):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def lists(request):
     vivienda_usuario = request.user.get_vu()
@@ -740,7 +735,7 @@ def lists(request):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def nueva_lista(request):
     if request.POST:
@@ -749,7 +744,7 @@ def nueva_lista(request):
             messages.error(
                 request,
                 "La lista no puede estar vacía")
-            return HttpResponseRedirect("/lists")
+            return redirect("lists")
         max_item_index = int(max_item_index_post)
 
         # The post contains 2 inputs for each item
@@ -773,25 +768,25 @@ def nueva_lista(request):
                             Una lista no puede contener varias veces el
                             mismo ítem
                             """)
-                        return HttpResponseRedirect("/lists/")
+                        return redirect("lists")
                     item_quantity_dict[item_name] = quantity
             # the list is OK
             if len(item_quantity_dict) == 0:
                 messages.error(
                     request,
                     "La lista no puede estar vacía")
-                return HttpResponseRedirect("/lists")
+                return redirect("lists")
             nueva_lista = ListaCompras.objects.create(
                 usuario_creacion=request.user.get_vu())
             for i, q in item_quantity_dict.items():
                 nueva_lista.add_item_by_name(i, q)
-            return HttpResponseRedirect("/detalle_lista/%d" % (nueva_lista.id))
+            return redirect("detalle_lista", nueva_lista.id)
         else:
             messages.error(
                 request,
                 "La lista no puede estar vacía")
-            return HttpResponseRedirect("/error")
-    return HttpResponseRedirect("/lists")
+            return redirect("error")
+    return redirect("lists")
 
 
 @login_required
@@ -804,12 +799,12 @@ def detalle_lista(request, lista_id):
                 messages.error(
                     request,
                     "La lista ya está pagada")
-                return HttpResponseRedirect("/error")
+                return redirect("error")
             rescatar_items = request.POST.get("rescatar_items", None)
             descartar_items = request.POST.get("descartar_items", None)
             monto_total = request.POST.get("monto_total", None)
             if monto_total is None:
-                return HttpResponseRedirect("/error")
+                return redirect("error")
             # filter request.POST to get only the ids and values of the items
             # in the list
             item_list = []
@@ -827,7 +822,7 @@ def detalle_lista(request, lista_id):
                 messages.error(
                     request,
                     "Debe seleccionar al menos 1 ítem")
-                return HttpResponseRedirect("/error")
+                return redirect("error")
             if rescatar_items:
                 nueva_lista = lista.rescue_items(vivienda_usuario)
             elif descartar_items:
@@ -836,31 +831,29 @@ def detalle_lista(request, lista_id):
                 messages.error(
                     request,
                     "Hubo un error al procesar el pago")
-                return HttpResponseRedirect("/error")
-            return HttpResponseRedirect(
-                "/detalle_gasto/" + str(nuevo_gasto.id))
+                return redirect("error")
+            return redirect("detalle_gasto", str(nuevo_gasto.id))
         else:
             # not post
             return render(request, "listas/detalle_lista.html", locals())
     else:
         # user is not allowed
-        return HttpResponseRedirect("/error")
+        return redirect("error")
 
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def presupuestos(request):
     vivienda_usuario = request.user.get_vu()
     today = timezone.now()
-    return HttpResponseRedirect(
-        "/presupuestos/%d/%d" % (today.year, today.month))
+    return redirect("presupuestos_period", today.year, today.month)
 
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def presupuestos_period(request, year, month):
     vivienda_usuario = request.user.get_vu()
@@ -878,7 +871,7 @@ def presupuestos_period(request, year, month):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def nuevo_presupuesto(request):
     vivienda_usuario = request.user.get_vu()
@@ -895,7 +888,7 @@ def nuevo_presupuesto(request):
         if any(val is None for val in [categoria_id,
                                        period,
                                        monto]):
-            return HttpResponseRedirect("/presupuestos/new")
+            return redirect("nuevo_presupuesto")
 
         year_month = YearMonth.objects.get(
             id=request.POST.get("year_month", None))
@@ -911,16 +904,17 @@ def nuevo_presupuesto(request):
                            """
                 Ya existe un presupuesto para el período seleccionado
                 """)
-            return HttpResponseRedirect("/presupuestos/new")
+            return redirect("nuevo_presupuesto")
         presupuesto.monto = monto
         presupuesto.save()
         messages.success(request,
                          """
                         El presupuesto fue creado exitósamente
                         """)
-        return HttpResponseRedirect(
-            "/presupuestos/%d/%d" % (year_month.year,
-                                     year_month.month))
+        return redirect(
+            "presupuestos_period",
+            year_month.year,
+            year_month.month)
     form = PresupuestoForm()
     form.fields[
         "categoria"].queryset = vivienda_usuario.vivienda.get_categorias()
@@ -929,17 +923,16 @@ def nuevo_presupuesto(request):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def graphs_presupuestos(request):
     today = timezone.now()
-    return HttpResponseRedirect(
-        "/graphs/presupuestos/%d/%d" % (today.year, today.month))
+    return redirect("graphs_presupuestos_period", today.year, today.month)
 
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def graphs_presupuestos_period(request, year, month):
     this_period = get_object_or_404(
@@ -956,7 +949,7 @@ def graphs_presupuestos_period(request, year, month):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def edit_presupuesto(request, year, month, categoria):
     vivienda = request.user.get_vivienda()
@@ -973,10 +966,11 @@ def edit_presupuesto(request, year, month, categoria):
     if request.POST:
         def redirect_to_invalid_monto():
             messages.error(request, "Debe ingresar un monto mayor a 0")
-            return HttpResponseRedirect(
-                "/presupuestos/%d/%d/%s/" % (int(year),
-                                             int(month),
-                                             categoria))
+            return redirect(
+                "edit_presupuesto",
+                int(year),
+                int(month),
+                categoria)
         form = PresupuestoEditForm(request.POST)
         if form.is_valid():
             nuevo_monto = request.POST.get("monto", None)
@@ -990,10 +984,10 @@ def edit_presupuesto(request, year, month, categoria):
             presupuesto.monto = nuevo_monto
             presupuesto.save()
             messages.success(request, "Presupuesto modificado con éxito")
-            return HttpResponseRedirect(
-                "/graphs/presupuestos/%d/%d" % (
-                    year_month.year,
-                    year_month.month))
+            return redirect(
+                "graphs_presupuestos_period",
+                year_month.year,
+                year_month.month)
         else:
             return redirect_to_invalid_monto()
 
@@ -1003,7 +997,7 @@ def edit_presupuesto(request, year, month, categoria):
 
 @login_required
 @request_passes_test(user_has_vivienda,
-                     login_url="/error/",
+                     login_url="error",
                      redirect_field_name=None)
 def transfer(request):
     if request.POST:

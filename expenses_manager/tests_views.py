@@ -104,7 +104,7 @@ class AbandonViewTest(TestCase):
         response = self.client.post(
             "/abandon/",
             data={"submit": "Abandonar vivienda"}, follow=True)
-        self.assertRedirects(response, "/home/")
+        self.assertRedirects(response, "/")
         self.assertEqual(test_user.get_vu(), None)
         self.assertFalse(ViviendaUsuario.objects.filter(
             estado="activo").exists())
@@ -194,7 +194,7 @@ class InviteUserViewTest(TestCase):
             "/invite/%d/" % (invite.id),
             data={"SubmitButton": "Declinar"},
             follow=True)
-        self.assertRedirects(response, "/home/")
+        self.assertRedirects(response, "/")
         self.assertNotContains(response, vivienda.alias)
         self.assertFalse(test_user_2.has_vivienda())
         self.assertTrue(test_user_1.has_vivienda())

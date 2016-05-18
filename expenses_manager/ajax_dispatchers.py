@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from .models import *
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponse
 import json
 
 
