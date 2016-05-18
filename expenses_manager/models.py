@@ -932,15 +932,6 @@ class Invitacion(models.Model):
         return user.sent_invite(self)
 
 
-class SolicitudAbandonarVivienda(models.Model):
-    creada_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
-    fecha = models.DateTimeField(auto_now_add=True)
-    estado = models.CharField(max_length=100)
-
-    def __str__(self):
-        return str(self.creada_por) + "__" + str(self.fecha)
-
-
 class Categoria(models.Model):
 
     class Meta:
