@@ -13,16 +13,16 @@
 {% endblock %}
 
 {% block buttons %}
-    <a href="/presupuestos/{{prev_year}}/{{prev_month}}" class="btn btn-primary" role="button">
+    <a href="{% url 'presupuestos_period' prev_year prev_month %}" class="btn btn-primary" role="button">
         {% bootstrap_icon "chevron-left" %} Anterior
     </a>
-    <a href="/presupuestos/{{next_year}}/{{next_month}}" class="btn btn-primary" role="button">
+    <a href="{% url 'presupuestos_period' next_year next_month %}" class="btn btn-primary" role="button">
         Siguiente {% bootstrap_icon "chevron-right" %}
     </a>
-    <a href="/graphs/presupuestos/{{year}}/{{month}}" class="btn btn-primary" role="button">
+    <a href="{% url 'graphs_presupuestos_period' year month %}" class="btn btn-primary" role="button">
         {% bootstrap_icon "signal" %} Gráficos
     </a>
-    <a href="/presupuestos/new/" class="btn btn-warning" role="button">
+    <a href="{% url 'nuevo_presupuesto' %}" class="btn btn-warning" role="button">
         {% bootstrap_icon "plus" %} Nuevo
     </a>
 {% endblock %}
@@ -38,7 +38,7 @@
 		<tbody>
 			{% for p in presupuestos %}
 			<tr>
-				<td><a href="/presupuestos/{{p.year_month.year}}/{{p.year_month.month}}/{{p.categoria}}">{{p.categoria}}</a></td>
+				<td><a href="{% url 'edit_presupuesto' p.year_month.year p.year_month.month p.categoria %}">{{p.categoria}}</a></td>
 				<td>$ {{p.monto|intcomma}}</td>
 			</tr>
 			{% endfor %}

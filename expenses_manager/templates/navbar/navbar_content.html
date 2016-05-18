@@ -1,13 +1,12 @@
-<!-- <li><a href="/home">Home</a></li> -->
 {% if user.is_authenticated %}
 	{% if user.has_vivienda %}
-		<li><a href="/gastos">Gastos</a></li>
-		<li><a href="/lists">Listas</a></li>
-		<li><a href="/graphs/presupuestos/">Presupuestos</a></li>
-		<li><a href="/vivienda/balance/">Balance</a></li>
+		<li><a href="{% url 'gastos' %}">Gastos</a></li>
+		<li><a href="{% url 'lists' %}">Listas</a></li>
+		<li><a href="{% url 'graphs_presupuestos' %}">Presupuestos</a></li>
+		<li><a href="{% url 'balance' %}">Balance</a></li>
 	{% else %}
-		<li><a href="/invites_list">Invitaciones</a></li>
+		<li><a href="{% url 'invites_list' %}">Invitaciones</a></li>
 	{% endif %}
 {% else %}
-<li class='last'><a href="/accounts/register">Registrarse</a></li>
+<li class='last'><a href="{% url 'registration_register' %}">Registrarse</a></li>
 {% endif %}

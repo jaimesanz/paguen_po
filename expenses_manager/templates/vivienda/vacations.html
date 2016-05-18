@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block buttons %}
-    <a href="/vivienda/vacaciones/new/" class="btn btn-warning" role="button">
+    <a href="{% url 'new_vacation' %}" class="btn btn-warning" role="button">
         {% bootstrap_icon "plus" %} Nueva
     </a>
 {% endblock %}
@@ -30,7 +30,7 @@
             {% for vacation in vacations %}
             <tr>
                 <td>
-                    <a href="/vivienda/vacaciones/{{vacation.id}}/">
+                    <a href="{% url 'edit_vacation' vacation.id %}">
                         {{vacation.vivienda_usuario.user}}
                     </a>
                 </td>
@@ -63,7 +63,7 @@
     <br><br>
     <ul>
         <li>
-            Es posible definir qué <a href="/vivienda/categorias/"
+            Es posible definir qué <a href="{% url 'categorias' %}"
                                       target="_blank"> categorías</a>
             <b>no</b> se comparten cuando se está afuera del
             departamento, y cuales <b>sí</b> se comparten aunque se esté de
@@ -71,6 +71,6 @@
         </li>
     </ul>
     De esta forma, al definir períodos de vacaciones, es posible calcular un
-    <a href="/vivienda/balance/" target="_blank">balance</a> más fiel a la
+    <a href="{% url 'balance' %}" target="_blank">balance</a> más fiel a la
     realidad del departamento.
 {% endblock %}

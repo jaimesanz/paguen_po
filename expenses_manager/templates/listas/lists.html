@@ -69,7 +69,7 @@
 				<tbody>
 					{% for lista in listas_pendientes %}
 					<tr>
-						<td><a href="/detalle_lista/{{lista.id}}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{lista.fecha}}</td>
+						<td><a href="{% url 'detalle_lista' lista.id %}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{lista.fecha}}</td>
 						<td>{{lista.count_items}}</td>
 						<td>{{lista.usuario_creacion.user}}</td>
 					</tr>
@@ -114,7 +114,7 @@
 					.attr("id", this_item_input_id + "_qty")
 					.attr("placeholder", "Cantidad")
 					.attr("class","form-control");
-				
+
 				// create an input group for each column
 				first_col_input_group = $("<div>").attr("class","input-group").append(item);
 				second_col_input_group = $("<div>").attr("class","input-group").append(quantity);
@@ -181,7 +181,7 @@
     <br><br>
     Sólo es posible ingresar <i>ítems</i> que se encuentren definidos en la
     lista de ítems de la Vivienda. Puede consultar la lista completa y
-    <b>agregar nuevos ítems haciendo click <a href="/vivienda/items/"
+    <b>agregar nuevos ítems haciendo click <a href="{% url 'items' %}"
                                            target="_blank">aquí</a></b>, o bien
     ingresando a Vivienda->Items->Administrar.
     <br><br>

@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block buttons %}
-    <a href="/vivienda/categorias/new" class="btn btn-warning" role="button">
+    <a href="{% url 'nueva_categoria' %}" class="btn btn-warning" role="button">
         {% bootstrap_icon "plus" %} Nueva
     </a>
     <a class="btn btn-danger toggle_delete_btn" role="button">

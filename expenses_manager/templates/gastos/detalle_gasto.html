@@ -10,7 +10,7 @@
 
 {% block buttons %}
     {% if show_edit_button %}
-        <a href="/edit_gasto/{{ gasto.id }}" class="btn btn-warning" role="button">
+        <a href="{% url 'edit_gasto' gasto.id %}" class="btn btn-warning" role="button">
             {% bootstrap_icon "pencil" %} Editar
         </a>
     {% endif %}
@@ -76,7 +76,11 @@
 				{% if gasto.lista_compras %}
 					<tr>
 						<td><b>Lista compras:</b></td>
-						<td><a href="/detalle_lista/{{gasto.lista_compras.id}}/">ver detalle</a></td>
+						<td>
+                            <a href="{% url 'detalle_lista' gasto.lista_compras.id %}">
+                                ver detalle
+                            </a>
+                        </td>
 					</tr>
 				{% endif %}
 				<tr>

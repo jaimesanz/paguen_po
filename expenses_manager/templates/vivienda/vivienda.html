@@ -21,19 +21,19 @@
 		                </div>
 		            </div>
 		        </div>
-		        <a href="/manage_users">
+		        <a href="{% url 'manage_users' %}">
 		            <div class="panel-footer">
 		                <span class="pull-left">Administrar</span>
 		                <div class="clearfix"></div>
 		            </div>
 		        </a>
-		        <a href="/transfer">
+		        <a href="{% url 'transfer' %}">
 		            <div class="panel-footer">
 		                <span class="pull-left">Transferencias</span>
 		                <div class="clearfix"></div>
 		            </div>
 		        </a>
-		        <a href="/invite_user">
+		        <a href="{% url 'invite_user' %}">
 		            <div class="panel-footer">
 		                <span class="pull-left">Invitar Usuarios</span>
 		                <div class="clearfix"></div>
@@ -53,19 +53,19 @@
 		                </div>
 		            </div>
 		        </div>
-		        <a href="/gastos">
+		        <a href="{% url 'gastos' %}">
 		            <div class="panel-footer">
 		                <span class="pull-left">Administrar</span>
 		                <div class="clearfix"></div>
 		            </div>
 		        </a>
-		        <a href="/graphs/gastos">
+		        <a href="{% url 'graph_gastos' %}">
 		            <div class="panel-footer">
 		                <span class="pull-left">Gráficos</span>
 		                <div class="clearfix"></div>
 		            </div>
 		        </a>
-		        <a href="/vivienda/balance">
+		        <a href="{% url 'balance' %}">
 		            <div class="panel-footer">
 		                <span class="pull-left">Balance</span>
 		                <div class="clearfix"></div>
@@ -85,19 +85,19 @@
 		                </div>
 		            </div>
 		        </div>
-		        <a href="/presupuestos">
+		        <a href="{%  url 'presupuestos' %}">
 		            <div class="panel-footer">
 		                <span class="pull-left">Administrar</span>
 		                <div class="clearfix"></div>
 		            </div>
 		        </a>
-		        <a href="/graphs/presupuestos">
+		        <a href="{% url 'graphs_presupuestos' %}">
 		            <div class="panel-footer">
 		                <span class="pull-left">Gráficos</span>
 		                <div class="clearfix"></div>
 		            </div>
 		        </a>
-		        <a href="/presupuestos/new">
+		        <a href="{% url 'nuevo_presupuesto' %}">
 		            <div class="panel-footer">
 		                <span class="pull-left">Nuevo</span>
 		                <div class="clearfix"></div>
@@ -117,13 +117,13 @@
 		                </div>
 		            </div>
 		        </div>
-		        <a href="/vivienda/vacaciones">
+		        <a href="{% url 'vacations' %}">
 		            <div class="panel-footer">
 		                <span class="pull-left">Administrar</span>
 		                <div class="clearfix"></div>
 		            </div>
 		        </a>
-		        <a href="/vivienda/vacaciones/new">
+		        <a href="{% url 'new_vacation' %}">
 		            <div class="panel-footer">
 		                <span class="pull-left">Nueva</span>
 		                <div class="clearfix"></div>
@@ -145,13 +145,13 @@
 		                </div>
 		            </div>
 		        </div>
-		        <a href="/vivienda/categorias">
+		        <a href="{% url 'categorias' %}">
 		            <div class="panel-footer">
 		                <span class="pull-left">Administrar</span>
 		                <div class="clearfix"></div>
 		            </div>
 		        </a>
-		        <a href="/vivienda/categorias/new">
+		        <a href="{% url 'nueva_categoria' %}">
 		            <div class="panel-footer">
 		                <span class="pull-left">Nueva</span>
 		                <div class="clearfix"></div>
@@ -171,13 +171,13 @@
 		                </div>
 		            </div>
 		        </div>
-		        <a href="/vivienda/items">
+		        <a href="{% url 'items' %}">
 		            <div class="panel-footer">
 		                <span class="pull-left">Administrar</span>
 		                <div class="clearfix"></div>
 		            </div>
 		        </a>
-		        <a href="/vivienda/items/new">
+		        <a href="{% url 'new_item' %}">
 		            <div class="panel-footer">
 		                <span class="pull-left">Nuevo</span>
 		                <div class="clearfix"></div>
@@ -198,17 +198,17 @@
     lea los mensajes de ayuda en el siguiente orden:
     <br><br>
     <ul>
-        <li><a href="/invites_list/" target="_blank">Invitaciones</a></li>
-        <li><a href="/invite_user/" target="_blank">Invitar Usuarios</a></li>
-        <li><a href="/vivienda/categorias/" target="_blank">Categorías</a></li>
-        <li><a href="/gastos/" target="_blank">Gastos</a></li>
-        <li><a href="/presupuestos/" target="_blank">Presupuestos</a></li>
-        <li><a href="/vivienda/items/" target="_blank">Ítems</a></li>
-        <li><a href="/lists/" target="_blank">Listas</a></li>
-        <li><a href="/vivienda/vacaciones/" target="_blank">Vacaciones</a></li>
-        <li><a href="/vivienda/balance/" target="_blank">Balance</a></li>
-        <li><a href="/transfer/" target="_blank">Transferencias</a></li>
+        <li><a href="{% url 'invites_list' %}" target="_blank">Invitaciones</a></li>
+        <li><a href="{% url 'invite_user' %}" target="_blank">Invitar Usuarios</a></li>
+        <li><a href="{% url 'categorias' %}" target="_blank">Categorías</a></li>
+        <li><a href="{% url 'gastos' %}" target="_blank">Gastos</a></li>
+        <li><a href="{% url 'presupuestos' %}" target="_blank">Presupuestos</a></li>
+        <li><a href="{% url 'items' %}" target="_blank">Ítems</a></li>
+        <li><a href="{% url 'lists' %}" target="_blank">Listas</a></li>
+        <li><a href="{% url 'vacations' %}" target="_blank">Vacaciones</a></li>
+        <li><a href="{% url 'balance' %}" target="_blank">Balance</a></li>
+        <li><a href="{% url 'transfer' %}" target="_blank">Transferencias</a></li>
     </ul>
     Si le interesa saber más acerca de la página puede leer el <a
-        href="/about/" target="_blank">"acerca de"</a>.
+        href="{% url 'about' %}" target="_blank">"acerca de"</a>.
 {% endblock %}

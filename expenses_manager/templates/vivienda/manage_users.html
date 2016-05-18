@@ -18,8 +18,8 @@
 		{% endfor %}
 	</ul>
 	<p>¿Qué desea hacer?</p>
-	<p><a href="/invite_user">Invitar usuarios a la vivienda</a></p>
-	<form action="/abandon/" method="POST">{% csrf_token %}<input type="submit" name="submit" value="Abandonar vivienda"></input></form>
+	<p><a href="{% url 'invite_user' %}">Invitar usuarios a la vivienda</a></p>
+	<form action="{% url 'abandon' %}" method="POST">{% csrf_token %}<input type="submit" name="submit" value="Abandonar vivienda"></input></form>
 {% endblock %}
 
 {% block help_info_modal %}

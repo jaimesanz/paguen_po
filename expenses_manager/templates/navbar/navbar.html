@@ -9,12 +9,12 @@
 
         {% if user.is_authenticated %}
             {% if user.has_vivienda %}
-                <a href="/vivienda" class="navbar-brand">{% bootstrap_icon "cog" %} Vivienda</a>
+                <a href="{% url 'vivienda' %}" class="navbar-brand">{% bootstrap_icon "cog" %} Vivienda</a>
             {% else %}
-                <a href="/nueva_vivienda" class="navbar-brand">Crear Vivienda</a>
+                <a href="{% url 'nueva_vivienda' %}" class="navbar-brand">Crear Vivienda</a>
             {% endif %}
         {% else %}
-            <a href="/home" class="navbar-brand">Inicio</a>
+            <a href="{% url 'home' %}" class="navbar-brand">Inicio</a>
         {% endif %}
     </div>
     <!-- Collection of nav links and other content for toggling -->

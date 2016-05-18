@@ -37,7 +37,7 @@
 					<td></td>
 					<td></td>
 					{% with gasto=lista.get_gasto %}
-					<td>Monto total: <a href="/detalle_gasto/{{gasto.id}}">${{gasto.monto}}</a></td>
+					<td>Monto total: <a href="{% url 'detalle_gasto' gasto.id %}">${{gasto.monto}}</a></td>
 					{% endwith %}
 				</tr>
 			</tbody>

@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block buttons %}
-    <a href="/vivienda/items/new/" class="btn btn-warning" role="button">
+    <a href="{% url 'new_item' %}" class="btn btn-warning" role="button">
         {% bootstrap_icon "plus" %} Nuevo
     </a>
 {% endblock %}
@@ -30,7 +30,7 @@
             {% for item in items %}
             <tr>
                 <td>
-                    <a href="/vivienda/item/{{item.nombre}}">
+                    <a href="{% url 'edit_item' item.nombre %}">
                         {{item.nombre}}
                     </a>
                 </td>
@@ -59,10 +59,10 @@
     Se entiende por <i>ítem</i> a los víveres o implementos utilizados en la
     vivienda, abarcando desde comida hasta medicamentos o útiles de aseo.
     <br><br>
-    Los ítems se utilizan para generar <a href="/lists/"
+    Los ítems se utilizan para generar <a href="{% url 'lists' %}"
                                           target="_blank">listas de
     compras</a>, las cuales luego pueden ser completadas por otros usuarios,
-    generando un nuevo <a href="/gastos/" target="_blank">gasto</a>.
+    generando un nuevo <a href="{% url 'gastos' %}" target="_blank">gasto</a>.
     <br><br>
     La descripción puede ser una característica no tan obvia acerca del ítem
     en particular, como puede ser por ejemplo la marca o el sabor preferido

@@ -27,7 +27,7 @@
 {% block content %}
     {% if user.is_authenticated %}
         {% if user.has_vivienda %}
-            <p>Haga click <a href="/vivienda/">aquí</a> para ir a la
+            <p>Haga click <a href="{% url 'vivienda' %}">aquí</a> para ir a la
                 configuración de su Vivienda.</p>
         {% else %}
             <p>Para poder hacer uso de la aplicación, primero debe pertenecer a
@@ -35,11 +35,11 @@
             </p>
             <ul>
                 <li>Crear una Vivienda: para esto, debe dirigirse a
-                    <a href="/nueva_vivienda/">crear vivienda</a>.</li>
+                    <a href="{% url 'nueva_vivienda' %}">crear vivienda</a>.</li>
                 <li>Unirse a una Vivienda existente: para esto, debe ser
                     invitado a la Vivienda por otro usuario. Puede ver las
                     invitaciones que le han enviado haciendo click <a
-                            href="/invites_list/">
+                            href="{% url 'invites_list' %}">
                         aquí</a>.</li>
             </ul>
             Si tiene dudas sobre la función de alguna página, puede hacer
@@ -87,7 +87,7 @@
 
         <h3>Acerca de</h3>
         <p>Si te interesa saber más acerca del proyecto, puedes dirigirte al
-            <a href="/about/" target="_blank">acerca de</a>.</p>
+            <a href="{% url 'about' %}" target="_blank">acerca de</a>.</p>
     {% endif %}
 {% endblock %}
 

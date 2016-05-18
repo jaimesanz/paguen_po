@@ -8,7 +8,7 @@
 	<p>Tienes las siguientes invitaciones:</p>
 	<ul>
 	{% for i in invites_in %}
-		<li>{{i.invitado_por.user}} te invitó a formar parte de {{i.invitado_por.vivienda}} </li><a href="/invite/{{i.id}}">responder</a>
+		<li>{{i.invitado_por.user}} te invitó a formar parte de {{i.invitado_por.vivienda}} </li><a href="{% url 'invite' i.id %}">responder</a>
 	{% endfor %}
 	</ul>
 	{% else %}
@@ -20,7 +20,7 @@
 	<p>Has realizados las siguientes invitaciones:</p>
 	<ul>
 	{% for i in invites_out %}
-		<li>Has invitado a {% if i.invitado %}{{i.invitado}}{% else %}{{i.email}}{% endif %} a formar parte de {{i.invitado_por.vivienda}} <a href="/invite/{{i.id}}">ver</a></li>
+		<li>Has invitado a {% if i.invitado %}{{i.invitado}}{% else %}{{i.email}}{% endif %} a formar parte de {{i.invitado_por.vivienda}} <a href="{% url 'invite' i.id %}">ver</a></li>
 	{% endfor %}
 	</ul>
 	{% else %}

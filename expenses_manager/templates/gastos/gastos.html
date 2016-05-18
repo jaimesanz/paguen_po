@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block buttons %}
-    <a href="/graphs/gastos" class="btn btn-primary" role="button">
+    <a href="{% url 'graph_gastos' %}" class="btn btn-primary" role="button">
 		{% bootstrap_icon "signal" %} Gráficos
 	</a>
 {% endblock %}
@@ -68,7 +68,7 @@
 			    <tbody>
 			        {% for gasto in gastos_pendientes_list %}
 			        	<tr>
-				            <td><a href="/detalle_gasto/{{gasto.id}}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{gasto.fecha_creacion}}</td>
+				            <td><a href="{% url 'detalle_gasto' gasto.id %}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{gasto.fecha_creacion}}</td>
 				            <td>{{gasto.categoria}}</td>
 				            <td>$ {{gasto.monto|intcomma}}</td>
 			        	</tr>
@@ -91,7 +91,7 @@
 			    <tbody>
 			        {% for gasto in gastos_pendientes_confirmacion_list %}
 			        	<tr>
-				            <td><a href="/detalle_gasto/{{gasto.id}}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{gasto.fecha_creacion}}</td>
+				            <td><a href="{% url 'detalle_gasto' gasto.id %}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{gasto.fecha_creacion}}</td>
 				            <td>{{gasto.categoria}}</td>
 				            <td>$ {{gasto.monto|intcomma}}</td>
 			        	</tr>
@@ -114,7 +114,7 @@
 					<tbody>
 						{% for gasto in gastos_pagados_list %}
 						<tr>
-							<td><a href="/detalle_gasto/{{gasto.id}}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{gasto.fecha_pago}}</td>
+							<td><a href="{% url 'detalle_gasto' gasto.id %}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{gasto.fecha_pago}}</td>
 							<td>{{gasto.categoria}}</td>
 							<td>$ {{gasto.monto|intcomma}}</td>
 						</tr>

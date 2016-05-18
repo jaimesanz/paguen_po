@@ -12,8 +12,8 @@
 {% block content %}
     <p>Hola {{user.username}}, qué quieres hacer?</p>
     <ul>
-        <li><a href="/accounts/password/change">Cambiar Clave</a></li>
-        <li><a href="/invites_list">Ver invitaciones</a></li>
+        <li><a href="{% url 'auth_password_change' %}">Cambiar Clave</a></li>
+        <li><a href="{% url 'invites_list' %}">Ver invitaciones</a></li>
     </ul>
 {% endblock %}
 
