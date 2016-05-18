@@ -375,10 +375,10 @@ class NewGastoViewTest(TestCase):
         for gasto in pending_gastos:
             self.assertContains(response, gasto.monto)
             self.assertContains(
-                response, "href=\"/detalle_gasto/%d\"" % gasto.id)
+                response, "href=\"/detalle_gasto/%d/\"" % gasto.id)
         self.assertNotContains(response, gasto_3.monto)
         self.assertNotContains(
-            response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+            response, "href=\"/detalle_gasto/%d/\"" % gasto_3.id)
 
     def test_user_can_create_paid_gasto(self):
         (test_user_1,
@@ -418,10 +418,10 @@ class NewGastoViewTest(TestCase):
         for gasto in pending_confirm_gastos:
             self.assertContains(response, gasto.monto)
             self.assertContains(
-                response, "href=\"/detalle_gasto/%d\"" % gasto.id)
+                response, "href=\"/detalle_gasto/%d/\"" % gasto.id)
         self.assertNotContains(response, gasto_3.monto)
         self.assertNotContains(
-            response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+            response, "href=\"/detalle_gasto/%d/\"" % gasto_3.id)
 
     def test_user_can_create_paid_gasto_with_custom_old_fecha_pago(self):
         (test_user_1,
@@ -525,14 +525,14 @@ class GastoViviendaPendingListViewTest(TestCase):
         self.assertContains(response, dummy_categoria.nombre)
         self.assertContains(response, gasto_1.monto)
         self.assertContains(
-            response, "href=\"/detalle_gasto/%d\"" % gasto_1.id)
+            response, "href=\"/detalle_gasto/%d/\"" % gasto_1.id)
         self.assertContains(response, gasto_2.monto)
         self.assertContains(
-            response, "href=\"/detalle_gasto/%d\"" % gasto_2.id)
+            response, "href=\"/detalle_gasto/%d/\"" % gasto_2.id)
         # check that logged user can't see the gasto from the other vivienda
         self.assertNotContains(response, gasto_3.monto)
         self.assertNotContains(
-            response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+            response, "href=\"/detalle_gasto/%d/\"" % gasto_3.id)
 
 
 class GastoViviendaPendingConfirmListViewTest(TestCase):
@@ -561,14 +561,14 @@ class GastoViviendaPendingConfirmListViewTest(TestCase):
         self.assertContains(response, dummy_categoria.nombre)
         self.assertContains(response, gasto_1.monto)
         self.assertContains(
-            response, "href=\"/detalle_gasto/%d\"" % gasto_1.id)
+            response, "href=\"/detalle_gasto/%d/\"" % gasto_1.id)
         self.assertContains(response, gasto_2.monto)
         self.assertContains(
-            response, "href=\"/detalle_gasto/%d\"" % gasto_2.id)
+            response, "href=\"/detalle_gasto/%d/\"" % gasto_2.id)
         # check that logged user can't see the gasto from the other vivienda
         self.assertNotContains(response, gasto_3.monto)
         self.assertNotContains(
-            response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+            response, "href=\"/detalle_gasto/%d/\"" % gasto_3.id)
 
 
 class GastoViviendaPaidListViewTest(TestCase):
@@ -604,12 +604,12 @@ class GastoViviendaPaidListViewTest(TestCase):
         # check that logged user can see both gastos
         self.assertContains(response, dummy_categoria.nombre)
         self.assertContains(
-            response, "href=\"/detalle_gasto/%d\"" % gasto_1.id)
+            response, "href=\"/detalle_gasto/%d/\"" % gasto_1.id)
         self.assertContains(
-            response, "href=\"/detalle_gasto/%d\"" % gasto_2.id)
+            response, "href=\"/detalle_gasto/%d/\"" % gasto_2.id)
         # check that logged user can't see the gasto from the other vivienda
         self.assertNotContains(
-            response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+            response, "href=\"/detalle_gasto/%d/\"" % gasto_3.id)
 
 
 class GastoViviendaPendingConfirmViewTest(TestCase):
@@ -957,7 +957,7 @@ class GastoViviendaPayViewTest(TestCase):
             follow=True)
         self.assertRedirects(response, "/error/")
         self.assertNotContains(
-            response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+            response, "href=\"/detalle_gasto/%d\"/" % gasto_3.id)
 
     def test_outside_user_cant_pay_gasto(self):
         (test_user_1,
@@ -974,7 +974,7 @@ class GastoViviendaPayViewTest(TestCase):
             follow=True)
         self.assertRedirects(response, "/error/")
         self.assertNotContains(
-            response, "href=\"/detalle_gasto/%d\"" % gasto_3.id)
+            response, "href=\"/detalle_gasto/%d\"/" % gasto_3.id)
 
     def test_user_can_pay_pending_gasto(self):
         (test_user_1,
@@ -2941,7 +2941,7 @@ class PresupuestoViewTest(TestCase):
 
         self.assertContains(
             response,
-            "href=\"/presupuestos/%d/%d/%s\">" % (
+            "href=\"/presupuestos/%d/%d/%s/\">" % (
                 presupuesto_now.year_month.year,
                 presupuesto_now.year_month.month,
                 presupuesto_now.categoria))
@@ -3243,7 +3243,7 @@ class PresupuestoGraphsTest(TestCase):
 
         self.assertContains(
             response,
-            "href=\"/presupuestos/%d/%d/%s\">" % (
+            "href=\"/presupuestos/%d/%d/%s/\">" % (
                 presupuesto_now.year_month.year,
                 presupuesto_now.year_month.month,
                 presupuesto_now.categoria))
