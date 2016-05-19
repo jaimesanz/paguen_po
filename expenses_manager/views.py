@@ -249,6 +249,11 @@ def nueva_vivienda(request):
                 vivienda=new_viv, user=request.user)
             vivienda_usuario.save()
             request.session['user_has_vivienda'] = True
+            messages.success(
+                request,
+                "¡Vivienda creada con éxito! "
+                "Haga click en el botón de información para comenzar a "
+                "utilizar la aplicación.")
             return redirect("vivienda")
 
     vivienda_form = ViviendaForm()

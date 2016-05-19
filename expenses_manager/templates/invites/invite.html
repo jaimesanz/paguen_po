@@ -1,14 +1,15 @@
 {% extends "base.html" %}
+{% load bootstrap3 %}
 
 {% block content_title %}Invitaciones{% endblock %}
 {% block content %}
 	{% if invite_in %}
 		<p>{{invite.invitado_por.user}} te invitó a formar parte de {{invite.invitado_por.vivienda}} </p>
-		<form action="" method="post">
-			{% csrf_token %}
-			<input type="submit" name="SubmitButton" value="Aceptar"></input>
-			<input type="submit" name="SubmitButton" value="Declinar"></input>
-		</form>
+        <form method="post" action="">
+            {% csrf_token %}
+            {% bootstrap_button "Aceptar" value="Aceptar" name="SubmitButton" button_type="submit" button_class="btn-success" %}
+            {% bootstrap_button "Declinar" value="Declinar" name="SubmitButton" button_type="submit" button_class="btn-danger" %}
+        </form>
 	{% else %}
 
 		<p>
@@ -16,7 +17,7 @@
         </p>
 		<form action="" method="post">
 			{% csrf_token %}
-			<input type="submit" name="SubmitButton" value="Cancelar"></input>
+            {% bootstrap_button "Cancelar" value="Cancelar" name="SubmitButton" button_type="submit" button_class="btn-danger" %}
 		</form>
 	{% endif %}
 {% endblock %}
