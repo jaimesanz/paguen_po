@@ -8,7 +8,6 @@ var getRandomColor = function(){
 };
 
 var getRandomColorAsList = function(){
-    var color = [];
     return [
 		Math.floor(Math.random() * 256),
 		Math.floor(Math.random() * 256),
@@ -96,43 +95,50 @@ var hsvToRgb = function(h, s, v) {
 			g = p;
 			b = q;
 	}
-
 	return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
-}
+};
 
 var randomColors = function(total) {
 	//source: http://stackoverflow.com/a/6823364
-	var i = 360 / (total - 1); // distribute the colors evenly on the hue range
+	var i;
+	if (total>1){
+		i = 360 / (total - 1); // distribute the colors evenly on the hue range
+	}
+	else{
+		i= 360;
+	}
 	var r = []; // hold the generated colors
 	for (var x=0; x<total; x++)
 	{
-		r.push(hsvToRgb(i * x, 100, 100)); // you can also alternate the saturation and value for even more contrast between the colors
+		r.push(hsvToRgb(i * x, 100, 100));
+		// you can also alternate the saturation and value for even more
+		// contrast between the colors
 	}
 	return r;
 };
 
 var is_valid_period_range = function(y0,m0,y1,m1){
 	return y0<y1 || (y0==y1 && m0<=m1)
-}
+};
 var get_next_year_month_pair = function(y,m){
-	next_year = y
-	next_month = m+1
+	next_year = y;
+	next_month = m+1;
 	if(next_month>12){
-	    next_month = 1
+	    next_month = 1;
 	    next_year++
 	}
 	return [next_year, next_month]
-}
+};
 var get_period_range = function(y0, m0, y1, m1){
-	periods = []
-	y = y0
-	m = m0
+	periods = [];
+	y = y0;
+	m = m0;
 	while( (y<y1) || (y==y1 && m<=m1)	){
-		periods.push(y + "-" + m)
-		ym_pair = get_next_year_month_pair(y,m)
-		y = ym_pair[0]
-		m = ym_pair[1]
+		periods.push(y + "-" + m);
+		ym_pair = get_next_year_month_pair(y,m);
+		y = ym_pair[0];
+		m = ym_pair[1];
 	}
-	console.log(periods)
+	console.log(periods);
 	return periods
 };
