@@ -20,10 +20,26 @@
 	</ul>
 	<p>¿Qué desea hacer?</p>
 	<p><a href="{% url 'invite_user' %}">Invitar usuarios a la vivienda</a></p>
-	<form action="{% url 'abandon' %}" method="POST">
+	<form id="abandon_form" action="{% url 'abandon' %}" method="POST">
         {% csrf_token %}
-        {% bootstrap_button "Abandonar vivienda" value="Abandonar vivienda" name="submit" button_type="submit" button_class="btn-danger" %}
+        {% bootstrap_button "Abandonar vivienda" value="Abandonar vivienda" name="submitBtn" button_type="submit" button_class="btn-danger" %}
     </form>
+
+    {% bootstrap_button "Deseo Abandonar la Vivienda" name="confirmSubmit" button_class="btn-danger" as confirm_button %}
+    {% include "general/modal.html" with modal_id="ConfirmAbandonModal" modal_title="¿Realmente quiere abandonar la Vivienda?" modal_body="<p>¡Si hace esto ya no tendrá acceso a la información sobre la Vivienda! Esta accción es irreversible.</p>"|add:confirm_button  %}
+
+    <script type="text/javascript">
+		$(document).ready(function(){
+            $("button[name='confirmSubmit']").click(function () {
+                $("#abandon_form").submit();
+            });
+			$("button[name='submitBtn']").click(function () {
+                $("#ConfirmAbandonModal").modal();
+                return false;
+            })
+		});
+	</script>
+
 {% endblock %}
 
 {% block help_info_modal %}
