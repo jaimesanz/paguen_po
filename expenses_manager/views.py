@@ -239,6 +239,11 @@ def invite(request, invite_id):
 @login_required
 def nueva_vivienda(request):
     if request.POST:
+        if request.user.has_vivienda():
+            messages.error(
+                request,
+                "Solo puede pertenecer a una Vivienda.")
+            return redirect("vivienda")
         form = ViviendaForm(request.POST)
         if form.is_valid():
             # process data
