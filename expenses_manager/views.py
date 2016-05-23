@@ -805,8 +805,9 @@ def detalle_lista(request, lista_id):
                     request,
                     "La lista ya está pagada")
                 return redirect("error")
-            rescatar_items = request.POST.get("rescatar_items", None)
-            descartar_items = request.POST.get("descartar_items", None)
+            options = request.POST.get("options", None)
+            rescatar_items = options == "rescatar_items"
+            descartar_items = options == "descartar_items"
             monto_total = request.POST.get("monto_total", None)
             if monto_total is None:
                 return redirect("error")

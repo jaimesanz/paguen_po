@@ -2556,7 +2556,7 @@ class PayListaViewTest(TestCase):
             "/detalle_lista/%d/" % (lista.id),
             data={
                 "csrfmiddlewaretoken": "rubbish",
-                "descartar_items": "checked",
+                "options": "descartar_items",
                 "monto_total": 1000,
                 str(item_lista_1.id): 1,
                 str(item_lista_2.id): 2
@@ -2577,7 +2577,7 @@ class PayListaViewTest(TestCase):
             "/detalle_lista/%d/" % (lista.id),
             data={
                 "csrfmiddlewaretoken": "rubbish",
-                "descartar_items": "checked",
+                "options": "descartar_items",
                 str(item_lista_1.id): 1,
                 str(item_lista_2.id): 2
             },
@@ -2593,7 +2593,7 @@ class PayListaViewTest(TestCase):
             "/detalle_lista/%d/" % (lista.id),
             data={
                 "csrfmiddlewaretoken": "rubbish",
-                "descartar_items": "checked",
+                "options": "descartar_items",
                 "monto_total": 1000
             },
             follow=True)
@@ -2610,7 +2610,7 @@ class PayListaViewTest(TestCase):
             "/detalle_lista/%d/" % (lista.id),
             data={
                 "csrfmiddlewaretoken": "rubbish",
-                "rescatar_items": "checked",
+                "options": "rescatar_items",
                 "monto_total": 1000,
                 str(item_lista_2.id): 2
             },
@@ -2646,7 +2646,7 @@ class PayListaViewTest(TestCase):
             "/detalle_lista/%d/" % (lista.id),
             data={
                 "csrfmiddlewaretoken": "rubbish",
-                "rescatar_items": "checked",
+                "options": "rescatar_items",
                 "monto_total": 1000,
                 str(item_lista_1.id): 1,
                 str(item_lista_2.id): 2
@@ -2678,7 +2678,7 @@ class PayListaViewTest(TestCase):
             "/detalle_lista/%d/" % (lista.id),
             data={
                 "csrfmiddlewaretoken": "rubbish",
-                "rescatar_items": "checked",
+                "options": "rescatar_items",
                 str(item_lista_1.id): 1,
                 str(item_lista_2.id): 2
             },
@@ -2699,7 +2699,7 @@ class PayListaViewTest(TestCase):
             "/detalle_lista/%d/" % (lista.id),
             data={
                 "csrfmiddlewaretoken": "rubbish",
-                "rescatar_items": "checked",
+                "options": "rescatar_items",
                 "monto_total": 1000
             },
             follow=True)

@@ -80,12 +80,14 @@
 		</table>
 		<div class="btn-group" data-toggle="buttons">
 			<p>¿Qué hacer con ítems restantes?</p>
-			<label class="btn btn-success active">
-				<input type="radio" name="descartar_items" id="option1" autocomplete="off" checked>Descartar
-			</label>
-			<label class="btn btn-success">
-				<input type="radio" name="rescatar_items" id="option2" autocomplete="off">Nueva lista
-			</label>
+            <label class="btn btn-success active">
+                <input type="radio" name="options" value="rescatar_items"
+                       autocomplete="off" checked>Nueva lista
+            </label>
+            <label class="btn btn-success">
+                <input type="radio" name="options" value="descartar_items"
+                       autocomplete="off">Descartar
+            </label>
 		</div>
 		<br><br>
 		<div class="input-group">
