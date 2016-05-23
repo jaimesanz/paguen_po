@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load bootstrap3 %}
 
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
 
@@ -19,7 +20,10 @@
 	</ul>
 	<p>¿Qué desea hacer?</p>
 	<p><a href="{% url 'invite_user' %}">Invitar usuarios a la vivienda</a></p>
-	<form action="{% url 'abandon' %}" method="POST">{% csrf_token %}<input type="submit" name="submit" value="Abandonar vivienda"></input></form>
+	<form action="{% url 'abandon' %}" method="POST">
+        {% csrf_token %}
+        {% bootstrap_button "Abandonar vivienda" value="Abandonar vivienda" name="submit" button_type="submit" button_class="btn-danger" %}
+    </form>
 {% endblock %}
 
 {% block help_info_modal %}
