@@ -7,7 +7,7 @@ from .helper_functions.views import user_has_vivienda
 from .helper_functions.custom_decorators import request_passes_test
 
 
-@login_required
+@login_required(redirect_field_name='gastos')
 @request_passes_test(user_has_vivienda,
                      login_url="error",
                      redirect_field_name=None)
@@ -20,6 +20,7 @@ def get_gastos_xls(request):
 
     # create XLS file
     wb = xlwt.Workbook()
+    # create each worksheet and write to them
     write_gastos_to_xls_sheet(
         wb.add_sheet('Gastos Pagados'),
         gastos_pagados)
