@@ -125,8 +125,8 @@
 		</div>
 	</div>
 
-    {% bootstrap_button "Generar Gasto" name="confirmSubmit" button_class="btn-success" as confirm_button %}
-    {% include "general/modal.html" with modal_id="ConfirmModal" modal_title="Confirme los datos" modal_body="<p>Revise que los datos ingresados estén correctos antes de generar el gasto</p>"|add:confirm_button  %}
+    {% bootstrap_button "Generar Gasto" name="confirmSubmit" button_class="btn-primary" as confirm_button %}
+    {% include "general/modal.html" with modal_id="ConfirmModal" modal_title="Confirme los datos" modal_body="<p>Revise que los datos ingresados estén correctos antes de generar el gasto.</p>"|add:confirm_button  %}
 
 	<script type='text/javascript' src='{% static 'js/jquery.ui.datepicker-es.js' %}'></script>
 	<script type="text/javascript">

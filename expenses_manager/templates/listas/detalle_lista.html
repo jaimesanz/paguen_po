@@ -93,19 +93,33 @@
 		<div class="input-group">
 			<input type="text" class="form-control" placeholder="Monto total" id="monto_total" name="monto_total">
 			<span class="input-group-btn">
-				<button type="submit" class="btn btn-primary">Pagar</button>
+				<button id="pay_list_btn" type="submit" class="btn
+				btn-primary">Pagar</button>
 			</span>
 		</div>
 	</form>
+
+    {% bootstrap_button "Pagar Lista" name="confirmSubmit" button_class="btn-primary" as confirm_button %}
+    {% include "general/modal.html" with modal_id="ConfirmModal" modal_title="Confirme los datos" modal_body="<p>Revise que los datos ingresados estén correctos antes de pagar la lista. Tenga especial cuidado con <b>qué hacer con los ítem que no se compraron (descartar o crear lista nueva).</b></p>"|add:confirm_button  %}
 
 	<script type="text/javascript">
 		var fill_value = function(val){
 			console.log($(this).parent());
 		};
 		$(document).ready(function(){
+
+            $("#pay_list_btn").click(function () {
+                $("#ConfirmModal").modal();
+                return false;
+            });
+            $("button[name='confirmSubmit']").click(function () {
+                $("form").submit();
+            });
+
 			$("#items_lista_form").submit(function(){
 				// TODO check other conditions: form must not be empty, monto_total can't be empty nor negative, if values dont all match, ask what to do with remaining list
 				if ($("#monto_total").val()<=0){
+                    // TODO error messages should appear on modal, instead of as alerts
 					alert("debe ingresar un monto");
 					return false;
 				}

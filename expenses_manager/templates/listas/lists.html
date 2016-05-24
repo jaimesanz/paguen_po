@@ -47,7 +47,8 @@
 					</tbody>
 				</table>
 				<br>
-				<button type="submit" class="btn btn-primary" style="float: right;">
+				<button id="create_list_btn" type="submit" class="btn
+				btn-primary" style="float: right;">
 					{% bootstrap_icon "ok" %} Generar lista
 				</button>
 				<br><br>
@@ -79,11 +80,22 @@
 		</div>
 	</div>
 
+    {% bootstrap_button "Generar Lista" name="confirmSubmit" button_class="btn-primary" as confirm_button %}
+    {% include "general/modal.html" with modal_id="ConfirmModal" modal_title="Confirme los datos" modal_body="<p>Revise que los datos ingresados estén correctos antes de generar la lista.</p>"|add:confirm_button  %}
 
 	<script type="text/javascript">
 		var input_number = 1
 		var items_measure = {};
 		$(document).ready(function(){
+
+            $("#create_list_btn").click(function () {
+                $("#ConfirmModal").modal();
+                return false;
+            });
+            $("button[name='confirmSubmit']").click(function () {
+                $("form").submit();
+            });
+
 			// TODO customize tables. Currently using the default parameter-less dataTable
 			$('#tabla_listas_pendientes').DataTable({
 				paging: false,
