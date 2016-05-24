@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import expenses_manager.file_dispatchers
 from django.conf.urls import include, url
 from django.contrib import admin
 from registration.forms import RegistrationFormUniqueEmail
@@ -110,6 +111,10 @@ urlpatterns = [
         name='get_old_presupuesto'),
     url(r'^get_gastos_graph/$', ajax_dispatchers.get_gastos_graph,
         name='get_gastos_graph'),
+
+    # file download urls
+    url(r'^get_gastos_xls/$', expenses_manager.file_dispatchers.get_gastos_xls,
+        name='get_gastos_xls'),
 
     # default to home
     url(r'^$', views.home, name='home')

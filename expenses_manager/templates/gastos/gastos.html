@@ -17,6 +17,9 @@
     <a href="{% url 'graph_gastos' %}" class="btn btn-primary" role="button">
 		{% bootstrap_icon "signal" %} Gráficos
 	</a>
+    <a href="{% url 'get_gastos_xls' %}" class="btn btn-warning" role="button">
+		{% bootstrap_icon "arrow-down" %} .xls
+	</a>
 {% endblock %}
 
 {% block content %}
@@ -181,4 +184,7 @@
     Una vez que el Gasto es confirmado por todos sus compañeros, se cambia el
     estado a "pagado", <b>y sólo entonces se considera el Gasto para el
     computo de totales por período y para el balance.</b>
+    <br><br>
+    Si hace click en el botón ".xls" puede descargar el historial de gastos
+    en formato Excel.
 {% endblock %}
