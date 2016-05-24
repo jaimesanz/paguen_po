@@ -56,7 +56,17 @@
 			<tbody>
 				{% for i in lista.get_items %}
 					<tr>
-						<td>{{i.item.nombre}}</td>
+						<td>
+                            {% if i.item.descripcion %}
+                            <a href="#"
+                               onclick='get_item_info("{{i.item.nombre}}",
+                                                      "{{i.item.descripcion}}")'>
+                                {{i.item.nombre}}
+                            </a>
+                            {% else %}
+                                {{i.item.nombre}}
+                            {% endif %}
+                        </td>
 						<td class="cantidad_solicitada">{{i.cantidad_solicitada}} ({{i.item.unidad_medida}})</td>
 						<td>
 							<div class="input-group">
@@ -102,10 +112,17 @@
     {% bootstrap_button "Pagar Lista" name="confirmSubmit" button_class="btn-primary" as confirm_button %}
     {% include "general/modal.html" with modal_id="ConfirmModal" modal_title="Confirme los datos" modal_body="<p>Revise que los datos ingresados estén correctos antes de pagar la lista. Tenga especial cuidado con <b>qué hacer con los ítem que no se compraron (descartar o crear lista nueva).</b></p>"|add:confirm_button  %}
 
+    {% include "general/modal.html" with modal_id="ItemInfoModal" modal_title="" modal_body="<p id='modal_item_desc'></p>"  %}
+
 	<script type="text/javascript">
 		var fill_value = function(val){
 			console.log($(this).parent());
 		};
+        var get_item_info = function (item_name, item_desc) {
+            $("#ItemInfoModal .modal-title").html(item_name);
+            $("#modal_item_desc").html(item_desc);
+            $("#ItemInfoModal").modal();
+        };
 		$(document).ready(function(){
 
             $("#pay_list_btn").click(function () {
@@ -175,6 +192,11 @@
         hacer click en el botón
         {% bootstrap_button "" icon="arrow-right" button_type="submit" button_class="btn-info btn-sm" %}
         para copiar la cantidad solicitada.
+        <br><br>
+        Algunos ítems pueden tener una descripción adicional. Si este es el
+        caso, puede hacer click en el nombre del ítem para desplegar la
+        ventana de información adicional (verá que el nombre del ítem aparece
+        en azul).
         <br><br>
         Todo <i>ítem</i> cuya cantidad comprada sea mayor a 0 se considera
         <i>comprado</i>. Usted debe especificar qué hacer con los ítems que
