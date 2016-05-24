@@ -48,7 +48,7 @@
 						</label>
 					</div>
 					<div class="btn-group" role="group" aria-label="Third group">
-						{% bootstrap_button "Generar" button_type="submit" button_class="btn-primary" %}
+						{% bootstrap_button "Generar" button_type="submit" name="create_gasto_btn" button_class="btn-primary" %}
 					</div>
 				</div>
 				<br><br>
@@ -125,9 +125,21 @@
 		</div>
 	</div>
 
+    {% bootstrap_button "Generar Gasto" name="confirmSubmit" button_class="btn-success" as confirm_button %}
+    {% include "general/modal.html" with modal_id="ConfirmModal" modal_title="Confirme los datos" modal_body="<p>Revise que los datos ingresados estén correctos antes de generar el gasto</p>"|add:confirm_button  %}
+
 	<script type='text/javascript' src='{% static 'js/jquery.ui.datepicker-es.js' %}'></script>
 	<script type="text/javascript">
 		$(document).ready(function(){
+
+            $("button[name='create_gasto_btn']").click(function () {
+                $("#ConfirmModal").modal();
+                return false;
+            });
+            $("button[name='confirmSubmit']").click(function () {
+                $("form").submit();
+            });
+
 			$("#id_fecha_pago").datepicker();
 			$('#tabla_gastos_pendientes, #tabla_gastos_pagados, #tabla_gastos_pendientes_confirmacion').each
             (function(){
@@ -140,7 +152,7 @@
 			$("#id_paid_option").parent().click(function(){
 				$("#id_fecha_pago").parent().show();
 			});
-		} );
+		});
 	</script>
 {% endblock %}
 
