@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load bootstrap3 %}
 
 {% block content_title %}{{request.user.get_vivienda}}{% endblock %}
 
@@ -10,179 +9,52 @@
 {% block content %}
 	<div class="row">
 		<div class="col-lg-3 col-md-6">
+            <div class="panel panel-primary">
+                {% include "general/panel_header.html" with icon="user" title="Usuarios" %}
+                {% include "general/panel_footer.html" with url="manage_users" title="Administrar" %}
+                {% include "general/panel_footer.html" with url="transfer" title="Transferencias" %}
+                {% include "general/panel_footer.html" with url="invite_user" title="Invitar Usuarios" %}
+		    </div>
+		</div>
+
+		<div class="col-lg-3 col-md-6">
 		    <div class="panel panel-primary">
-		        <div class="panel-heading">
-		            <div class="row">
-		                <div class="col-xs-3">
-		                	{% bootstrap_icon "user" %}
-		                </div>
-		                <div class="col-xs-9 text-right">
-		                    <div class="huge">Usuarios</div>
-		                </div>
-		            </div>
-		        </div>
-		        <a href="{% url 'manage_users' %}">
-		            <div class="panel-footer">
-		                <span class="pull-left">Administrar</span>
-		                <div class="clearfix"></div>
-		            </div>
-		        </a>
-		        <a href="{% url 'transfer' %}">
-		            <div class="panel-footer">
-		                <span class="pull-left">Transferencias</span>
-		                <div class="clearfix"></div>
-		            </div>
-		        </a>
-		        <a href="{% url 'invite_user' %}">
-		            <div class="panel-footer">
-		                <span class="pull-left">Invitar Usuarios</span>
-		                <div class="clearfix"></div>
-		            </div>
-		        </a>
+                {% include "general/panel_header.html" with icon="usd" title="Gastos" %}
+                {% include "general/panel_footer.html" with url="gastos" title="Administrar" %}
+                {% include "general/panel_footer.html" with url="graph_gastos" title="Gráficos" %}
+                {% include "general/panel_footer.html" with url="balance" title="Balance" %}
 		    </div>
 		</div>
 		<div class="col-lg-3 col-md-6">
 		    <div class="panel panel-primary">
-		        <div class="panel-heading">
-		            <div class="row">
-		                <div class="col-xs-3">
-		                	{% bootstrap_icon "usd" %}
-		                </div>
-		                <div class="col-xs-9 text-right">
-		                    <div class="huge">Gastos</div>
-		                </div>
-		            </div>
-		        </div>
-		        <a href="{% url 'gastos' %}">
-		            <div class="panel-footer">
-		                <span class="pull-left">Administrar</span>
-		                <div class="clearfix"></div>
-		            </div>
-		        </a>
-		        <a href="{% url 'graph_gastos' %}">
-		            <div class="panel-footer">
-		                <span class="pull-left">Gráficos</span>
-		                <div class="clearfix"></div>
-		            </div>
-		        </a>
-		        <a href="{% url 'balance' %}">
-		            <div class="panel-footer">
-		                <span class="pull-left">Balance</span>
-		                <div class="clearfix"></div>
-		            </div>
-		        </a>
+                {% include "general/panel_header.html" with icon="piggy-bank" title="Presupuestos" %}
+                {% include "general/panel_footer.html" with url="presupuestos" title="Administrar" %}
+                {% include "general/panel_footer.html" with url="graphs_presupuestos" title="Gráficos" %}
+                {% include "general/panel_footer.html" with url="nuevo_presupuesto" title="Nuevo" %}
 		    </div>
 		</div>
 		<div class="col-lg-3 col-md-6">
 		    <div class="panel panel-primary">
-		        <div class="panel-heading">
-		            <div class="row">
-		                <div class="col-xs-3">
-		                	{% bootstrap_icon "piggy-bank" %}
-		                </div>
-		                <div class="col-xs-9 text-right">
-		                    <div class="huge">Presupuestos</div>
-		                </div>
-		            </div>
-		        </div>
-		        <a href="{%  url 'presupuestos' %}">
-		            <div class="panel-footer">
-		                <span class="pull-left">Administrar</span>
-		                <div class="clearfix"></div>
-		            </div>
-		        </a>
-		        <a href="{% url 'graphs_presupuestos' %}">
-		            <div class="panel-footer">
-		                <span class="pull-left">Gráficos</span>
-		                <div class="clearfix"></div>
-		            </div>
-		        </a>
-		        <a href="{% url 'nuevo_presupuesto' %}">
-		            <div class="panel-footer">
-		                <span class="pull-left">Nuevo</span>
-		                <div class="clearfix"></div>
-		            </div>
-		        </a>
-		    </div>
-		</div>
-		<div class="col-lg-3 col-md-6">
-		    <div class="panel panel-primary">
-		        <div class="panel-heading">
-		            <div class="row">
-		                <div class="col-xs-3">
-		                	{% bootstrap_icon "plane" %}
-		                </div>
-		                <div class="col-xs-9 text-right">
-		                    <div class="huge">Vacaciones</div>
-		                </div>
-		            </div>
-		        </div>
-		        <a href="{% url 'vacations' %}">
-		            <div class="panel-footer">
-		                <span class="pull-left">Administrar</span>
-		                <div class="clearfix"></div>
-		            </div>
-		        </a>
-		        <a href="{% url 'new_vacation' %}">
-		            <div class="panel-footer">
-		                <span class="pull-left">Nueva</span>
-		                <div class="clearfix"></div>
-		            </div>
-		        </a>
+                {% include "general/panel_header.html" with icon="plane" title="Vacaciones" %}
+                {% include "general/panel_footer.html" with url="vacations" title="Administrar" %}
+                {% include "general/panel_footer.html" with url="new_vacation" title="Nueva" %}
 		    </div>
 		</div>
 	</div>
+
 	<div class="row">
 		<div class="col-lg-3 col-md-6">
 		    <div class="panel panel-primary">
-		        <div class="panel-heading">
-		            <div class="row">
-		                <div class="col-xs-3">
-		                	{% bootstrap_icon "cutlery" %}
-		                </div>
-		                <div class="col-xs-9 text-right">
-		                    <div class="huge">Categorías</div>
-		                </div>
-		            </div>
-		        </div>
-		        <a href="{% url 'categorias' %}">
-		            <div class="panel-footer">
-		                <span class="pull-left">Administrar</span>
-		                <div class="clearfix"></div>
-		            </div>
-		        </a>
-		        <a href="{% url 'nueva_categoria' %}">
-		            <div class="panel-footer">
-		                <span class="pull-left">Nueva</span>
-		                <div class="clearfix"></div>
-		            </div>
-		        </a>
+                {% include "general/panel_header.html" with icon="cutlery" title="Categorías" %}
+                {% include "general/panel_footer.html" with url="categorias" title="Administrar" %}
+                {% include "general/panel_footer.html" with url="nueva_categoria" title="Nueva" %}
 		    </div>
 		</div>
 		<div class="col-lg-3 col-md-6">
 		    <div class="panel panel-primary">
-		        <div class="panel-heading">
-		            <div class="row">
-		                <div class="col-xs-3">
-		                	{% bootstrap_icon "apple" %}
-		                </div>
-		                <div class="col-xs-9 text-right">
-		                    <div class="huge">Items</div>
-		                </div>
-		            </div>
-		        </div>
-		        <a href="{% url 'items' %}">
-		            <div class="panel-footer">
-		                <span class="pull-left">Administrar</span>
-		                <div class="clearfix"></div>
-		            </div>
-		        </a>
-		        <a href="{% url 'new_item' %}">
-		            <div class="panel-footer">
-		                <span class="pull-left">Nuevo</span>
-		                <div class="clearfix"></div>
-		            </div>
-		        </a>
+                {% include "general/panel_header.html" with icon="apple" title="Items" %}
+                {% include "general/panel_footer.html" with url="items" title="Administrar" %}
+                {% include "general/panel_footer.html" with url="new_item" title="Nuevo" %}
 		    </div>
 		</div>
 	</div>
