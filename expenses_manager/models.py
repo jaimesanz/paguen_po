@@ -1436,21 +1436,24 @@ class Gasto(models.Model):
         """
         if self.foto:
             resized_image = Image.open(self.foto)
-            size = 500, 500
-            resized_image.thumbnail(size, Image.ANTIALIAS)
+            if resized_image.width > 500 or resized_image.height > 500:
+                # this IF is necessary because otherwise the image would be
+                # updated (to the same image, no less) each time a user
+                # edits, confirms or pays the Gasto.
+                size = 500, 500
+                resized_image.thumbnail(size, Image.ANTIALIAS)
 
-            resized_image_io = BytesIO()
-            resized_image.save(resized_image_io, format=resized_image.format)
+                resized_image_io = BytesIO()
+                resized_image.save(resized_image_io, format=resized_image.format)
 
-            temp_name = self.foto.name
-            self.foto.delete(save=False)
+                temp_name = self.foto.name
+                self.foto.delete(save=False)
 
-            self.foto.save(
-                temp_name,
-                content=ContentFile(resized_image_io.getvalue()),
-                save=False
-            )
-
+                self.foto.save(
+                    temp_name,
+                    content=ContentFile(resized_image_io.getvalue()),
+                    save=False
+                )
         super(Gasto, self).save(*args, **kwargs)
 
     def __str__(self):

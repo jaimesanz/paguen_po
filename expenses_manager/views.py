@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
 from django.db import IntegrityError
+from django.template.context_processors import request
 from .forms import *
 from .models import *
 from .helper_functions.custom_decorators import *
@@ -487,7 +488,6 @@ def nuevo_gasto(request):
             # set the user who created this
             nuevo_gasto = form.save(commit=False)
             nuevo_gasto.creado_por = request.user.get_vu()
-            nuevo_gasto.save()
             messages.success(
                 request,
                 "El gasto fue creado exitósamente")
@@ -495,9 +495,8 @@ def nuevo_gasto(request):
             is_paid = request.POST.get("is_paid", None)
             if is_paid == "yes":
                 nuevo_gasto.pay(request.user.get_vu(), **kwargs)
-                return redirect("gastos")
-            elif is_paid == "no":
-                return redirect("gastos")
+            nuevo_gasto.save()
+            return redirect("gastos")
         # form is not valid or missing/invalid "is_paid" field
         messages.error(request, "El formulario contiene errores")
         return redirect("gastos")
@@ -844,9 +843,13 @@ def detalle_lista(request, lista_id):
                     request,
                     "Hubo un error al procesar el pago")
                 return redirect("error")
+            if request.FILES.get("foto") is not None:
+                nuevo_gasto.foto = request.FILES.get("foto")
+                nuevo_gasto.save()
             return redirect("detalle_gasto", str(nuevo_gasto.id))
         else:
             # not post
+            gasto_form = GastoForm()
             return render(request, "listas/detalle_lista.html", locals())
     else:
         # user is not allowed

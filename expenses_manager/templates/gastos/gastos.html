@@ -40,7 +40,10 @@
 		<div role="tabpanel" class="tab-pane active" id="nuevo_gasto">
 			<form action="/nuevo_gasto/" method="POST" enctype="multipart/form-data">
 				{% csrf_token %}
-				{% bootstrap_form gasto_form %}
+                {% bootstrap_field gasto_form.categoria %}
+                {% bootstrap_field gasto_form.monto %}
+                {% bootstrap_field gasto_form.foto %}
+                {% bootstrap_field gasto_form.fecha_pago %}
 				<div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
 					<div class="btn-group" data-toggle="buttons">
 						<label class="btn btn-success active">
