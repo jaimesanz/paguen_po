@@ -38,7 +38,7 @@
 	<div class="tab-content">
 		<!-- nuevo gasto -->
 		<div role="tabpanel" class="tab-pane active" id="nuevo_gasto">
-			<form action="/nuevo_gasto/" method="POST">
+			<form action="/nuevo_gasto/" method="POST" enctype="multipart/form-data">
 				{% csrf_token %}
 				{% bootstrap_form gasto_form %}
 				<div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">

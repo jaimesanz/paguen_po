@@ -6,6 +6,9 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Q
 from .helper_functions.balance_functions import *
+from PIL import Image
+from io import BytesIO
+from django.core.files.base import ContentFile
 
 
 # helper functions
@@ -78,6 +81,22 @@ def get_default_others_categoria():
     :return: Categoria
     """
     return Categoria.objects.get_or_create(nombre="Otros", vivienda=None)[0]
+
+
+def vivienda_gasto_directory_path(instance, filename):
+    """
+    file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+    source: https://docs.djangoproject.com/ja/1.9/ref/models/fields/#django
+    .db.models.FileField
+    :param instance: Gasto
+    :param filename: String
+    :return: Path String
+    """
+    return 'gastos/vivienda_{0}/usuario_{1}/{2}'.format(
+                                            instance.creado_por.vivienda.id,
+                                            instance.creado_por.id,
+                                            filename
+    )
 
 
 class ProxyUser(User):
@@ -1406,6 +1425,32 @@ class Gasto(models.Model):
         on_delete=models.CASCADE,
         default=get_default_estado_gasto,
         blank=True)
+
+    foto = models.ImageField(upload_to=vivienda_gasto_directory_path, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        """
+        Override save method to resize image before saving it.
+        source: http://stackoverflow.com/a/30435175
+        """
+        if self.foto:
+            resized_image = Image.open(self.foto)
+            size = 500, 500
+            resized_image.thumbnail(size, Image.ANTIALIAS)
+
+            resized_image_io = BytesIO()
+            resized_image.save(resized_image_io, format=resized_image.format)
+
+            temp_name = self.foto.name
+            self.foto.delete(save=False)
+
+            self.foto.save(
+                temp_name,
+                content=ContentFile(resized_image_io.getvalue()),
+                save=False
+            )
+
+        super(Gasto, self).save(*args, **kwargs)
 
     def __str__(self):
         return "".join((str(self.usuario),

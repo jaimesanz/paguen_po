@@ -34,6 +34,14 @@
 					    <td><b>Categoría:</b> </td>
 					    <td>{{ gasto.categoria }}</td>
 					</tr>
+                    {% if gasto.foto %}
+                    <tr>
+                        <td><b>Foto:</b> </td>
+                        <td><a href="{{ MEDIA_URL }}{{ gasto.foto }}" target="_blank">ver
+                            foto</a></td>
+                    </tr>
+                {% else %}
+                {% endif %}
 				</tbody>
 			</table>
 			<button type="submit" class="btn btn-primary">Pagar</button>
@@ -61,6 +69,14 @@
 					<td><b>Categoría:</b></td>
 					<td>{{gasto.categoria}}</td>
 				</tr>
+                {% if gasto.foto %}
+                    <tr>
+                        <td><b>Foto:</b> </td>
+                        <td><a href="{{ MEDIA_URL }}{{ gasto.foto }}" target="_blank">ver
+                            foto</a></td>
+                    </tr>
+                {% else %}
+                {% endif %}
 				<tr>
 					<td><b>Fecha creacion:</b></td>
 					<td>{{gasto.fecha_creacion}}</td>

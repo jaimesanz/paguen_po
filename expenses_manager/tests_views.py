@@ -340,7 +340,7 @@ class NewGastoViewTest(TestCase):
             },
             follow=True)
 
-        self.assertRedirects(response, "/error/")
+        self.assertRedirects(response, "/gastos/")
         self.assertEqual(
             Gasto.objects.filter(
                 creado_por__vivienda=test_user_1.get_vivienda()).count(),

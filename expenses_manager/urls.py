@@ -4,6 +4,8 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from registration.forms import RegistrationFormUniqueEmail
 from registration.backends.hmac.views import RegistrationView
+from django.conf import settings
+from django.conf.urls.static import static
 from . import views
 from . import ajax_dispatchers
 
@@ -118,4 +120,4 @@ urlpatterns = [
 
     # default to home
     url(r'^$', views.home, name='home')
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

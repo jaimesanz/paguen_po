@@ -33,7 +33,7 @@ class GastoForm(forms.ModelForm):
 
     class Meta:
         model = Gasto
-        fields = ('categoria', 'monto', 'fecha_pago')
+        fields = ('categoria', 'monto', 'foto', 'fecha_pago')
 
 
 class EditGastoForm(forms.ModelForm):

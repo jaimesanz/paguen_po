@@ -1,5 +1,7 @@
-# NOTE: before installing anything, run this command:
+# NOTE: before installing anything, run this commands, or there will be
+problems installing some libraries:
 sudo apt-get install python3-dev
+sudo apt-get install libjpeg-dev
 
 #######################
 to export the virtualenv:

@@ -6,3 +6,4 @@ static/*
 uwsgi/*
 project_root/wsgi.py
 .idea/*
+media/*

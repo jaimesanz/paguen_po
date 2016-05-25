@@ -450,12 +450,12 @@ def edit_item(request, item_name):
                 messages.error(
                     request,
                     "Ya existe el Item '%s'" % (request.POST.get("nombre")))
-                return redirect("edit_item" , item_name)
+                return redirect("edit_item", item_name)
         else:
             messages.error(
                 request,
                 "Se produjo un error procesando la solicitud")
-            return redirect("edit_item" , item_name)
+            return redirect("edit_item", item_name)
     return render(request, "vivienda/edit_item.html", locals())
 
 
@@ -463,7 +463,7 @@ def edit_item(request, item_name):
 def nuevo_gasto(request):
     vivienda_usuario = request.user.get_vu()
     if request.POST:
-        form = GastoForm(request.POST)
+        form = GastoForm(request.POST, request.FILES)
         if form.is_valid():
             # if fecha_pago is a future one, don't create Gasto
             # and inform
@@ -499,7 +499,8 @@ def nuevo_gasto(request):
             elif is_paid == "no":
                 return redirect("gastos")
         # form is not valid or missing/invalid "is_paid" field
-        return redirect("error")
+        messages.error(request, "El formulario contiene errores")
+        return redirect("gastos")
     return redirect("gastos")
 
 
