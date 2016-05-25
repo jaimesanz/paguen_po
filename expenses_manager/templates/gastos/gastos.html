@@ -5,6 +5,11 @@
 
 {% block custom_head %}
 	{% include "general/datatables.html" %}
+    <style>
+        #id_foto {
+            display: none;
+        }
+    </style>
 {% endblock %}
 
 {% block content_title %}{{request.user.get_vivienda}}{% endblock %}
@@ -42,7 +47,8 @@
 				{% csrf_token %}
                 {% bootstrap_field gasto_form.categoria %}
                 {% bootstrap_field gasto_form.monto %}
-                {% bootstrap_field gasto_form.foto %}
+                <b>Foto</b>
+                {% bootstrap_field gasto_form.foto label_class="btn btn-warning btn-file" %}
                 {% bootstrap_field gasto_form.fecha_pago %}
 				<div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
 					<div class="btn-group" data-toggle="buttons">
@@ -137,6 +143,11 @@
 	<script type='text/javascript' src='{% static 'js/jquery.ui.datepicker-es.js' %}'></script>
 	<script type="text/javascript">
 		$(document).ready(function(){
+
+            $("#id_foto").change(function () {
+                $("label[for='id_foto']").html($(this).val());
+            });
+
 
             $("button[name='create_gasto_btn']").click(function () {
                 $("#ConfirmModal").modal();
