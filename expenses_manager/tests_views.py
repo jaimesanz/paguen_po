@@ -1070,7 +1070,7 @@ class GastoViviendaPayViewTest(TestCase):
             Gasto.objects.filter(
                 creado_por__vivienda=test_user_1.get_vivienda(),
                 estado__estado="pendiente_confirmacion")
-                .count(),
+            .count(),
             1)
         self.assertNotContains(response, "<a href=\"/detalle_lista/")
         self.assertNotContains(response, "<td><b>Lista compras:</b></td>")
@@ -1097,20 +1097,20 @@ class GastoViviendaPayViewTest(TestCase):
             Gasto.objects.filter(
                 creado_por__vivienda=test_user_1.get_vivienda(),
                 estado__estado="pendiente")
-                .count(),
+            .count(),
             1)
         self.assertEqual(
             Gasto.objects.filter(
                 creado_por__vivienda=test_user_1.get_vivienda(),
                 estado__estado="pagado")
-                .count(),
+            .count(),
             0)
 
         self.assertEqual(
             Gasto.objects.filter(
                 creado_por__vivienda=test_user_1.get_vivienda(),
                 estado__estado="pendiente_confirmacion")
-                .count(),
+            .count(),
             1)
 
     def test_roommate_cannot_pay_paid_gasto(self):
@@ -1169,7 +1169,7 @@ class GastoEditViewTest(TestCase):
         db["gasto_2"] = gasto_2
         db["gasto_3"] = gasto_3
 
-        for i in range(1,4):
+        for i in range(1, 4):
             gasto = db["gasto_" + str(i)]
             db["original_date_" + str(i)] = gasto.fecha_pago
             db["original_monto_" + str(i)] = gasto.monto
@@ -3966,7 +3966,7 @@ class BalanceViewTest(TestCase):
             self.url,
             follow=True)
 
-        expected_per_user = (gasto_1.monto + gasto_2.monto)/2
+        expected_per_user = (gasto_1.monto + gasto_2.monto) / 2
         actual_total_user_1 = gasto_1.monto + gasto_2.monto
         actual_total_user_2 = 0
 

@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Q
+from django.core.files.base import ContentFile
 from .helper_functions.balance_functions import *
 from PIL import Image
 from io import BytesIO
-from django.core.files.base import ContentFile
 
 
 # helper functions
@@ -93,9 +92,9 @@ def vivienda_gasto_directory_path(instance, filename):
     :return: Path String
     """
     return 'gastos/vivienda_{0}/usuario_{1}/{2}'.format(
-                                            instance.creado_por.vivienda.id,
-                                            instance.creado_por.id,
-                                            filename
+        instance.creado_por.vivienda.id,
+        instance.creado_por.id,
+        filename
     )
 
 
@@ -619,7 +618,8 @@ class Vivienda(models.Model):
             pay_active_today = set.intersection(
                 set(active_users),
                 should_have_payed_then)
-            gastos_users_dict[gasto] = (pay_active_today, should_have_payed_then)
+            gastos_users_dict[gasto] = (
+                pay_active_today, should_have_payed_then)
 
         return gastos_users_dict
 
@@ -732,7 +732,7 @@ class Vivienda(models.Model):
         disbalance_dict = dict()
         for user in act:
             diff = act[user] - exp[user]
-            if abs(diff)<5:
+            if abs(diff) < 5:
                 diff = 0
             disbalance_dict[user] = diff
         return disbalance_dict
@@ -1426,7 +1426,8 @@ class Gasto(models.Model):
         default=get_default_estado_gasto,
         blank=True)
 
-    foto = models.ImageField(upload_to=vivienda_gasto_directory_path, blank=True, null=True)
+    foto = models.ImageField(
+        upload_to=vivienda_gasto_directory_path, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         """

@@ -668,7 +668,7 @@ class ViviendaModelTest(TestCase):
         user2_viv.estado = "inactivo"
         user2_viv.save()
 
-        vacations_a= vivienda.get_vacations_after_date(db["pA"])
+        vacations_a = vivienda.get_vacations_after_date(db["pA"])
         self.assertEqual(len(vacations_a), 3)
 
         vacations_b = vivienda.get_vacations_after_date(db["pB"])
@@ -1473,66 +1473,82 @@ class ViviendaModelTest(TestCase):
         expected[ids[2]] = ({user1_viv, user4_viv}, {user1_viv, user4_viv})
         expected[ids[3]] = ({user1_viv, user4_viv}, {user1_viv, user4_viv})
         expected[ids[4]] = (
-        {user1_viv, user4_viv}, {user1_viv, user2_viv, user4_viv})
+            {user1_viv, user4_viv}, {user1_viv, user2_viv, user4_viv})
         expected[ids[5]] = (
-        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+            {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
         expected[ids[6]] = (
-        {user1_viv, user4_viv}, {user1_viv, user2_viv, user3_viv, user4_viv})
+            {user1_viv, user4_viv}, {user1_viv, user2_viv, user3_viv,
+                                     user4_viv})
         expected[ids[7]] = (
-        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+            {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
         expected[ids[8]] = (
-        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+            {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
         expected[ids[9]] = (
-        {user1_viv, user4_viv}, {user1_viv, user2_viv, user3_viv, user4_viv})
+            {user1_viv, user4_viv}, {user1_viv, user2_viv, user3_viv,
+                                     user4_viv})
         expected[ids[10]] = (
-        {user1_viv, user4_viv}, {user1_viv, user2_viv, user3_viv, user4_viv})
+            {user1_viv, user4_viv}, {user1_viv, user2_viv, user3_viv,
+                                     user4_viv})
         expected[ids[11]] = ({user4_viv}, {user4_viv})
         expected[ids[12]] = ({user4_viv}, {user4_viv})
         expected[ids[13]] = ({user4_viv}, {user4_viv})
         expected[ids[14]] = (
-        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+            {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
         expected[ids[15]] = ({user1_viv}, {user1_viv, user3_viv})
         expected[ids[16]] = (
-        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+            {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
         expected[ids[17]] = (
-        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+            {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
         expected[ids[18]] = (
-        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+            {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
         expected[ids[19]] = (
-        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+            {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
         expected[ids[20]] = (
-        {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
+            {user1_viv, user4_viv}, {user1_viv, user3_viv, user4_viv})
         expected[ids[21]] = ({user4_viv, user5_viv}, {user4_viv, user5_viv})
         expected[ids[22]] = (
-        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+            {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv,
+                                                user5_viv})
         expected[ids[23]] = (
-        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+            {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv,
+                                                user5_viv})
         expected[ids[24]] = (
-        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+            {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv,
+                                                user5_viv})
         expected[ids[25]] = ({user5_viv}, {user5_viv})
         expected[ids[26]] = ({user5_viv}, {user5_viv})
         expected[ids[27]] = ({user5_viv}, {user5_viv})
         expected[ids[28]] = (
-        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+            {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv,
+                                                user5_viv})
         expected[ids[29]] = ({user5_viv}, {user5_viv})
         expected[ids[30]] = (
-        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+            {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv,
+                                                user5_viv})
         expected[ids[31]] = (
-        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+            {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv,
+                                                user5_viv})
         expected[ids[32]] = (
-        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+            {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv,
+                                                user5_viv})
         expected[ids[33]] = (
-        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+            {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv,
+                                                user5_viv})
         expected[ids[34]] = (
-        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+            {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv,
+                                                user5_viv})
         expected[ids[35]] = (
-        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+            {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv,
+                                                user5_viv})
         expected[ids[36]] = (
-        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+            {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv,
+                                                user5_viv})
         expected[ids[37]] = (
-        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+            {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv,
+                                                user5_viv})
         expected[ids[38]] = (
-        {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv, user5_viv})
+            {user1_viv, user4_viv, user5_viv}, {user1_viv, user4_viv,
+                                                user5_viv})
 
         for id in ids:
             gasto = Gasto.objects.get(id=id)

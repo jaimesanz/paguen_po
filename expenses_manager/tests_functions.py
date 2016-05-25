@@ -457,5 +457,5 @@ class StaticBalanceFunctionsTest(TestCase):
         self.assertNotEqual(user3_transfers, None)
         self.assertEqual(len(user3_transfers), 2)
 
-        self.assertEqual(sum([m for u,m in user1_transfers]), 1000)
-        self.assertEqual(sum([m for u,m in user3_transfers]), 5500)
+        self.assertEqual(sum([m for u, m in user1_transfers]), 1000)
+        self.assertEqual(sum([m for u, m in user3_transfers]), 5500)

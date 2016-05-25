@@ -598,7 +598,7 @@ def detalle_gasto(request, gasto_id):
             gasto=gasto
         ).confirmed
 
-    allowed_user = gasto.is_pending() or gasto.usuario==request.user.get_vu()
+    allowed_user = gasto.is_pending() or gasto.usuario == request.user.get_vu()
     show_edit_button = allowed_user and not gasto.categoria.is_transfer
 
     return render(request, "gastos/detalle_gasto.html", locals())
@@ -632,7 +632,7 @@ def edit_gasto(request, gasto_id):
             parsed_new_fecha = datetime.strptime(
                 new_fecha,
                 settings.DATE_FORMAT).date()
-            if parsed_new_fecha>timezone.now().date():
+            if parsed_new_fecha > timezone.now().date():
                 messages.error(
                     request,
                     "No puede crear un Gasto para una fecha futura."
@@ -664,7 +664,7 @@ def edit_gasto(request, gasto_id):
         return redirect("detalle_gasto", gasto.id)
 
     show_delete_button = gasto.is_pending() or \
-                         gasto.usuario == request.user.get_vu()
+        gasto.usuario == request.user.get_vu()
 
     if not show_delete_button:
         messages.error(
@@ -719,7 +719,7 @@ def delete_gasto(request):
         gasto_id = request.POST.get("gasto", None)
         if gasto_id is not None:
             gasto = get_object_or_404(Gasto, id=gasto_id)
-            if gasto.is_pending() or gasto.usuario==request.user.get_vu():
+            if gasto.is_pending() or gasto.usuario == request.user.get_vu():
                 messages.success(request, "Gasto eliminado.")
                 gasto.delete()
             else:
