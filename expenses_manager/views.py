@@ -740,6 +740,7 @@ def lists(request):
     listas_pendientes = ListaCompras.objects.filter(
         usuario_creacion__vivienda=request.user.get_vivienda(),
         estado="pendiente")
+    items = vivienda_usuario.vivienda.get_items()
     return render(request, "listas/lists.html", locals())
 
 
