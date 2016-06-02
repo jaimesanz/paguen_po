@@ -419,7 +419,7 @@ class Vivienda(models.Model):
         Returns a QuerySet with all Items related to this Vivienda
         :return: QuerySet( Item )
         """
-        return Item.objects.filter(vivienda=self)
+        return Item.objects.filter(vivienda=self).order_by('nombre')
 
     def get_all_vivienda_categorias_with_is_hidden_field(self):
         """
