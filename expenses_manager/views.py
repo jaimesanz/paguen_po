@@ -4,12 +4,17 @@ from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
 from django.db import IntegrityError
 from django.template.context_processors import request
+from django.forms import inlineformset_factory, ModelChoiceField
+
 from .forms import *
 from .models import *
 from .helper_functions.custom_decorators import *
 from .helper_functions.views import *
+
 from datetime import datetime
 import json
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
 
 
 def home(request):
@@ -854,6 +859,30 @@ def detalle_lista(request, lista_id):
             return render(request, "listas/detalle_lista.html", locals())
     else:
         # user is not allowed
+        return redirect("error")
+
+
+@login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="error",
+                     redirect_field_name=None)
+def edit_list(request, lista_id):
+    lista = get_object_or_404(ListaCompras, id=lista_id)
+    if lista.allow_user(request.user):
+        # do stuff
+        ListaComprasFormSet = inlineformset_factory(
+            ListaCompras,
+            ItemLista,
+            fields=('item', 'cantidad_solicitada'),
+            extra=0
+        )
+        queryset = Item.objects.all()
+        formset = ListaComprasFormSet(
+            instance=lista
+        )
+        return render(request, "listas/edit_list.html", locals())
+    else:
+        # user cant see this
         return redirect("error")
 
 

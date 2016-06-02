@@ -88,6 +88,8 @@ urlpatterns = [
     url(r'^lists/$', views.lists, name='lists'),
     url(r'^detalle_lista/(?P<lista_id>.*)/$',
         views.detalle_lista, name='detalle_lista'),
+    url(r'^edit_list/(?P<lista_id>.*)/$', views.edit_list,
+        name='edit_list'),
 
     # presupuestos
     url(r'^presupuestos/$', views.presupuestos, name='presupuestos'),

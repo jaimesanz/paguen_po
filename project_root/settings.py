@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'jquery',
     'jquery_ui',
     'bootstrap3',
+    'crispy_forms',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -139,3 +140,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 NOSE_ARGS = ['--nocapture', '--nologcapture', ]
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'

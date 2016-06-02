@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% load crispy_forms_tags %}
+
+{% block custom_head %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+{% endblock %}
+
+{% block content_title %}{{ request.user.get_vivienda }}{% endblock %}
+
+{% block subtitle %}
+    Editar Lista
+{% endblock %}
+
+{% block buttons %}
+    {% bootstrap_button "Agregar Ítem" icon="plus" name="add_more" button_class="btn-warning" %}
+    <hr>
+{% endblock %}
+
+{% block help_info_button %}
+{% endblock %}
+
+{% block content %}
+    <div id="form_set">
+        {% for form in formset %}
+            {% bootstrap_form form layout='horizontal' %}
+        {% endfor %}
+    </div>
+    <div id="empty_form" style="display:none">
+        {% bootstrap_form formset.empty_form layout='horizontal' %}
+    </div>
+    <script>
+        // source: http://stackoverflow.com/a/8097617
+        $('button[name="add_more"]').click(function() {
+            var form_idx = $('#id_form-TOTAL_FORMS').val();
+            $('#form_set').append($('#empty_form').html().replace(/__prefix__/g, form_idx));
+            $('#id_form-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+        });
+    </script>
+{% endblock %}
+
+{% block help_info_modal %}
+{% endblock %}

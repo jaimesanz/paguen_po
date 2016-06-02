@@ -13,9 +13,20 @@
 {% endblock %}
 
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
+
 {% block subtitle %}
     Lista {{lista.fecha}}
 {% endblock %}
+
+{% if lista.is_done %}
+    {% block buttons %}
+        <a href="{% url 'edit_list' lista.id %}" class="btn btn-warning"
+           role="button">
+            {% bootstrap_icon "pencil" %} Editar
+        </a>
+    {% endblock %}
+{% endif %}
+
 {% block content %}
 	{% if lista.is_done %}
 		<table id="items_lista" class="table table-striped table-bordered" cellspacing="0" width="100%">
