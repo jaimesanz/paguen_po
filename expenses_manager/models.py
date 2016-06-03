@@ -1351,8 +1351,9 @@ class ItemLista(models.Model):
         unique_together = (('item', 'lista'),)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     lista = models.ForeignKey(ListaCompras, on_delete=models.CASCADE)
-    cantidad_solicitada = models.IntegerField()
-    cantidad_comprada = models.IntegerField(null=True, blank=True, default=0)
+    cantidad_solicitada = models.PositiveIntegerField()
+    cantidad_comprada = models.PositiveIntegerField(
+        null=True, blank=True, default=0)
     estado = models.CharField(max_length=255, default="pendiente")
 
     def __str__(self):

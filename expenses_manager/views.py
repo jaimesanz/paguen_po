@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from django.http import request
+from django.http import request, request
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
@@ -798,8 +798,18 @@ def nueva_lista(request):
             nueva_lista = ListaCompras.objects.create(
                 usuario_creacion=request.user.get_vu())
             for i, q in item_quantity_dict.items():
-                nueva_lista.add_item_by_name(i, q)
-            return redirect("detalle_lista", nueva_lista.id)
+                try:
+                    if int(q) > 0:
+                        nueva_lista.add_item_by_name(i, q)
+                except:
+                    pass
+            if nueva_lista.count_items() == 0:
+                messages.error(
+                    request,
+                    "se produjo un error al crear la nueva lista"
+                )
+                nueva_lista.delete()
+            return redirect("lists")
         else:
             messages.error(
                 request,
@@ -895,7 +905,6 @@ def edit_list(request, lista_id):
                 prefix = "itemlista_set-%d-" % index
                 id = request.POST.get(prefix + "id", None)
                 if id is not None and id != "":
-                    print("exists")
                     il = ItemLista.objects.get(id=id)
                     if request.POST.get(prefix + "DELETE", None) is not None:
                         il.delete()
@@ -910,29 +919,31 @@ def edit_list(request, lista_id):
                                 id=item_id,
                                 vivienda=vivienda).first()
                             if item is not None:
-                                il.item = item
-                                il.cantidad_solicitada = qty
-                                il.save()
+                                try:
+                                    il.item = item
+                                    il.cantidad_solicitada = qty
+                                    il.save()
+                                except IntegrityError:
+                                    # TODO handle this exception
+                                    pass
 
-                else:
-                    print("doesn't exist")
+                elif request.POST.get(prefix + "DELETE", None) is None:
                     item_id = request.POST.get(prefix + "item", None)
                     qty = request.POST.get(
                         prefix + "cantidad_solicitada", None)
-                    print("got post")
                     if item_id is not None and item_id != "" and qty is not \
                             None and qty != "":
-                        print("fields are not empty")
                         item = Item.objects.filter(id=item_id,
                                                    vivienda=vivienda).first()
-                        print(item)
                         if item is not None:
-                            print("item is not none")
-                            il = ItemLista.objects.create(
-                                item=item,
-                                cantidad_solicitada=qty,
-                                lista=lista
-                            )
+                            try:
+                                il = ItemLista.objects.create(
+                                    item=item,
+                                    cantidad_solicitada=qty,
+                                    lista=lista
+                                )
+                            except IntegrityError:
+                                pass
             if lista.count_items() == 0:
                 lista.delete()
                 return redirect("lists")
