@@ -2233,96 +2233,6 @@ class ListaPendingViewTest(TestCase):
             1)
         self.assertEqual(Item.objects.filter(vivienda=vivienda).count(), 3)
 
-    def test_not_logged_user_cant_see_lista(self):
-        test_user = get_setup_with_gastos_items_and_listas(self)
-        self.client.logout()
-        lista = ListaCompras.objects.get(
-            usuario_creacion__vivienda=test_user.get_vivienda())
-        response = self.client.get(
-            "/lists/",
-            follow=True)
-        self.assertRedirects(response, "/accounts/login/?next=/lists/")
-        self.assertNotContains(response, "<td>%d</td>" % (lista.count_items()))
-        self.assertNotContains(response, "<td>%s</td>" %
-                               (lista.usuario_creacion.user))
-
-    def test_outsider_user_cant_see_lista(self):
-        test_user = get_setup_with_gastos_items_and_listas(self)
-        lista = ListaCompras.objects.exclude(
-            usuario_creacion__vivienda=test_user.get_vivienda()).first()
-        response = self.client.get(
-            "/lists/",
-            follow=True)
-        self.assertNotContains(response, "<td>%d</td>" % (lista.count_items()))
-        self.assertNotContains(response, "<td>%s</td>" %
-                               (lista.usuario_creacion.user))
-
-    def test_logged_user_with_no_vivienda_cant_see_any_lista(self):
-        test_user = get_setup_with_gastos_items_and_listas(self)
-        lista = ListaCompras.objects.get(
-            usuario_creacion__vivienda=test_user.get_vivienda())
-        test_user.get_vu().leave()
-        response = self.client.get(
-            "/lists/",
-            follow=True)
-        self.assertRedirects(response, "/error/")
-        self.assertNotContains(response, "<td>%d</td>" % (lista.count_items()))
-        self.assertNotContains(response, "<td>%s</td>" %
-                               (lista.usuario_creacion.user))
-
-    def test_logged_user_can_see_pending_listas_of_his_vivienda(self):
-        test_user = get_setup_with_gastos_items_and_listas(self)
-        lista = ListaCompras.objects.get(
-            usuario_creacion__vivienda=test_user.get_vivienda())
-        response = self.client.get(
-            "/lists/",
-            follow=True)
-        self.assertContains(response, "<td>%d</td>" % (lista.count_items()))
-        self.assertContains(response, "<td>%s</td>" %
-                            (lista.usuario_creacion.user))
-
-    def test_logged_user_cant_see_pending_listas_of_other_viviendas(self):
-        test_user = get_setup_with_gastos_items_and_listas(self)
-        lista = ListaCompras.objects.exclude(
-            usuario_creacion__vivienda=test_user.get_vivienda()).first()
-        response = self.client.get(
-            "/lists/",
-            follow=True)
-        self.assertNotContains(response, "<td>%d</td>" % (lista.count_items()))
-        self.assertNotContains(response, "<td>%s</td>" %
-                               (lista.usuario_creacion.user))
-
-    def test_logged_user_cant_see_pending_listas_of_past_viviendas(self):
-        test_user = get_setup_with_gastos_items_and_listas(self)
-        original_vivienda_lista = ListaCompras.objects.get(
-            usuario_creacion__vivienda=test_user.get_vivienda())
-        new_vivienda_lista = ListaCompras.objects.exclude(
-            usuario_creacion__vivienda=test_user.get_vivienda()).first()
-        # user leaves
-        test_user.get_vu().leave()
-        self.assertFalse(test_user.has_vivienda())
-        # user joins other vivienda
-        test_user_new_viv = ViviendaUsuario.objects.create(
-            user=test_user,
-            vivienda=new_vivienda_lista.usuario_creacion.vivienda)
-        self.assertTrue(test_user.has_vivienda())
-
-        # user goes to /lists/
-        response = self.client.get(
-            "/lists/",
-            follow=True)
-
-        # user can see list of vivienda 2
-        self.assertContains(response, "<td>%d</td>" %
-                            (new_vivienda_lista.count_items()))
-        self.assertContains(response, "<td>%s</td>" %
-                            (new_vivienda_lista.usuario_creacion.user))
-        # user cant see list of vivienda 1
-        self.assertNotContains(response, "<td>%d</td>" %
-                               (original_vivienda_lista.count_items()))
-        self.assertNotContains(response, "<td>%s</td>" %
-                               (original_vivienda_lista.usuario_creacion.user))
-
 
 class NewListaViewTest(TestCase):
 
@@ -2357,26 +2267,6 @@ class NewListaViewTest(TestCase):
             },
             follow=True)
         self.assertRedirects(response, "/error/")
-
-    def test_user_cant_create_empty_lista(self):
-        test_user = get_setup_with_gastos_items_and_listas(self)
-        response = self.client.post(
-            "/nueva_lista/",
-            data={
-                "csrfmiddlewaretoken": "rubbish",
-                "max_item_index": 0
-            },
-            follow=True)
-        self.assertRedirects(response, "/error/")
-
-        response = self.client.post(
-            "/nueva_lista/",
-            data={
-                "csrfmiddlewaretoken": "rubbish",
-                "max_item_index": 2
-            },
-            follow=True)
-        self.assertRedirects(response, "/lists/")
 
     def test_user_can_create_lista_simple(self):
         test_user = get_setup_with_gastos_items_and_listas(self)
@@ -2463,26 +2353,6 @@ class NewListaViewTest(TestCase):
                 "<td class=\"cantidad_solicitada\">%d (%s)</td>" % (
                     item_lista.cantidad_solicitada,
                     item_lista.item.unidad_medida))
-
-    def test_user_cant_create_lista_with_repeated_items(self):
-        test_user = get_setup_with_gastos_items_and_listas(self)
-        response = self.client.post(
-            "/nueva_lista/",
-            data={
-                "csrfmiddlewaretoken": "rubbish",
-                "max_item_index": 3,
-                "item_1": "d1",
-                "quantity_1": 10,
-                "item_2": "d2",
-                "quantity_2": 20,
-                "item_3": "d1",
-                "quantity_3": 30
-            },
-            follow=True)
-        self.assertRedirects(response, "/lists/")
-        # TODO the following tests
-        # self.assertContains(response,
-        # "La lista no puede contener varias veces el mismo item!")
 
 
 class PayListaViewTest(TestCase):

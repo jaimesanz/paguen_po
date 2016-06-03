@@ -60,6 +60,8 @@
             {% bootstrap_icon "ok" %} Guardar Cambios
         </button>
     </form>
+    {% bootstrap_button "Guardar Cambios" icon="ok" name="confirmSubmit" button_class="btn-primary" as confirm_button %}
+    {% include "general/modal.html" with modal_id="ConfirmModal" modal_title="Confirme los datos" modal_body="<p>Revise que los datos ingresados estén correctos antes de guardar la lista.</p>"|add:confirm_button  %}
     <div id="empty_form_item" style="display:none">
         {% bootstrap_field formset.empty_form.item show_label=False %}
     </div>
@@ -72,6 +74,14 @@
     </div>
     <script type="text/javascript">
         $(document).ready(function () {
+
+            $("#create_list_btn").click(function () {
+                $("#ConfirmModal").modal();
+                return false;
+            });
+            $("button[name='confirmSubmit']").click(function () {
+                $("form").submit();
+            });
 
             var item_selects = $('#items_lista select');
             item_selects.attr("style", "width: 100%");

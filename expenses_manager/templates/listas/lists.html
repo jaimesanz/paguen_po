@@ -11,22 +11,12 @@
 {% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
 
 {% block subtitle %}
-    Listas
+    Nueva Lista
 {% endblock %}
 
 {% block content %}
-	<!-- Nav tabs -->
-	<ul class="nav nav-tabs" role="tablist">
-		<li role="presentation" class="active"><a href="#nueva_lista" aria-controls="nueva_lista" role="tab" data-toggle="tab">Nueva Lista</a></li>
-		<li role="presentation"><a href="#pendientes" aria-controls="pendientes" role="tab" data-toggle="tab">Pendientes</a></li>
-	</ul>
-	<br>
 
-	<!-- Tab panes -->
-	<div class="tab-content">
-		<!-- nueva lista -->
-		<div role="tabpanel" class="tab-pane active" id="nueva_lista">
-			<form action="/nueva_lista/" method="POST" id="nueva_lista_form">
+    <form action="/nueva_lista/" method="POST" id="nueva_lista_form">
 				<input type="hidden" name="max_item_index" id="max_item_index"></input>
 				{% csrf_token %}
 				<table id="items_lista" class="table table-striped table-bordered" cellspacing="0" width="100%">
@@ -56,30 +46,6 @@
 				</button>
 				<!-- TODO put each tab in a  diferent page. This way the user doesn't have to load the whole set of lists when the only thing he wanted was to create a new one -->
 			</form>
-		</div>
-
-		<!-- pendientes -->
-		<div role="tabpanel" class="tab-pane" id="pendientes">
-			<table id="tabla_listas_pendientes" class="table table-striped table-bordered" cellspacing="0" width="100%">
-				<thead>
-					<tr>
-						<th>Fecha</th>
-						<th>Ítems</th>
-						<th>Creada por</th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for lista in listas_pendientes %}
-					<tr>
-						<td><a href="{% url 'detalle_lista' lista.id %}"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> {{lista.fecha}}</td>
-						<td>{{lista.count_items}}</td>
-						<td>{{lista.usuario_creacion.user}}</td>
-					</tr>
-					{% endfor %}
-				</tbody>
-			</table>
-		</div>
-	</div>
 
     {% bootstrap_button "Generar Lista" name="confirmSubmit" button_class="btn-primary" as confirm_button %}
     {% include "general/modal.html" with modal_id="ConfirmModal" modal_title="Confirme los datos" modal_body="<p>Revise que los datos ingresados estén correctos antes de generar la lista.</p>"|add:confirm_button  %}
@@ -110,10 +76,6 @@
                 $("form").submit();
             });
 
-            $('#tabla_listas_pendientes').DataTable({
-                paging: false,
-                filter: false
-            });
             var items_lista = $('#items_lista').DataTable({
                 paging: false,
                 filter: false,
@@ -195,10 +157,9 @@
                                            target="_blank">aquí</a></b>, o bien
     ingresando a Vivienda->Items->Administrar.
     <br><br>
-    Luego de crear la lista, cualquier usuario de la Vivienda podrá verla en
-    la pestaña de listas pendientes. Para acceder a una lista y comenzar a
-    completarla, debe hacer click en el botón <a href="#">
-    {% bootstrap_icon "log-in" %}</a>.
+    Luego de crear la lista, cualquier usuario de la Vivienda puede
+    completarla ingresando a "Lista". La vivienda sólo puede tener una lista
+    de compras activa a la vez.
     <br><br>
     Al completar una lista, se genera un Gasto de categoría <b>Supermercado</b>
     asociado al usuario que la completó,

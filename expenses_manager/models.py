@@ -553,6 +553,26 @@ class Vivienda(models.Model):
             Q(vivienda=self) & ~Q(nombre__in=global_cats))
         return custom_cats
 
+    def get_pending_list(self):
+        """
+        Returns the pending list related to the Vivienda, if there  is one
+        :return: ListaCompras
+        """
+        return ListaCompras.objects.filter(
+            usuario_creacion__vivienda=self,
+            estado="pendiente"
+        ).first()
+
+    def has_pending_list(self):
+        """
+        Returns True if the vivienda has a pending list, or False otherwise
+        :return: Boolean
+        """
+        return ListaCompras.objects.filter(
+            usuario_creacion__vivienda=self,
+            estado="pendiente"
+        ).exists()
+
     def get_vacations_after_date(self, date):
         """
         Returns all UserIsOut instances that:
@@ -1444,7 +1464,8 @@ class Gasto(models.Model):
                 resized_image.thumbnail(size, Image.ANTIALIAS)
 
                 resized_image_io = BytesIO()
-                resized_image.save(resized_image_io, format=resized_image.format)
+                resized_image.save(
+                    resized_image_io, format=resized_image.format)
 
                 temp_name = self.foto.name
                 self.foto.delete(save=False)

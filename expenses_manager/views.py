@@ -669,7 +669,7 @@ def edit_gasto(request, gasto_id):
         return redirect("detalle_gasto", gasto.id)
 
     show_delete_button = gasto.is_pending() or \
-                         gasto.usuario == request.user.get_vu()
+        gasto.usuario == request.user.get_vu()
 
     if not show_delete_button:
         messages.error(
@@ -743,9 +743,11 @@ def delete_gasto(request):
                      redirect_field_name=None)
 def lists(request):
     vivienda_usuario = request.user.get_vu()
-    listas_pendientes = ListaCompras.objects.filter(
-        usuario_creacion__vivienda=request.user.get_vivienda(),
-        estado="pendiente")
+    if vivienda_usuario.vivienda.has_pending_list():
+        return redirect(
+            "detalle_lista",
+            vivienda_usuario.vivienda.get_pending_list().id
+        )
     items = vivienda_usuario.vivienda.get_items()
     return render(request, "listas/lists.html", locals())
 
@@ -774,9 +776,9 @@ def nueva_lista(request):
                 quantity = request.POST.get(
                     "quantity_" + str(item_index), None)
                 if (item_name is not None and
-                            item_name != "" and
-                            quantity is not None and
-                            quantity != ""):
+                        item_name != "" and
+                        quantity is not None and
+                        quantity != ""):
                     if item_quantity_dict.get(item_name, None) is not None:
                         # the item is already in the dict. this is an error!
                         messages.error(
@@ -880,12 +882,13 @@ def edit_list(request, lista_id):
         if request.POST:
 
             number_of_items = int(request.POST.get("itemlista_set-TOTAL_FORMS",
-                                               None))
+                                                   None))
             min_num_forms = request.POST.get('itemlista_set-MIN_NUM_FORMS',
                                              None)
             max_num_forms = request.POST.get('itemlista_set-MAX_NUM_FORMS',
                                              None)
-            intial_forms = request.POST.get('itemlista_set-INITIAL_FORMS', None)
+            intial_forms = request.POST.get(
+                'itemlista_set-INITIAL_FORMS', None)
 
             vivienda = request.user.get_vivienda()
             for index in range(0, number_of_items):
@@ -901,10 +904,11 @@ def edit_list(request, lista_id):
                         qty = request.POST.get(
                             prefix + "cantidad_solicitada",
                             None)
-                        if item_id is not None and item_id != "" and qty is not \
-                                None and qty != "":
-                            item = Item.objects.filter(id=item_id,
-                                                vivienda=vivienda).first()
+                        if item_id is not None and item_id != "" and qty is \
+                                not None and qty != "":
+                            item = Item.objects.filter(
+                                id=item_id,
+                                vivienda=vivienda).first()
                             if item is not None:
                                 il.item = item
                                 il.cantidad_solicitada = qty
@@ -913,7 +917,8 @@ def edit_list(request, lista_id):
                 else:
                     print("doesn't exist")
                     item_id = request.POST.get(prefix + "item", None)
-                    qty = request.POST.get(prefix + "cantidad_solicitada", None)
+                    qty = request.POST.get(
+                        prefix + "cantidad_solicitada", None)
                     print("got post")
                     if item_id is not None and item_id != "" and qty is not \
                             None and qty != "":

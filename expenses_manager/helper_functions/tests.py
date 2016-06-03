@@ -593,7 +593,7 @@ def has_navbar_with_vivienda(test, response, status_code=200):
         "<li><a href=\"/invites_list\">Invitaciones</a></li>",
         status_code=status_code)
     test.assertContains(response, "Gastos", status_code=status_code)
-    test.assertContains(response, "Listas", status_code=status_code)
+    test.assertContains(response, "Lista", status_code=status_code)
 
 
 def has_not_logged_navbar(test, response, status_code=200):
@@ -664,7 +664,7 @@ def execute_test_basics_logged_with_viv(test, url, template_name, view_func):
     test.assertNotContains(response, "Inicio")
     if user.has_vivienda():
         test.assertContains(response, "Gastos")
-        test.assertContains(response, "Listas")
+        test.assertContains(response, "Lista")
         test.assertContains(response, "Vivienda")
     else:
         test.assertContains(response, "Crear")

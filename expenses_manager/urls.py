@@ -85,7 +85,7 @@ urlpatterns = [
 
     # listas
     url(r'^nueva_lista/$', views.nueva_lista, name='nueva_lista'),
-    url(r'^lists/$', views.lists, name='lists'),
+    url(r'^lists/new/$', views.lists, name='lists'),
     url(r'^detalle_lista/(?P<lista_id>.*)/$',
         views.detalle_lista, name='detalle_lista'),
     url(r'^edit_list/(?P<lista_id>.*)/$', views.edit_list,
