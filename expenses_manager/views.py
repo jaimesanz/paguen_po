@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from django.http import request, request
+from django.http import request, request, request
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
@@ -1164,3 +1164,34 @@ def transfer(request):
     form = TransferForm()
     form.fields["user"].queryset = request.user.get_roommates_users()
     return render(request, "transfer.html", locals())
+
+
+@login_required
+@request_passes_test(user_has_vivienda,
+                     login_url="error",
+                     redirect_field_name=None)
+def edit_categoria(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    vivienda = request.user.get_vivienda()
+    if categoria.vivienda != vivienda:
+        messages.error(
+            request,
+            "No tiene permiso para ver esta página."
+        )
+        return redirect("error")
+    if request.POST:
+        form = EditCategoriaForm(request.POST, instance=categoria)
+        if form.is_valid():
+            form.save()
+            return redirect("categorias")
+    else:
+        form = EditCategoriaForm(instance=categoria)
+    return render(
+        request,
+        "vivienda/edit_category.html",
+        {
+            'form': form,
+            'vivienda': vivienda,
+            'categoria': categoria.nombre
+        }
+    )

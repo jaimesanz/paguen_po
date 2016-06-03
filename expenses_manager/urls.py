@@ -64,8 +64,10 @@ urlpatterns = [
     url(r'^vivienda/categorias/delete/$',
         views.delete_categoria,
         name='delete_categoria'),
+    url(r'^vivienda/categoria/(\d+)/$', views.edit_categoria,
+        name='edit_categoria'),
 
-    # items
+                  # items
     url(r'^vivienda/items/$', views.items, name='items'),
     url(r'^vivienda/items/new/$', views.new_item, name='new_item'),
     url(r'^vivienda/item/(.+)/$', views.edit_item, name='edit_item'),

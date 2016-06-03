@@ -40,24 +40,17 @@
         <tbody>
             {% for c in this_viv_global %}
                 <tr>
-                    <td>{{ c }}</td>
                     <td>
-                        <form action="" method="post">
-                            {% csrf_token %}
-                            {% if c.is_hidden %}
-                                {% bootstrap_icon "ok" %}
-                                <button name="categoria" value="{{c}}"
-                                        class="btn btn-success btn-sm">
-                                    Mostrar
-                                </button>
-                            {% else %}
-                                {% bootstrap_icon "remove" %}
-                                <button name="categoria" value="{{c}}"
-                                        class="btn btn-info btn-sm">
-                                    Ocultar
-                                </button>
-                            {% endif %}
-                        </form>
+                        <a href="{% url "edit_categoria" c.id %}">
+                            {{ c }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if c.is_hidden %}
+                            {% bootstrap_icon "ok" %}
+                        {% else %}
+                            {% bootstrap_icon "remove" %}
+                        {% endif %}
                     </td>
                     <td>
                         {% if c.is_shared %}
@@ -81,24 +74,17 @@
 
             {% for c in custom_cats %}
                 <tr>
-                    <td>{{c}}</td>
                     <td>
-                        <form action="" method="post">
-                            {% csrf_token %}
-                            {% if c.is_hidden %}
-                                {% bootstrap_icon "ok" %}
-                                <button name="categoria" value="{{c}}"
-                                        class="btn btn-success btn-sm">
-                                    Mostrar
-                                </button>
-                            {% else %}
-                                {% bootstrap_icon "remove" %}
-                                <button name="categoria" value="{{c}}"
-                                        class="btn btn-info btn-sm">
-                                    Ocultar
-                                </button>
-                            {% endif %}
-                        </form>
+                        <a href="{% url "edit_categoria" c.id %}">
+                            {{ c }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if c.is_hidden %}
+                            {% bootstrap_icon "ok" %}
+                        {% else %}
+                            {% bootstrap_icon "remove" %}
+                        {% endif %}
                     </td>
                     <td>
                         {% if c.is_shared %}
