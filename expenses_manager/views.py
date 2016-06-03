@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.http import request
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
@@ -668,7 +669,7 @@ def edit_gasto(request, gasto_id):
         return redirect("detalle_gasto", gasto.id)
 
     show_delete_button = gasto.is_pending() or \
-        gasto.usuario == request.user.get_vu()
+                         gasto.usuario == request.user.get_vu()
 
     if not show_delete_button:
         messages.error(
@@ -773,9 +774,9 @@ def nueva_lista(request):
                 quantity = request.POST.get(
                     "quantity_" + str(item_index), None)
                 if (item_name is not None and
-                        item_name != "" and
-                        quantity is not None and
-                        quantity != ""):
+                            item_name != "" and
+                            quantity is not None and
+                            quantity != ""):
                     if item_quantity_dict.get(item_name, None) is not None:
                         # the item is already in the dict. this is an error!
                         messages.error(
@@ -869,18 +870,75 @@ def detalle_lista(request, lista_id):
 def edit_list(request, lista_id):
     lista = get_object_or_404(ListaCompras, id=lista_id)
     if lista.allow_user(request.user):
-        # do stuff
         ListaComprasFormSet = inlineformset_factory(
             ListaCompras,
             ItemLista,
-            fields=('item', 'cantidad_solicitada'),
+            form=ItemListaForm,
+            formset=BaseItemListaFormSet,
             extra=0
         )
-        queryset = Item.objects.all()
-        formset = ListaComprasFormSet(
-            instance=lista
-        )
-        return render(request, "listas/edit_list.html", locals())
+        if request.POST:
+
+            number_of_items = int(request.POST.get("itemlista_set-TOTAL_FORMS",
+                                               None))
+            min_num_forms = request.POST.get('itemlista_set-MIN_NUM_FORMS',
+                                             None)
+            max_num_forms = request.POST.get('itemlista_set-MAX_NUM_FORMS',
+                                             None)
+            intial_forms = request.POST.get('itemlista_set-INITIAL_FORMS', None)
+
+            vivienda = request.user.get_vivienda()
+            for index in range(0, number_of_items):
+                prefix = "itemlista_set-%d-" % index
+                id = request.POST.get(prefix + "id", None)
+                if id is not None and id != "":
+                    print("exists")
+                    il = ItemLista.objects.get(id=id)
+                    if request.POST.get(prefix + "DELETE", None) is not None:
+                        il.delete()
+                    else:
+                        item_id = request.POST.get(prefix + "item", None)
+                        qty = request.POST.get(
+                            prefix + "cantidad_solicitada",
+                            None)
+                        if item_id is not None and item_id != "" and qty is not \
+                                None and qty != "":
+                            item = Item.objects.filter(id=item_id,
+                                                vivienda=vivienda).first()
+                            if item is not None:
+                                il.item = item
+                                il.cantidad_solicitada = qty
+                                il.save()
+
+                else:
+                    print("doesn't exist")
+                    item_id = request.POST.get(prefix + "item", None)
+                    qty = request.POST.get(prefix + "cantidad_solicitada", None)
+                    print("got post")
+                    if item_id is not None and item_id != "" and qty is not \
+                            None and qty != "":
+                        print("fields are not empty")
+                        item = Item.objects.filter(id=item_id,
+                                                   vivienda=vivienda).first()
+                        print(item)
+                        if item is not None:
+                            print("item is not none")
+                            il = ItemLista.objects.create(
+                                item=item,
+                                cantidad_solicitada=qty,
+                                lista=lista
+                            )
+            if lista.count_items() == 0:
+                lista.delete()
+                return redirect("lists")
+            return redirect("detalle_lista", lista_id)
+        else:
+            formset = ListaComprasFormSet(
+                valid_items_queryset=request.user.get_vivienda().get_items(),
+                instance=lista
+            )
+            formset.empty_form
+            return render(request, "listas/edit_list.html", locals())
     else:
         # user cant see this
         return redirect("error")
@@ -1016,6 +1074,7 @@ def edit_presupuesto(request, year, month, categoria):
                 int(year),
                 int(month),
                 categoria)
+
         form = PresupuestoEditForm(request.POST)
         if form.is_valid():
             nuevo_monto = request.POST.get("monto", None)
