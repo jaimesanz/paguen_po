@@ -848,6 +848,16 @@ def detalle_lista(request, lista_id):
                     pass
             nuevo_gasto = lista.buy_list(
                 item_list, monto_total, vivienda_usuario)
+            if nuevo_gasto == "monto_negativo":
+                messages.error(
+                    request,
+                    "El monto ingresado debe ser un número mayor que 0.")
+                return redirect("lists")
+            if nuevo_gasto == "monto_invalido":
+                messages.error(
+                    request,
+                    "El monto ingresado debe ser un número mayor que 0.")
+                return redirect("lists")
             if nuevo_gasto is None:
                 messages.error(
                     request,

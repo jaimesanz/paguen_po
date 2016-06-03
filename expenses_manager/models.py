@@ -1275,6 +1275,11 @@ class ListaCompras(models.Model):
         # mark items as bought
         if item_list is None or len(item_list) < 1:
             return None
+        try:
+            if int(monto_total) <= 0:
+                return "monto_negativo"
+        except ValueError:
+            return "monto_invalido"
         for item_id, quantity in item_list:
             self.buy_item(item_id, quantity)
         self.set_done_state()
