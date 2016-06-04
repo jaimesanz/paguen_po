@@ -124,7 +124,7 @@ class TransferForm(forms.Form):
 class BaseItemListaFormSet(forms.models.BaseInlineFormSet):
 
     def __init__(self, valid_items_queryset, *args, **kwargs):
-        super().__init__(**kwargs)
+        super(BaseItemListaFormSet, self).__init__(*args, **kwargs)
 
         self.valid_items_queryset = valid_items_queryset
 

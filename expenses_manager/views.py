@@ -901,70 +901,26 @@ def edit_list(request, lista_id):
         )
         if request.POST:
 
-            number_of_items = int(request.POST.get("itemlista_set-TOTAL_FORMS",
-                                                   None))
-            min_num_forms = request.POST.get('itemlista_set-MIN_NUM_FORMS',
-                                             None)
-            max_num_forms = request.POST.get('itemlista_set-MAX_NUM_FORMS',
-                                             None)
-            intial_forms = request.POST.get(
-                'itemlista_set-INITIAL_FORMS', None)
+            formset = ListaComprasFormSet(
+                request.user.get_vivienda().get_items(),
+                request.POST,
+                instance=lista
+            )
+            if formset.is_valid():
+                formset.save()
 
-            vivienda = request.user.get_vivienda()
-            for index in range(0, number_of_items):
-                prefix = "itemlista_set-%d-" % index
-                id = request.POST.get(prefix + "id", None)
-                if id is not None and id != "":
-                    il = ItemLista.objects.get(id=id)
-                    if request.POST.get(prefix + "DELETE", None) is not None:
-                        il.delete()
-                    else:
-                        item_id = request.POST.get(prefix + "item", None)
-                        qty = request.POST.get(
-                            prefix + "cantidad_solicitada",
-                            None)
-                        if item_id is not None and item_id != "" and qty is \
-                                not None and qty != "":
-                            item = Item.objects.filter(
-                                id=item_id,
-                                vivienda=vivienda).first()
-                            if item is not None:
-                                try:
-                                    il.item = item
-                                    il.cantidad_solicitada = qty
-                                    il.save()
-                                except IntegrityError:
-                                    # TODO handle this exception
-                                    pass
+                if lista.count_items() == 0:
+                    lista.delete()
+                    return redirect("lists")
+                return redirect("detalle_lista", lista_id)
 
-                elif request.POST.get(prefix + "DELETE", None) is None:
-                    item_id = request.POST.get(prefix + "item", None)
-                    qty = request.POST.get(
-                        prefix + "cantidad_solicitada", None)
-                    if item_id is not None and item_id != "" and qty is not \
-                            None and qty != "":
-                        item = Item.objects.filter(id=item_id,
-                                                   vivienda=vivienda).first()
-                        if item is not None:
-                            try:
-                                il = ItemLista.objects.create(
-                                    item=item,
-                                    cantidad_solicitada=qty,
-                                    lista=lista
-                                )
-                            except IntegrityError:
-                                pass
-            if lista.count_items() == 0:
-                lista.delete()
-                return redirect("lists")
-            return redirect("detalle_lista", lista_id)
         else:
             formset = ListaComprasFormSet(
                 valid_items_queryset=request.user.get_vivienda().get_items(),
                 instance=lista
             )
-            formset.empty_form
-            return render(request, "listas/edit_list.html", locals())
+
+        return render(request, "listas/edit_list.html", locals())
     else:
         # user cant see this
         return redirect("error")
