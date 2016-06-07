@@ -9,6 +9,14 @@
     #id_foto {
         display: none;
     }
+    .input-group-xs>.form-control,
+    .input-group-xs>.input-group-addon,
+    .input-group-xs>.input-group-btn>.btn {
+        height: 35px;
+        padding: 1px 5px;
+        font-size: 12px;
+        line-height: 1.5;
+    }
 </style>
 {% endblock %}
 
@@ -63,7 +71,7 @@
 			<thead>
 				<tr>
 					<th>Ítem</th>
-					<th>Pedido</th>
+					<th>Cant.</th>
 					<th>Esta Compra</th>
 				</tr>
 			</thead>
@@ -80,21 +88,24 @@
                             {% else %}
                                 {{i.item.nombre}}
                             {% endif %}
+                             ({{i.item.unidad_medida}})
                         </td>
-						<td class="cantidad_solicitada">{{i.cantidad_solicitada}} ({{i.item.unidad_medida}})</td>
+						<td class="cantidad_solicitada">{{i.cantidad_solicitada}}</td>
 						<td>
-							<div class="input-group input-group-sm">
+							<div class="input-group input-group-xs">
 								<span class="input-group-btn auto_fill" value="{{i.cantidad_solicitada}}">
 									<button type="button" class="btn btn-info">
-										<span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
+										{% bootstrap_icon "flash" %}
 									</button>
 								</span>
 								<span class="input-group-addon plus_icon">
-									<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+									{% bootstrap_icon "plus" %}
 								</span>
-								<input type="number" class="form-control" aria-label="TODO poner algo aqui" name="{{i.id}}"></input>
+								<input type="number" class="form-control"
+                                       aria-label="TODO poner algo aqui"
+                                       name="{{i.id}}"></input>
 								<span class="input-group-addon minus_icon">
-									<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+									{% bootstrap_icon "minus" %}
 								</span>
 							</div>
 						</td>
@@ -210,7 +221,7 @@
     {% else %}
         Para completar la lista puede utilizar los botónes "+" y "-", o bien
         hacer click en el botón
-        {% bootstrap_button "" icon="arrow-right" button_type="submit" button_class="btn-info btn-sm" %}
+        {% bootstrap_button "" icon="flash" button_type="submit" button_class="btn-info btn-sm" %}
         para copiar la cantidad solicitada.
         <br><br>
         Algunos ítems pueden tener una descripción adicional. Si este es el
