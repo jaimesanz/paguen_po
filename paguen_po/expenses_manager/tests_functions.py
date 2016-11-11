@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
-from expenses_manager.helper_functions.tests import *
+
+from expenses_manager.test_utils import *
+from expenses_manager.utils import rm_not_active_at_date, rm_users_out_at_date, \
+	compute_balance
 
 
 class StaticBalanceFunctionsTest(TestCase):

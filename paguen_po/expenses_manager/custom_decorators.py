@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
+from functools import wraps
+from urllib.parse import urlparse
+
 from django.shortcuts import resolve_url
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.utils.decorators import available_attrs
-from functools import wraps
-from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.encoding import force_str
+from django.conf import settings
 
 
 def request_passes_test(test_func,

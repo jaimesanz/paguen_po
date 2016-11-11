@@ -1,9 +1,9 @@
+# -*- coding: utf-8 -*-
 from django.core.urlresolvers import resolve
 from expenses_manager.models import *
 
 
 # functions for generating test databases
-
 def get_lone_user():
     return ProxyUser.objects.create(username="us1", email="a@a.com")
 

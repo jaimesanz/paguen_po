@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from io import BytesIO
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Q
 from django.core.files.base import ContentFile
-from .helper_functions.balance_functions import *
+
 from PIL import Image
-from io import BytesIO
 
-
-# helper functions
+from .utils import rm_not_active_at_date, rm_users_out_at_date, \
+    compute_balance
 
 
 def get_current_year_month_obj():

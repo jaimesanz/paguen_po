@@ -1,21 +1,18 @@
 # -*- coding: utf-8 -*-
-from django.http import request, request, request
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.forms.models import model_to_dict
-from django.db import IntegrityError
-from django.template.context_processors import request
-from django.forms import inlineformset_factory, ModelChoiceField
+import json
+from datetime import datetime
 
+from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError
+from django.forms import inlineformset_factory
+from django.forms.models import model_to_dict
+from django.shortcuts import render, redirect, get_object_or_404
+
+from expenses_manager.custom_decorators import *
+from expenses_manager.utils import create_new_vivienda, get_periods, \
+    user_has_vivienda, is_valid_transfer_to_user, is_valid_transfer_monto
 from .forms import *
 from .models import *
-from .helper_functions.custom_decorators import *
-from .helper_functions.views import *
-
-from datetime import datetime
-import json
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit
 
 
 def home(request):

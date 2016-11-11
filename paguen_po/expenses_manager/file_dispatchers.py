@@ -2,9 +2,10 @@
 import xlwt
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from .helper_functions.files import write_gastos_to_xls_sheet
+
+from expenses_manager.custom_decorators import request_passes_test
+from expenses_manager.utils import write_gastos_to_xls_sheet, user_has_vivienda
 from .helper_functions.views import user_has_vivienda
-from .helper_functions.custom_decorators import request_passes_test
 
 
 @login_required(redirect_field_name='gastos')

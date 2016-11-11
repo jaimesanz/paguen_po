@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
-from expenses_manager.helper_functions.tests import *
+
+from expenses_manager.test_utils import *
 
 
 class ProxyUserModelTest(TestCase):
