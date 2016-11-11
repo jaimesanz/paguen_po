@@ -3,8 +3,6 @@ from django.contrib import messages
 
 import xlwt
 
-from expenses_manager.models import Categoria, ProxyUser
-
 
 def rm_not_active_at_date(user_set, date):
     """
@@ -236,6 +234,7 @@ def get_gasto_row_data(gasto):
 def create_new_vivienda(form):
     new_viv = form.save()
     # add global categorias
+    from .models import Categoria
     categorias_globales = Categoria.objects.filter(vivienda=None)
     for cat in categorias_globales:
         Categoria.objects.create(
@@ -314,6 +313,7 @@ def is_valid_transfer_to_user(user_id_raw, this_user):
         msg = "Debe especificar un usuario a quien transferirle."
         return (None, msg)
 
+    from .models import ProxyUser
     user = ProxyUser.objects.filter(id=user_id).first()
     if user is None:
         msg = "Debe especificar un usuario a quien transferirle."

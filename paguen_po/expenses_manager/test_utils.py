@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from django.core.urlresolvers import resolve
-from expenses_manager.models import *
+from django.utils import timezone
+
+from .models import ProxyUser, Vivienda, ViviendaUsuario, Categoria, Gasto, \
+    ListaCompras, Item, ItemLista
 
 
 # functions for generating test databases

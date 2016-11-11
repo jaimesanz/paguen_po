@@ -1,7 +1,15 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
+from django.utils import timezone
 
-from expenses_manager.test_utils import *
+from .models import Vivienda, ViviendaUsuario, Presupuesto, Invitacion, \
+    ProxyUser, Gasto, EstadoGasto, Categoria, Item, YearMonth, ListaCompras, \
+    ItemLista
+from .test_utils import get_lone_user, get_vivienda_with_1_user, \
+    get_vivienda_with_2_users, get_dummy_gasto_pendiente, \
+    get_setup_w_vivienda_3_users_and_periods, get_hard_balance_test_database, \
+    get_setup_with_gastos_items_and_listas, get_HARDEST_balance_test_database, \
+    get_dummy_lista_with_1_item, get_dummy_lista_with_2_items
 
 
 class ProxyUserModelTest(TestCase):

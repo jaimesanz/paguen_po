@@ -2,17 +2,26 @@
 import json
 from datetime import datetime
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import IntegrityError
+from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
 from django.forms.models import model_to_dict
+from django.db import IntegrityError
 from django.shortcuts import render, redirect, get_object_or_404
+from django.conf import settings
+from django.utils import timezone
 
-from expenses_manager.custom_decorators import *
-from expenses_manager.utils import create_new_vivienda, get_periods, \
-    user_has_vivienda, is_valid_transfer_to_user, is_valid_transfer_monto
-from .forms import *
-from .models import *
+from .custom_decorators import request_passes_test
+from .utils import create_new_vivienda, get_periods, \
+    user_has_vivienda, is_valid_transfer_to_user, is_valid_transfer_monto, \
+    get_instructions_from_balance
+from .forms import TransferForm, UserIsOutForm, InvitacionForm, ViviendaForm, \
+    CategoriaForm, ItemForm, GastoForm, EditGastoForm, ItemListaForm, \
+    BaseItemListaFormSet, PresupuestoForm, PresupuestoEditForm, \
+    EditCategoriaForm
+from .models import UserIsOut, Invitacion, ViviendaUsuario, Categoria, Gasto, \
+    Item, YearMonth, ConfirmacionGasto, ListaCompras, Presupuesto, ItemLista
 
 
 def home(request):

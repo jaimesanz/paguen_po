@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 from django.test import TestCase
 
-from expenses_manager.test_utils import *
-from expenses_manager.views import *
+from .test_utils import *
+from .views import *
 
 
 class HomePageTest(TestCase):

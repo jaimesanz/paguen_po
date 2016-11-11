@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 from django import forms
-from .models import *
 from django.contrib.auth.models import User
 from django.conf import settings
+
+from .models import Vivienda, Invitacion, Gasto, Categoria, Presupuesto, Item, \
+    ItemLista, UserIsOut
 
 
 class UserForm(forms.ModelForm):
