@@ -1,7 +1,7 @@
 venv/*
 *.pyc
-apps/expenses_manager/migrations/*
-config/secrets.json
+paguen_po/expenses_manager/migrations/*
+paguen_po/config/secrets.json
 paguen_po/static/*
 uwsgi/*
 .idea/*
