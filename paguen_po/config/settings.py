@@ -187,3 +187,7 @@ EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 DEFAULT_FROM_EMAIL = ''
 # DEFAULT_TO_EMAIL = 'to email'
+
+FIXTURE_DIRS = (
+	os.path.join(BASE_DIR, 'fixtures'),
+)
