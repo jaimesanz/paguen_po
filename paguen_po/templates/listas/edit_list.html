@@ -24,7 +24,7 @@
 {% endblock %}
 
 {% block content %}
-    <form action="." method="post">
+    <form action="" method="post">
         {% csrf_token %}
         {{ formset.management_form }}
         <div id="form_set">

@@ -1,9 +1,8 @@
 venv/*
 *.pyc
-expenses_manager/migrations/*
-project_root/settings_secret.py
-static/*
+apps/expenses_manager/migrations/*
+config/secrets.json
+paguen_po/static/*
 uwsgi/*
-project_root/wsgi.py
 .idea/*
 media/*

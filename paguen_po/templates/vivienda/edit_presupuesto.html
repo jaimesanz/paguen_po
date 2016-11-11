@@ -12,7 +12,7 @@
 
 {% block content %}
     <hr>
-	<form method="post" action=".">
+	<form method="post" action="">
 		{% csrf_token %}
 		{% bootstrap_form form %}
 		{% bootstrap_button "Actualizar monto" button_type="submit" button_class="btn-primary" %}

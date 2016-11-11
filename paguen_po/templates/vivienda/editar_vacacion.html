@@ -6,10 +6,10 @@
     <script type='text/javascript' src='{% static 'js/jquery.ui.datepicker-es.js' %}'></script>
 {% endblock %}
 
-{% block content_title %}{{ request.user.get_vivienda }}{% endblock %}
+{% block content_title %}{{request.user.get_vivienda}}{% endblock %}
 
 {% block subtitle %}
-    Nueva Vacación
+    Editar Vacación
 {% endblock %}
 
 {% block help_info_button %}
@@ -17,10 +17,10 @@
 
 {% block content %}
     <hr>
-    <form method="post" action=".">
+    <form method="post" action="">
         {% csrf_token %}
         {% bootstrap_form form %}
-        {% bootstrap_button "Crear" button_type="submit" button_class="btn-primary" %}
+        {% bootstrap_button "Actualizar" button_type="submit" button_class="btn-primary" %}
     </form>
 
     <script type="text/javascript">
@@ -29,7 +29,6 @@
             $("#id_fecha_fin").datepicker();
         });
     </script>
-
 {% endblock %}
 
 {% block help_info_modal %}
