@@ -10,6 +10,8 @@ from vacations.models import UserIsOut
 from categories.models import Categoria
 from households.models import Vivienda, Invitacion
 
+# TODO move each form to it's respective app
+
 
 class UserForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput())

@@ -9,6 +9,8 @@ from households.models import Vivienda, ViviendaUsuario
 from users.models import ProxyUser
 
 
+# TODO move each TestCase into it's respective app
+
 # functions for generating test databases
 def get_lone_user():
     return ProxyUser.objects.create(username="us1", email="a@a.com")

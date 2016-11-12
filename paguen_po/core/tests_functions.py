@@ -7,6 +7,8 @@ from .test_utils import get_setup_w_vivienda_3_users_and_periods
 from .utils import rm_not_active_at_date, rm_users_out_at_date, \
 	compute_balance
 
+# TODO move each TestCase into it's respective app
+
 
 class StaticBalanceFunctionsTest(TestCase):
 	def test_rm_users_out_at_date_method(self):

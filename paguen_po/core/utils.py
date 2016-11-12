@@ -3,6 +3,9 @@ from django.contrib import messages
 
 import xlwt
 
+# TODO move each function into it's respective app (or leave here if it's an
+# actual 'core' function)
+
 
 def rm_not_active_at_date(user_set, date):
     """

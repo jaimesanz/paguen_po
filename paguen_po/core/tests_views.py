@@ -23,6 +23,8 @@ from expenses.views import gastos
 from budgets.views import presupuestos, graphs_presupuestos
 from households.views import nueva_vivienda, manage_users, invites_list
 
+# TODO move each TestCase into it's respective app
+
 
 class HomePageTest(TestCase):
 

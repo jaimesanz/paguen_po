@@ -16,6 +16,9 @@ from .test_utils import get_lone_user, get_vivienda_with_1_user, \
     get_dummy_lista_with_1_item, get_dummy_lista_with_2_items
 
 
+# TODO move each TestCase into it's respective app
+
+
 class ProxyUserModelTest(TestCase):
 
     def test_user_ha_no_vivienda(self):
