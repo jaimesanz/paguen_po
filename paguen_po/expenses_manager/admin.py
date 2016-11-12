@@ -4,12 +4,7 @@ from django.contrib import admin
 from .models import UserIsOut, \
 	Invitacion, Categoria, Item, YearMonth, Presupuesto, ListaCompras, \
 	ItemLista, EstadoGasto, Gasto
-from households.models import Vivienda, ViviendaUsuario
-from users.models import ProxyUser
 
-admin.site.register(ProxyUser)
-admin.site.register(Vivienda)
-admin.site.register(ViviendaUsuario)
 admin.site.register(UserIsOut)
 admin.site.register(Invitacion)
 admin.site.register(Categoria)

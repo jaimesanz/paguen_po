@@ -55,6 +55,7 @@ INSTALLED_APPS = [
 	'expenses_manager',
 	'users',
 	'households',
+	'categories',
 	'jquery',
 	'jquery_ui',
 	'bootstrap3',
