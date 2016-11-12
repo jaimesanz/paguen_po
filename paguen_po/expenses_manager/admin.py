@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
 
-from .models import UserIsOut, \
-	Invitacion, Categoria, Item, YearMonth, Presupuesto, ListaCompras, \
+from .models import Invitacion, Item, YearMonth, Presupuesto, ListaCompras, \
 	ItemLista, EstadoGasto, Gasto
 
-admin.site.register(UserIsOut)
 admin.site.register(Invitacion)
-admin.site.register(Categoria)
 admin.site.register(Item)
 admin.site.register(YearMonth)
 admin.site.register(Presupuesto)

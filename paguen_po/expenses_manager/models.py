@@ -9,6 +9,7 @@ from django.core.files.base import ContentFile
 from django.db import models
 from django.utils import timezone
 
+from categories.models import Categoria
 from .utils import rm_not_active_at_date, rm_users_out_at_date
 
 
@@ -72,15 +73,6 @@ def get_pending_confirmation_state_gasto():
         estado="pendiente_confirmacion")[0]
 
 
-def get_default_others_categoria():
-    """
-    Returns the default Categoria for "Other" Gasto instances. Gastos
-    with a hidden Categoria are shown as if they belonged to this Categoria
-    :return: Categoria
-    """
-    return Categoria.objects.get_or_create(nombre="Otros", vivienda=None)[0]
-
-
 def vivienda_gasto_directory_path(instance, filename):
     """
     file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
@@ -95,15 +87,6 @@ def vivienda_gasto_directory_path(instance, filename):
         instance.creado_por.id,
         filename
     )
-
-
-class UserIsOut(models.Model):
-
-    vivienda_usuario = models.ForeignKey(
-        "households.ViviendaUsuario",
-        on_delete=models.CASCADE)
-    fecha_inicio = models.DateField()
-    fecha_fin = models.DateField()
 
 
 class Invitacion(models.Model):
@@ -168,77 +151,6 @@ class Invitacion(models.Model):
         :return: Boolean
         """
         return user.sent_invite(self)
-
-
-class Categoria(models.Model):
-
-    class Meta:
-        ordering = ['nombre']
-        unique_together = (('nombre', 'vivienda'),)
-    nombre = models.CharField(max_length=100)
-    vivienda = models.ForeignKey(
-        "households.Vivienda",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        default=None)
-    hidden = models.BooleanField(default=False)
-    is_shared = models.BooleanField(default=True)
-    is_shared_on_leave = models.BooleanField(default=True)
-    is_transfer = models.BooleanField(default=False)
-
-    def is_global(self):
-        """
-        Returns True if the Categoria is Global and shared with every Vivienda
-        :return: Boolean
-        """
-        return Categoria.objects.filter(
-            vivienda=None,
-            nombre=self.nombre).exists()
-
-    def is_hidden(self):
-        """
-        Returns it's hidden field's boolean value
-        :return: Boolean
-        """
-        return self.hidden
-
-    def hide(self):
-        """
-        If the Categoria is not hidden, changes this Categoria's hidden
-        field to True and returns True. If it's already hidden, returns
-        False and does nothing
-        :return: Boolean
-        """
-        if not self.is_hidden():
-            self.hidden = True
-            self.save()
-            return True
-        return False
-
-    def show(self):
-        """
-        If this Categoria is not hidden, it returns False. If it's
-        hidden, changes the it's hidden field to False
-        :return: Boolean
-        """
-        if self.is_hidden():
-            self.hidden = False
-            self.save()
-            return True
-        return False
-
-    def toggle(self):
-        """
-        Toggles the hidden field of this Categoria.
-        :return: Boolean
-        """
-        if self.is_hidden():
-            return self.show()
-        return self.hide()
-
-    def __str__(self):
-        return self.nombre
 
 
 class Item(models.Model):

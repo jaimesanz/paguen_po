@@ -234,7 +234,7 @@ def get_gasto_row_data(gasto):
 def create_new_vivienda(form):
     new_viv = form.save()
     # add global categorias
-    from .models import Categoria
+    from categories.models import Categoria
     categorias_globales = Categoria.objects.filter(vivienda=None)
     for cat in categorias_globales:
         Categoria.objects.create(

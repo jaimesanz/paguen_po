@@ -7,8 +7,10 @@ from django.utils import timezone
 
 from expenses_manager.models import Item, Gasto, get_pending_state_gasto, \
     get_pending_confirmation_state_gasto, get_paid_state_gasto, Categoria, \
-    get_default_others_categoria, ListaCompras, UserIsOut, YearMonth, \
+    ListaCompras, YearMonth, \
     ConfirmacionGasto, EstadoGasto
+from vacations.models import UserIsOut
+from categories.models import get_default_others_categoria, Categoria
 from expenses_manager.utils import compute_balance
 
 

@@ -56,6 +56,7 @@ INSTALLED_APPS = [
 	'users',
 	'households',
 	'categories',
+	'vacations',
 	'jquery',
 	'jquery_ui',
 	'bootstrap3',
