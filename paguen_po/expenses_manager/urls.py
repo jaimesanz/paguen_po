@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from django.contrib import admin
 from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
@@ -20,8 +19,6 @@ class RegistrationViewUniqueEmail(RegistrationView):
     form_class = RegistrationFormUniqueEmail
 
 urlpatterns = [
-    # django admin page
-    url(r'^admin/', admin.site.urls),
 
     # display info
     url(r'^home/', views.home, name='home'),

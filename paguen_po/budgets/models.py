@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.db import models
 
 # Create your models here.
@@ -10,7 +11,11 @@ class Presupuesto(models.Model):
         unique_together = (('categoria', 'vivienda', 'year_month'),)
     categoria = models.ForeignKey("categories.Categoria", on_delete=models.CASCADE)
     vivienda = models.ForeignKey("households.Vivienda", on_delete=models.CASCADE)
-    year_month = models.ForeignKey("periods.YearMonth", on_delete=models.CASCADE, default=get_current_year_month)
+    year_month = models.ForeignKey(
+        "periods.YearMonth",
+        on_delete=models.CASCADE,
+        default=get_current_year_month
+    )
     monto = models.IntegerField(default=0)
 
     def __str__(self):

@@ -5,8 +5,6 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 
-from expenses_manager.models import Gasto, get_pending_state_gasto, \
-    get_pending_confirmation_state_gasto, ConfirmacionGasto, EstadoGasto
 from expenses.models import get_paid_state_gasto, get_pending_state_gasto, \
     get_pending_confirmation_state_gasto, EstadoGasto, Gasto, ConfirmacionGasto
 from groceries.models import Item, ListaCompras
@@ -450,7 +448,7 @@ class ViviendaUsuario(models.Model):
 
     class Meta:
         unique_together = (('vivienda', 'user', 'estado', 'fecha_creacion'),)
-    vivienda = models.ForeignKey("Vivienda", on_delete=models.CASCADE)
+    vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     estado = models.CharField(max_length=200, default="activo")
     fecha_creacion = models.DateField(auto_now_add=True)
@@ -578,7 +576,7 @@ class Invitacion(models.Model):
     # the invitation is sent to the email.
     invitado = models.ForeignKey(
         User, on_delete=models.CASCADE, blank=True, null=True)
-    invitado_por = models.ForeignKey("ViviendaUsuario", on_delete=models.CASCADE)
+    invitado_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
     email = models.EmailField()
     estado = models.CharField(max_length=200, default="pendiente")
     # estado es pendiente, rechazada o aceptada

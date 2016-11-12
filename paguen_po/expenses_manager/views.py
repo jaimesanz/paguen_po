@@ -20,11 +20,10 @@ from .forms import TransferForm, UserIsOutForm, InvitacionForm, ViviendaForm, \
     CategoriaForm, ItemForm, GastoForm, EditGastoForm, ItemListaForm, \
     BaseItemListaFormSet, PresupuestoForm, PresupuestoEditForm, \
     EditCategoriaForm
-from .models import Invitacion, ConfirmacionGasto, ListaCompras, ItemLista
 from expenses.models import Gasto, ConfirmacionGasto
 from budgets.models import Presupuesto
 from groceries.models import Item, ListaCompras, ItemLista
-from periods.models import YearMonth
+from periods.models import YearMonth, get_current_year_month_obj
 from vacations.models import UserIsOut
 from categories.models import Categoria
 from households.models import ViviendaUsuario, Invitacion
@@ -544,9 +543,7 @@ def gastos(request):
 def graph_gastos(request):
     vivienda = request.user.get_vivienda()
     today = timezone.now()
-    current_year_month = YearMonth.objects.get(
-        year=today.year,
-        month=today.month)
+    current_year_month = get_current_year_month_obj()
     total_this_period = vivienda.get_total_expenses_period(current_year_month)
     categorias = vivienda.get_categorias()
     categoria_total = []
@@ -943,9 +940,8 @@ def edit_list(request, lista_id):
                      login_url="error",
                      redirect_field_name=None)
 def presupuestos(request):
-    vivienda_usuario = request.user.get_vu()
-    today = timezone.now()
-    return redirect("presupuestos_period", today.year, today.month)
+    this_year_month = get_current_year_month_obj()
+    return redirect("presupuestos_period", this_year_month.year, this_year_month.month)
 
 
 @login_required
@@ -1023,8 +1019,8 @@ def nuevo_presupuesto(request):
                      login_url="error",
                      redirect_field_name=None)
 def graphs_presupuestos(request):
-    today = timezone.now()
-    return redirect("graphs_presupuestos_period", today.year, today.month)
+    this_year_month = get_current_year_month_obj()
+    return redirect("graphs_presupuestos_period", this_year_month.year, this_year_month.month)
 
 
 @login_required

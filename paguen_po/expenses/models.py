@@ -113,7 +113,7 @@ class Gasto(models.Model):
     lista_compras = models.ForeignKey(
         "groceries.ListaCompras", on_delete=models.CASCADE, blank=True, null=True)
     estado = models.ForeignKey(
-        "EstadoGasto",
+        EstadoGasto,
         on_delete=models.CASCADE,
         default=get_default_estado_gasto,
         blank=True)
@@ -297,4 +297,4 @@ class ConfirmacionGasto(models.Model):
         "households.ViviendaUsuario",
         on_delete=models.CASCADE)
     confirmed = models.BooleanField(default=False)
-    gasto = models.ForeignKey("Gasto", on_delete=models.CASCADE)
+    gasto = models.ForeignKey(Gasto, on_delete=models.CASCADE)

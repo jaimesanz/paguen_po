@@ -17,5 +17,9 @@ from django.conf.urls import include, url
 from django.contrib import admin
 
 urlpatterns = [
+
+    # django admin page
+    url(r'^admin/', admin.site.urls),
+
     url(r'', include('expenses_manager.urls'))
 ]
