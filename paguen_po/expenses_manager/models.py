@@ -10,7 +10,7 @@ from django.db import models
 from django.utils import timezone
 
 from categories.models import Categoria
-from periods.models import get_current_year_month, YearMonth
+from periods.models import YearMonth
 from .utils import rm_not_active_at_date, rm_users_out_at_date
 
 
@@ -69,34 +69,6 @@ def vivienda_gasto_directory_path(instance, filename):
     )
 
 
-class Presupuesto(models.Model):
-
-    class Meta:
-        unique_together = (('categoria', 'vivienda', 'year_month'),)
-    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
-    vivienda = models.ForeignKey("households.Vivienda", on_delete=models.CASCADE)
-    year_month = models.ForeignKey("periods.YearMonth", on_delete=models.CASCADE, default=get_current_year_month)
-    monto = models.IntegerField(default=0)
-
-    def __str__(self):
-        return "".join((
-            str(self.vivienda),
-            "__",
-            str(self.categoria),
-            "__",
-            str(self.year_month)))
-
-    def get_total_expenses(self):
-        """
-        Returns the sum of all paid Gastos of the Presupuesto's Categoria in
-        the Presupuesto's YearMonth for the Presupuesto's Vivienda
-        :return: Integer
-        """
-        return self.vivienda.get_total_expenses_categoria_period(
-            self.categoria,
-            self.year_month)
-
-
 class EstadoGasto(models.Model):
     estado = models.CharField(max_length=255)
 
@@ -141,7 +113,7 @@ class Gasto(models.Model):
         blank=True
     )
     lista_compras = models.ForeignKey(
-        "groceries.models.ListaCompras", on_delete=models.CASCADE, blank=True, null=True)
+        "groceries.ListaCompras", on_delete=models.CASCADE, blank=True, null=True)
     estado = models.ForeignKey(
         "EstadoGasto",
         on_delete=models.CASCADE,

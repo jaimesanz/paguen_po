@@ -3,7 +3,8 @@ from django import forms
 from django.contrib.auth.models import User
 from django.conf import settings
 
-from .models import Invitacion, Gasto, Presupuesto, ItemLista
+from .models import Invitacion, Gasto, ItemLista
+from budgets.models import Presupuesto
 from groceries.models import Item, ItemLista
 from vacations.models import UserIsOut
 from categories.models import Categoria

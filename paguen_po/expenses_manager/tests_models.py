@@ -2,9 +2,10 @@
 from django.test import TestCase
 from django.utils import timezone
 
-from .models import ViviendaUsuario, Presupuesto, Invitacion, \
+from .models import ViviendaUsuario, Invitacion, \
 	Gasto, EstadoGasto, ListaCompras, \
     ItemLista
+from budgets.models import Presupuesto
 from groceries.models import Item, ListaCompras, ItemLista
 from periods.models import YearMonth
 from categories.models import Categoria

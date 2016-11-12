@@ -59,6 +59,7 @@ INSTALLED_APPS = [
 	'vacations',
 	'periods',
 	'groceries',
+	'budgets',
 	'jquery',
 	'jquery_ui',
 	'bootstrap3',
