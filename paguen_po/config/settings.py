@@ -54,6 +54,7 @@ INSTALLED_APPS = [
 	'django.contrib.humanize',
 	'expenses_manager',
 	'users',
+	'households',
 	'jquery',
 	'jquery_ui',
 	'bootstrap3',
