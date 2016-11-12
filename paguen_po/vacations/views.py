@@ -7,8 +7,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 
 from core.custom_decorators import request_passes_test
-from core.forms import UserIsOutForm
 from core.utils import user_has_vivienda
+from .forms import UserIsOutForm
 from .models import UserIsOut
 
 

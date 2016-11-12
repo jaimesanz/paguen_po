@@ -3,11 +3,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 
-from .models import Categoria
-from expenses.models import Gasto
 from core.custom_decorators import request_passes_test
-from core.forms import CategoriaForm, EditCategoriaForm
 from core.utils import user_has_vivienda
+from expenses.models import Gasto
+from .forms import CategoriaForm, EditCategoriaForm
+from .models import Categoria
 
 
 @login_required

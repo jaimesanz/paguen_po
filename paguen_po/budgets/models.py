@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 
-# Create your models here.
 from periods.models import get_current_year_month
 
 

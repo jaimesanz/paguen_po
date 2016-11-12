@@ -5,11 +5,10 @@ from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 
 from core.custom_decorators import request_passes_test
-from core.forms import TransferForm
 from core.utils import create_new_vivienda, user_has_vivienda, \
     get_instructions_from_balance, is_valid_transfer_to_user, \
     is_valid_transfer_monto
-from .forms import ViviendaForm, InvitacionForm
+from .forms import ViviendaForm, InvitacionForm, TransferForm
 from .models import ViviendaUsuario, Invitacion
 
 

@@ -9,12 +9,10 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
 from core.custom_decorators import request_passes_test
-from core.forms import ItemForm, ItemListaForm, \
-    BaseItemListaFormSet
-from expenses.forms import GastoForm
 from core.utils import user_has_vivienda
-from groceries.models import Item
+from expenses.forms import GastoForm
 from .models import Item, ListaCompras, ItemLista
+from .forms import ItemForm, ItemListaForm, BaseItemListaFormSet
 
 
 @login_required
