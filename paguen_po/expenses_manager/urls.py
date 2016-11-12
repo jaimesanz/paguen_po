@@ -20,26 +20,12 @@ class RegistrationViewUniqueEmail(RegistrationView):
 
 urlpatterns = [
 
-    # display info
-    url(r'^home/', views.home, name='home'),
-    url(r'^about/$', views.about, name='about'),
-    url(r'^error/$', views.error, name='error'),
-
     # registration
     url(r'^accounts/register/$', RegistrationViewUniqueEmail.as_view(),
         name='registration_register'),
     url(r'^accounts/', include('registration.backends.hmac.urls')),
     url(r'^login_post_process/$', views.login_post_process,
         name='login_post_process'),
-
-    # vivienda
-    url(r'^vivienda/$', views.vivienda, name='vivienda'),
-    url(r'^nueva_vivienda/$', views.nueva_vivienda, name='nueva_vivienda'),
-    url(r'^user_info/$', views.user_info, name='user_info'),
-    url(r'^manage_users/$', views.manage_users, name='manage_users'),
-    url(r'^abandon/$', views.abandon, name='abandon'),
-    url(r'^vivienda/balance/$', views.balance, name='balance'),
-    url(r'^transfer/$', views.transfer, name='transfer'),
 
     # vacations
     url(r'^vivienda/vacaciones/$', views.vacations, name='vacations'),

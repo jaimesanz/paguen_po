@@ -16,10 +16,20 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 
+from expenses_manager import views
+
 urlpatterns = [
 
     # django admin page
     url(r'^admin/', admin.site.urls),
+
+    # display info
+    url(r'^home/', views.home, name='home'),
+    url(r'^about/$', views.about, name='about'),
+    url(r'^error/$', views.error, name='error'),
+
+    # viviendas
+    url(r'', include('households.urls')),
 
     url(r'', include('expenses_manager.urls'))
 ]

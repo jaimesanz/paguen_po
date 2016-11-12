@@ -2,31 +2,28 @@
 import json
 from datetime import datetime
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db import IntegrityError
 from django.forms import inlineformset_factory
 from django.forms.models import model_to_dict
-from django.db import IntegrityError
 from django.shortcuts import render, redirect, get_object_or_404
-from django.conf import settings
 from django.utils import timezone
 
-from .custom_decorators import request_passes_test
-from .utils import create_new_vivienda, get_periods, \
-    user_has_vivienda, is_valid_transfer_to_user, is_valid_transfer_monto, \
-    get_instructions_from_balance
-from .forms import TransferForm, UserIsOutForm, InvitacionForm, ViviendaForm, \
-    CategoriaForm, ItemForm, GastoForm, EditGastoForm, ItemListaForm, \
-    BaseItemListaFormSet, PresupuestoForm, PresupuestoEditForm, \
-    EditCategoriaForm
-from expenses.models import Gasto, ConfirmacionGasto
 from budgets.models import Presupuesto
+from categories.models import Categoria
+from expenses.models import Gasto, ConfirmacionGasto
 from groceries.models import Item, ListaCompras, ItemLista
+from households.models import Invitacion
 from periods.models import YearMonth, get_current_year_month_obj
 from vacations.models import UserIsOut
-from categories.models import Categoria
-from households.models import ViviendaUsuario, Invitacion
+from .custom_decorators import request_passes_test
+from .forms import UserIsOutForm, InvitacionForm, CategoriaForm, ItemForm, \
+    GastoForm, EditGastoForm, ItemListaForm, BaseItemListaFormSet, \
+    PresupuestoForm, PresupuestoEditForm, EditCategoriaForm
+from .utils import get_periods, user_has_vivienda
 
 
 def home(request):
@@ -53,11 +50,6 @@ def login_post_process(request):
     # set session variables here
     request.session['user_has_vivienda'] = request.user.has_vivienda()
     return redirect("home")
-
-
-@login_required
-def user_info(request):
-    return render(request, "user_info.html", locals())
 
 
 @login_required
@@ -252,71 +244,6 @@ def invite(request, invite_id):
     else:
         # redirect to page showing message "restricted"
         return redirect("error")
-
-
-@login_required
-def nueva_vivienda(request):
-    if request.POST:
-        if request.user.has_vivienda():
-            messages.error(
-                request,
-                "Solo puede pertenecer a una Vivienda.")
-            return redirect("vivienda")
-        form = ViviendaForm(request.POST)
-        if form.is_valid():
-            # process data
-            # save new vivienda
-            new_viv = create_new_vivienda(form)
-            # create new viviendausuario
-            vivienda_usuario = ViviendaUsuario(
-                vivienda=new_viv, user=request.user)
-            vivienda_usuario.save()
-            request.session['user_has_vivienda'] = True
-            messages.success(
-                request,
-                "¡Vivienda creada con éxito! "
-                "Haga click en el botón de información para comenzar a "
-                "utilizar la aplicación.")
-            return redirect("vivienda")
-
-    vivienda_form = ViviendaForm()
-    return render(request, "vivienda/nueva_vivienda.html", locals())
-
-
-@login_required
-def vivienda(request):
-    vivienda_usuario = request.user.get_vu()
-    roommates = request.user.get_roommates()
-    return render(request, "vivienda/vivienda.html", locals())
-
-
-@login_required
-def manage_users(request):
-    vivienda_usuario = request.user.get_vu()
-    return render(request, "vivienda/manage_users.html", locals())
-
-
-@login_required
-@request_passes_test(user_has_vivienda,
-                     login_url="error",
-                     redirect_field_name=None)
-def balance(request):
-    vivienda = request.user.get_vivienda()
-    users_disbalance = vivienda.get_disbalance_dict()
-    instructions = get_instructions_from_balance(users_disbalance)
-    form = TransferForm()
-    form.fields["user"].queryset = request.user.get_roommates_users()
-    return render(request, "vivienda/balance.html", locals())
-
-
-@login_required
-def abandon(request):
-    if request.POST:
-        vu = get_object_or_404(
-            ViviendaUsuario, user=request.user, estado="activo")
-        vu.leave()
-        request.session['user_has_vivienda'] = False
-    return redirect("home")
 
 
 @login_required
@@ -1087,47 +1014,6 @@ def edit_presupuesto(request, year, month, categoria):
 
     form = PresupuestoEditForm(initial=presupuesto.__dict__)
     return render(request, "vivienda/edit_presupuesto.html", locals())
-
-
-@login_required
-@request_passes_test(user_has_vivienda,
-                     login_url="error",
-                     redirect_field_name=None)
-def transfer(request):
-    if request.POST:
-
-        # validate user_id in POST
-        user, msg = is_valid_transfer_to_user(
-            request.POST.get("user", None),
-            request.user)
-
-        if user is None:
-            # there are errors
-            messages.error(request, msg)
-            return redirect("transfer")
-
-        # validate monto_raw in POST
-        monto, msg = is_valid_transfer_monto(request.POST.get("monto", None))
-        if monto is None:
-            # there are errors
-            messages.error(request, msg)
-            return redirect("transfer")
-
-        pos, neg = request.user.transfer(user, monto)
-        if pos is not None and neg is not None:
-            messages.success(
-                request,
-                "Transferencia realizada con éxito.")
-            return redirect("balance")
-        else:
-            messages.error(
-                request,
-                "se produjo un error procesando la transferencia.")
-            return redirect("transfer")
-
-    form = TransferForm()
-    form.fields["user"].queryset = request.user.get_roommates_users()
-    return render(request, "transfer.html", locals())
 
 
 @login_required
