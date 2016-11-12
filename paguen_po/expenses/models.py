@@ -101,7 +101,8 @@ class Gasto(models.Model):
         "households.ViviendaUsuario", on_delete=models.CASCADE, related_name="creado_por")
     usuario = models.ForeignKey(
         "households.ViviendaUsuario", on_delete=models.CASCADE, null=True, blank=True)
-    categoria = models.ForeignKey("categories.Categoria", on_delete=models.CASCADE)
+    categoria = models.ForeignKey(
+        "categories.Categoria", on_delete=models.CASCADE)
     fecha_creacion = models.DateField(auto_now_add=True)
     fecha_pago = models.DateField(null=True, blank=True)
     year_month = models.ForeignKey(

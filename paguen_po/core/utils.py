@@ -88,7 +88,7 @@ def get_instructions_from_pos_neg(pos, neg):
             # neg_user must transfer as much as he can to pos_user,
             # but without transferring more than pos_total.
             transfer_monto = min(this_transfer, pos_total)
-            if transfer_monto>0:
+            if transfer_monto > 0:
                 transfers[neg_user].append((pos_user, transfer_monto))
                 pos[pos_user] -= transfer_monto
                 this_transfer -= transfer_monto
@@ -321,12 +321,12 @@ def is_valid_transfer_to_user(user_id_raw, this_user):
     user = ProxyUser.objects.filter(id=user_id).first()
     if user is None:
         msg = "Debe especificar un usuario a quien transferirle."
-    elif user.get_vivienda()!=this_user.get_vivienda():
+    elif user.get_vivienda() != this_user.get_vivienda():
         msg = "El usuario indicado no pertenece a su Vivienda."
-    elif user==this_user:
+    elif user == this_user:
         msg = "¡No puede transferirse fondos a sí mismo!"
 
-    if len(msg)>0:
+    if len(msg) > 0:
         return (None, msg)
     return user, ""
 
@@ -342,7 +342,7 @@ def is_valid_transfer_monto(monto_raw):
     """
     try:
         monto = int(monto_raw)
-        if monto<=0:
+        if monto <= 0:
             msg = "Debe ingresar un monto mayor que 0."
             return (None, msg)
     except (ValueError, TypeError):

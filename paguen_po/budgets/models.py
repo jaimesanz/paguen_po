@@ -8,8 +8,10 @@ class Presupuesto(models.Model):
 
     class Meta:
         unique_together = (('categoria', 'vivienda', 'year_month'),)
-    categoria = models.ForeignKey("categories.Categoria", on_delete=models.CASCADE)
-    vivienda = models.ForeignKey("households.Vivienda", on_delete=models.CASCADE)
+    categoria = models.ForeignKey(
+        "categories.Categoria", on_delete=models.CASCADE)
+    vivienda = models.ForeignKey(
+        "households.Vivienda", on_delete=models.CASCADE)
     year_month = models.ForeignKey(
         "periods.YearMonth",
         on_delete=models.CASCADE,

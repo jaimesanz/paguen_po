@@ -106,7 +106,7 @@ def get_basic_setup_and_login_user_1(test):
     test_user_3 = ProxyUser.objects.create(
         username="test_user_3", email="c@c.com")
     vivienda_b = Vivienda.objects.create(alias="vivB")
-    test_user_3_viv_b= ViviendaUsuario.objects.create(
+    test_user_3_viv_b = ViviendaUsuario.objects.create(
         vivienda=vivienda_b, user=test_user_3)
     return test_user_1, test_user_2, test_user_3
 
