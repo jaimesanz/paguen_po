@@ -1,57 +1,15 @@
 # -*- coding: utf-8 -*-
 from django import forms
-from django.contrib.auth.models import User
 from django.conf import settings
+from django.contrib.auth.models import User
 
-from expenses.models import Gasto
 from budgets.models import Presupuesto
+from categories.models import Categoria
 from groceries.models import Item, ItemLista
 from vacations.models import UserIsOut
-from categories.models import Categoria
-from households.models import Vivienda, Invitacion
+
 
 # TODO move each form to it's respective app
-
-
-class UserForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput())
-
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'password')
-
-
-class ViviendaForm(forms.ModelForm):
-
-    class Meta:
-        model = Vivienda
-        fields = ('alias',)
-
-
-class InvitacionForm(forms.ModelForm):
-
-    class Meta:
-        model = Invitacion
-        fields = ("email",)
-
-
-class GastoForm(forms.ModelForm):
-
-    fecha_pago = forms.DateInput(format=settings.DATE_FORMAT)
-
-    class Meta:
-        model = Gasto
-        fields = ('categoria', 'monto', 'foto', 'fecha_pago')
-
-
-class EditGastoForm(forms.ModelForm):
-
-    class Meta:
-        model = Gasto
-        fields = ('monto', 'fecha_pago')
-        widgets = {
-            'fecha_pago': forms.DateInput(format=settings.DATE_FORMAT)
-        }
 
 
 class PresupuestoForm(forms.ModelForm):
