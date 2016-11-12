@@ -1,6 +1,6 @@
 [
 {
-    "model": "expenses_manager.categoria",
+    "model": "categories.categoria",
     "pk": 1,
     "fields": {
         "nombre": "Agua",
@@ -9,7 +9,7 @@
     }
 },
 {
-    "model": "expenses_manager.categoria",
+    "model": "categories.categoria",
     "pk": 2,
     "fields": {
         "nombre": "Arriendo",
@@ -18,7 +18,7 @@
     }
 },
 {
-    "model": "expenses_manager.categoria",
+    "model": "categories.categoria",
     "pk": 3,
     "fields": {
         "nombre": "Cable",
@@ -27,7 +27,7 @@
     }
 },
 {
-    "model": "expenses_manager.categoria",
+    "model": "categories.categoria",
     "pk": 4,
     "fields": {
         "nombre": "Gas",
@@ -36,7 +36,7 @@
     }
 },
 {
-    "model": "expenses_manager.categoria",
+    "model": "categories.categoria",
     "pk": 5,
     "fields": {
         "nombre": "Gastos Comunes",
@@ -45,7 +45,7 @@
     }
 },
 {
-    "model": "expenses_manager.categoria",
+    "model": "categories.categoria",
     "pk": 6,
     "fields": {
         "nombre": "Internet",
@@ -54,7 +54,7 @@
     }
 },
 {
-    "model": "expenses_manager.categoria",
+    "model": "categories.categoria",
     "pk": 7,
     "fields": {
         "nombre": "Luz",
@@ -63,7 +63,7 @@
     }
 },
 {
-    "model": "expenses_manager.categoria",
+    "model": "categories.categoria",
     "pk": 8,
     "fields": {
         "nombre": "Otros",
@@ -72,7 +72,7 @@
     }
 },
 {
-    "model": "expenses_manager.categoria",
+    "model": "categories.categoria",
     "pk": 9,
     "fields": {
         "nombre": "Servicios",
@@ -81,7 +81,7 @@
     }
 },
 {
-    "model": "expenses_manager.categoria",
+    "model": "categories.categoria",
     "pk": 10,
     "fields": {
         "nombre": "Supermercado",
@@ -90,7 +90,7 @@
     }
 },
 {
-    "model": "expenses_manager.categoria",
+    "model": "categories.categoria",
     "pk": 11,
     "fields": {
         "nombre": "Tel\u00e9fono",

@@ -141,7 +141,7 @@ LOGIN_URL = '/accounts/login/'
 ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window;
 LOGIN_REDIRECT_URL = '/login_post_process/'
 
-AUTHENTICATION_BACKENDS = ('core.backends.ModelBackend',)
+AUTHENTICATION_BACKENDS = ('users.backends.ModelBackend',)
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/

@@ -12,13 +12,11 @@ from django.conf import settings
 def request_passes_test(test_func,
                         login_url=None,
                         redirect_field_name=REDIRECT_FIELD_NAME):
-    """
-    Decorator for views that checks that the request passes the given test,
+    """Decorator for views that checks that the request passes the given test,
     redirecting to the log-in page if necessary. The test should be a callable
     that takes the request object and returns True if the request passes.
     Taken from: http://stackoverflow.com/a/24423890
     """
-
     def decorator(view_func):
         @wraps(view_func, assigned=available_attrs(view_func))
         def _wrapped_view(request, *args, **kwargs):
