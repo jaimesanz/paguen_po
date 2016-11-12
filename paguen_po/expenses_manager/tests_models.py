@@ -3,8 +3,9 @@ from django.test import TestCase
 from django.utils import timezone
 
 from .models import ViviendaUsuario, Presupuesto, Invitacion, \
-	Gasto, EstadoGasto, Item, ListaCompras, \
+	Gasto, EstadoGasto, ListaCompras, \
     ItemLista
+from groceries.models import Item, ListaCompras, ItemLista
 from periods.models import YearMonth
 from categories.models import Categoria
 from households.models import Vivienda, ViviendaUsuario, Invitacion

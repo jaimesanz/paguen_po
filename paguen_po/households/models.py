@@ -5,9 +5,10 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 
-from expenses_manager.models import Item, Gasto, get_pending_state_gasto, \
+from expenses_manager.models import Gasto, get_pending_state_gasto, \
     get_pending_confirmation_state_gasto, get_paid_state_gasto, Categoria, \
     ListaCompras, ConfirmacionGasto, EstadoGasto
+from groceries.models import Item, ListaCompras
 from periods.models import YearMonth
 from vacations.models import UserIsOut
 from categories.models import get_default_others_categoria, Categoria

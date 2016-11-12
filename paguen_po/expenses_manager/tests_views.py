@@ -4,7 +4,8 @@ from django.utils import timezone
 
 from .models import ViviendaUsuario, Invitacion, Gasto, \
     ConfirmacionGasto, ListaCompras, \
-    ItemLista, Item, Presupuesto
+    ItemLista, Presupuesto
+from groceries.models import Item, ListaCompras, ItemLista
 from periods.models import YearMonth
 from vacations.models import UserIsOut
 from categories.models import Categoria
