@@ -27,20 +27,6 @@ urlpatterns = [
     url(r'^login_post_process/$', views.login_post_process,
         name='login_post_process'),
 
-    # vacations
-    url(r'^vivienda/vacaciones/$', views.vacations, name='vacations'),
-    url(r'^vivienda/vacaciones/new/$',
-        views.new_vacation,
-        name='new_vacation'),
-    url(r'^vivienda/vacaciones/(?P<vacation_id>\d+)/$',
-        views.edit_vacation,
-        name='edit_vacation'),
-
-    # invites
-    url(r'^invites_list/$', views.invites_list, name='invites_list'),
-    url(r'^invite_user/$', views.invite_user, name='invite_user'),
-    url(r'^invite/(?P<invite_id>.*)/$', views.invite, name='invite'),
-
     # categorías
     url(r'^vivienda/categorias/$', views.categorias, name='categorias'),
     url(r'^vivienda/categorias/new/$',

@@ -28,8 +28,11 @@ urlpatterns = [
     url(r'^about/$', views.about, name='about'),
     url(r'^error/$', views.error, name='error'),
 
-    # viviendas
+    # viviendas and invites
     url(r'', include('households.urls')),
+
+    # vacations
+    url(r'', include('vacations.urls')),
 
     url(r'', include('expenses_manager.urls'))
 ]

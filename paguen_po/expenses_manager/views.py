@@ -5,7 +5,6 @@ from datetime import datetime
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.forms import inlineformset_factory
 from django.forms.models import model_to_dict
@@ -16,11 +15,9 @@ from budgets.models import Presupuesto
 from categories.models import Categoria
 from expenses.models import Gasto, ConfirmacionGasto
 from groceries.models import Item, ListaCompras, ItemLista
-from households.models import Invitacion
 from periods.models import YearMonth, get_current_year_month_obj
-from vacations.models import UserIsOut
 from .custom_decorators import request_passes_test
-from .forms import UserIsOutForm, InvitacionForm, CategoriaForm, ItemForm, \
+from .forms import CategoriaForm, ItemForm, \
     GastoForm, EditGastoForm, ItemListaForm, BaseItemListaFormSet, \
     PresupuestoForm, PresupuestoEditForm, EditCategoriaForm
 from .utils import get_periods, user_has_vivienda
@@ -50,200 +47,6 @@ def login_post_process(request):
     # set session variables here
     request.session['user_has_vivienda'] = request.user.has_vivienda()
     return redirect("home")
-
-
-@login_required
-@request_passes_test(user_has_vivienda,
-                     login_url="error",
-                     redirect_field_name=None)
-def vacations(request):
-    vacations = UserIsOut.objects.filter(
-        vivienda_usuario__vivienda=request.user.get_vivienda(),
-        vivienda_usuario__estado="activo")
-    return render(request, "vivienda/vacations.html", locals())
-
-
-@login_required
-@request_passes_test(user_has_vivienda,
-                     login_url="error",
-                     redirect_field_name=None)
-def new_vacation(request):
-    """
-    Displays new UserIsOut form. If it receives a post request, checks
-    that it's valid, and creates a new UserIsOut instance if the POST
-    is indeed valid. Otherwise, redirects to the same page and shows an error
-    message.
-    """
-    if request.POST:
-        start_date = request.POST.get("fecha_inicio", None)
-        end_date = request.POST.get("fecha_fin", None)
-        kwargs = {}
-        bad_format_error = False
-        if start_date is not None:
-            try:
-                parsed_start_date = datetime.strptime(
-                    start_date,
-                    settings.DATE_FORMAT).date()
-                kwargs['start_date'] = parsed_start_date
-            except ValueError:
-                bad_format_error = True
-
-        if end_date is not None:
-            try:
-                parsed_end_date = datetime.strptime(
-                    end_date,
-                    settings.DATE_FORMAT).date()
-                kwargs['end_date'] = parsed_end_date
-            except ValueError:
-                bad_format_error = True
-
-        if bad_format_error:
-            # at least one of the given date strings has an invalid
-            # date format
-            messages.error(
-                request,
-                "Las fechas ingresadas no son válidas.")
-            return redirect("new_vacation")
-
-        vacation, msg = request.user.go_on_vacation(**kwargs)
-        if not vacation:
-            messages.error(request, msg)
-            return redirect("new_vacation")
-        else:
-            messages.success(request, msg)
-            return redirect("vacations")
-    form = UserIsOutForm()
-    return render(request, "vivienda/nueva_vacacion.html", locals())
-
-
-@login_required
-@request_passes_test(user_has_vivienda,
-                     login_url="error",
-                     redirect_field_name=None)
-def edit_vacation(request, vacation_id):
-    vacation = get_object_or_404(
-        UserIsOut,
-        id=vacation_id,
-        vivienda_usuario__user=request.user)
-    if request.POST:
-        start_date = request.POST.get("fecha_inicio", None)
-        end_date = request.POST.get("fecha_fin", None)
-        kwargs = {}
-        bad_format_error = False
-        if start_date is not None:
-            parsed_start_date = datetime.strptime(
-                start_date, settings.DATE_FORMAT).date()
-            bad_format_error = bad_format_error or parsed_start_date is None
-            kwargs['start_date'] = parsed_start_date
-        if end_date is not None:
-            parsed_end_date = datetime.strptime(
-                end_date, settings.DATE_FORMAT).date()
-            bad_format_error = bad_format_error or parsed_end_date is None
-            kwargs['end_date'] = parsed_end_date
-
-        if bad_format_error:
-            # at least one of the given date strings has an invalid
-            # date format
-            messages.error(
-                request,
-                "Las fechas ingresadas no son válidas.")
-            return redirect("edit_vacation", vacation_id=int(vacation_id))
-
-        # edit vacation
-        edited_vacation, msg = request.user.update_vacation(vacation, **kwargs)
-        if not edited_vacation:
-            messages.error(request, msg)
-            return redirect("edit_vacation", vacation_id=int(vacation_id))
-        else:
-            messages.success(request, msg)
-            return redirect("vacations")
-
-    form = UserIsOutForm(request.POST or None, instance=vacation)
-    return render(request, "vivienda/editar_vacacion.html", locals())
-
-
-@login_required
-def invites_list(request):
-    # get list of pending invites for this user
-    invites_in, invites_out = request.user.get_invites()
-    return render(request, "invites/invites_list.html", locals())
-
-
-@login_required
-@request_passes_test(user_has_vivienda,
-                     login_url="error",
-                     redirect_field_name=None)
-def invite_user(request):
-    vivienda_usuario = request.user.get_vu()
-    if request.POST:
-        post = request.POST.copy()
-        post['invitado_por'] = vivienda_usuario
-        form = InvitacionForm(post)
-        if form.is_valid():
-            # TODO check that no user with that mail is already in the Vivienda
-            if post['email'] == request.user.email:
-                messages.error(request, "¡No puede invitarse a usted mismo!")
-                return redirect("vivienda")
-            invited_user = User.objects.filter(email=post['email']).first()
-            if invited_user is not None:
-                invite = Invitacion(
-                    email=post['email'],
-                    invitado_por=vivienda_usuario,
-                    invitado=invited_user)
-                # TODO send email with link to register
-            else:
-                invite = Invitacion(
-                    email=post['email'],
-                    invitado_por=vivienda_usuario)
-                # TODO send email with link accept/decline
-            invite.save()
-            return redirect("invites_list")
-        else:
-            return redirect("about")
-    invite_form = InvitacionForm()
-    return render(request, "invites/invite_user.html", locals())
-
-
-@login_required
-def invite(request, invite_id):
-    invite = get_object_or_404(Invitacion, id=invite_id)
-    invite_in = invite.is_invited_user(request.user)
-    if invite_in:
-        if invite.is_cancelled():
-            return redirect("error")
-        if request.POST:
-            ans = request.POST['SubmitButton']
-            if ans == "Aceptar":
-                if request.user.has_vivienda():
-                    messages.error(
-                        request,
-                        """Usted ya pertenece a una vivienda. Para aceptar la
-                         invitación debe abandonar su vivienda actual.
-                        """)
-                    return redirect("error")
-                invite.accept()
-                request.session['user_has_vivienda'] = True
-                messages.success(request, "La invitación fue aceptada.")
-                return redirect("vivienda")
-            elif ans == "Declinar":
-                invite.reject()
-                messages.success(request, "La invitación fue rechazada.")
-                return redirect("home")
-            messages.error(request, "Hubo un error al procesar la invitación")
-            return redirect("error")
-
-        return render(request, "invites/invite.html", locals())
-    elif invite.is_invited_by_user(request.user):
-        if request.POST:
-            ans = request.POST['SubmitButton']
-            if ans == "Cancelar":
-                invite.cancel()
-                return redirect("invites_list")
-
-        return render(request, "invites/invite.html", locals())
-    else:
-        # redirect to page showing message "restricted"
-        return redirect("error")
 
 
 @login_required
