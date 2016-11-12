@@ -21,10 +21,11 @@ from .forms import TransferForm, UserIsOutForm, InvitacionForm, ViviendaForm, \
     BaseItemListaFormSet, PresupuestoForm, PresupuestoEditForm, \
     EditCategoriaForm
 from .models import Invitacion, Gasto, \
-    Item, YearMonth, ConfirmacionGasto, ListaCompras, Presupuesto, ItemLista
+    Item, ConfirmacionGasto, ListaCompras, Presupuesto, ItemLista
+from periods.models import YearMonth
 from vacations.models import UserIsOut
 from categories.models import Categoria
-from households.models import ViviendaUsuario
+from households.models import ViviendaUsuario, Invitacion
 
 
 def home(request):

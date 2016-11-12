@@ -10,28 +10,8 @@ from django.db import models
 from django.utils import timezone
 
 from categories.models import Categoria
+from periods.models import get_current_year_month, YearMonth
 from .utils import rm_not_active_at_date, rm_users_out_at_date
-
-
-def get_current_year_month_obj():
-    """
-    Returns the current YearMonth period.
-    If the YearMonth doesn't exist, it creates it.
-    :return: YearMonth
-    """
-    today = timezone.now()
-    year_month, created = YearMonth.objects.get_or_create(
-        year=today.year, month=today.month)
-    return year_month
-
-
-def get_current_year_month():
-    """
-    Returns the current YearMonth period's ID field.
-    If it doesn't exist, it creates it.
-    :return: Integer
-    """
-    return get_current_year_month_obj().id
 
 
 def get_default_estado_gasto():
@@ -89,70 +69,6 @@ def vivienda_gasto_directory_path(instance, filename):
     )
 
 
-class Invitacion(models.Model):
-    # this key can be null if you invite an account-less user. In this case
-    # the invitation is sent to the email.
-    invitado = models.ForeignKey(
-        User, on_delete=models.CASCADE, blank=True, null=True)
-    invitado_por = models.ForeignKey("households.ViviendaUsuario", on_delete=models.CASCADE)
-    email = models.EmailField()
-    estado = models.CharField(max_length=200, default="pendiente")
-    # estado es pendiente, rechazada o aceptada
-
-    def __str__(self):
-        return str(self.invitado_por) + "__invited__" + str(self.invitado)
-
-    def accept(self):
-        """
-        Changes the state of the Invitacion to "aceptada" and creates an
-        instance of ViviendaUsuario using the Vivienda of the "invitado_por"
-        field, and the "invitado" field as the User
-        """
-        self.estado = "aceptada"
-        self.save()
-        from households.models import ViviendaUsuario
-        ViviendaUsuario.objects.create(
-            user=self.invitado, vivienda=self.invitado_por.vivienda)
-
-    def reject(self):
-        """
-        Changes the state of the Invitacion to "rechazada"
-        """
-        self.estado = "rechazada"
-        self.save()
-
-    def is_cancelled(self):
-        """
-        Returns True if the state of the Invitacion is "cancelada", or
-        False otherwise
-        :return: Boolean
-        """
-        return self.estado == "cancelada"
-
-    def cancel(self):
-        """
-        Changes the state of the Invitacion to "cancelada"
-        """
-        self.estado = "cancelada"
-        self.save()
-
-    def is_invited_user(self, user):
-        """
-        Returns True if the given User is the one that's being invited
-        :param user: User
-        :return: Boolean
-        """
-        return self.invitado == user
-
-    def is_invited_by_user(self, user):
-        """
-        Returns True if the given user is the one who sent the Invitacion
-        :param user: User
-        :return: Boolean
-        """
-        return user.sent_invite(self)
-
-
 class Item(models.Model):
 
     class Meta:
@@ -185,53 +101,13 @@ class Item(models.Model):
         return ItemLista.objects.filter(item=self, lista=lista).exists()
 
 
-class YearMonth(models.Model):
-
-    class Meta:
-        unique_together = (('year', 'month'),)
-    year = models.IntegerField()
-    month = models.IntegerField()
-
-    def get_next_period(self):
-        """
-        Returns a Tuple of Integers with:
-        - the year of the period following this YearMonth
-        - the month of the period following this YearMonth
-        :return: Pair( Integer, Integer )
-        """
-        next_month = self.month + 1
-        next_year = self.year
-        if next_month > 12:
-            next_month = 1
-            next_year += 1
-        return (next_year, next_month)
-
-    def get_prev_period(self):
-        """
-        Returns a Tuple of Integers with:
-        - the year of the period previous to this YearMonth
-        - the month of the period previous to this YearMonth
-        :return: Pair( Integer, Integer )
-        """
-        prev_month = self.month - 1
-        prev_year = self.year
-        if prev_month == 0:
-            prev_month = 12
-            prev_year -= 1
-        return (prev_year, prev_month)
-
-    def __str__(self):
-        return str(self.year) + "-" + str(self.month)
-
-
 class Presupuesto(models.Model):
 
     class Meta:
         unique_together = (('categoria', 'vivienda', 'year_month'),)
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     vivienda = models.ForeignKey("households.Vivienda", on_delete=models.CASCADE)
-    year_month = models.ForeignKey(
-        YearMonth, on_delete=models.CASCADE, default=get_current_year_month)
+    year_month = models.ForeignKey("periods.YearMonth", on_delete=models.CASCADE, default=get_current_year_month)
     monto = models.IntegerField(default=0)
 
     def __str__(self):
@@ -465,8 +341,8 @@ class ItemLista(models.Model):
 
     class Meta:
         unique_together = (('item', 'lista'),)
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    lista = models.ForeignKey(ListaCompras, on_delete=models.CASCADE)
+    item = models.ForeignKey("Item", on_delete=models.CASCADE)
+    lista = models.ForeignKey("ListaCompras", on_delete=models.CASCADE)
     cantidad_solicitada = models.PositiveIntegerField()
     cantidad_comprada = models.PositiveIntegerField(
         null=True, blank=True, default=0)
@@ -548,17 +424,19 @@ class Gasto(models.Model):
         "households.ViviendaUsuario", on_delete=models.CASCADE, related_name="creado_por")
     usuario = models.ForeignKey(
         "households.ViviendaUsuario", on_delete=models.CASCADE, null=True, blank=True)
-    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    categoria = models.ForeignKey("categories.Categoria", on_delete=models.CASCADE)
     fecha_creacion = models.DateField(auto_now_add=True)
     fecha_pago = models.DateField(null=True, blank=True)
-    year_month = models.ForeignKey(YearMonth,
-                                   on_delete=models.CASCADE,
-                                   null=True,
-                                   blank=True)
+    year_month = models.ForeignKey(
+        "periods.YearMonth",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
     lista_compras = models.ForeignKey(
-        ListaCompras, on_delete=models.CASCADE, blank=True, null=True)
+        "ListaCompras", on_delete=models.CASCADE, blank=True, null=True)
     estado = models.ForeignKey(
-        EstadoGasto,
+        "EstadoGasto",
         on_delete=models.CASCADE,
         default=get_default_estado_gasto,
         blank=True)
@@ -742,4 +620,4 @@ class ConfirmacionGasto(models.Model):
         "households.ViviendaUsuario",
         on_delete=models.CASCADE)
     confirmed = models.BooleanField(default=False)
-    gasto = models.ForeignKey(Gasto, on_delete=models.CASCADE)
+    gasto = models.ForeignKey("Gasto", on_delete=models.CASCADE)

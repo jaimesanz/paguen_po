@@ -4,7 +4,8 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 
-from .models import YearMonth, Item, Presupuesto
+from .models import Item, Presupuesto
+from periods.models import YearMonth
 
 
 @login_required

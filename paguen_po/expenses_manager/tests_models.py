@@ -3,10 +3,11 @@ from django.test import TestCase
 from django.utils import timezone
 
 from .models import ViviendaUsuario, Presupuesto, Invitacion, \
-	Gasto, EstadoGasto, Item, YearMonth, ListaCompras, \
+	Gasto, EstadoGasto, Item, ListaCompras, \
     ItemLista
+from periods.models import YearMonth
 from categories.models import Categoria
-from households.models import Vivienda, ViviendaUsuario
+from households.models import Vivienda, ViviendaUsuario, Invitacion
 from users.models import ProxyUser
 from .test_utils import get_lone_user, get_vivienda_with_1_user, \
     get_vivienda_with_2_users, get_dummy_gasto_pendiente, \

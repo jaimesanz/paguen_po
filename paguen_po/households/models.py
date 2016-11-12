@@ -7,8 +7,8 @@ from django.utils import timezone
 
 from expenses_manager.models import Item, Gasto, get_pending_state_gasto, \
     get_pending_confirmation_state_gasto, get_paid_state_gasto, Categoria, \
-    ListaCompras, YearMonth, \
-    ConfirmacionGasto, EstadoGasto
+    ListaCompras, ConfirmacionGasto, EstadoGasto
+from periods.models import YearMonth
 from vacations.models import UserIsOut
 from categories.models import get_default_others_categoria, Categoria
 from expenses_manager.utils import compute_balance
@@ -569,3 +569,66 @@ class ViviendaUsuario(models.Model):
         :return: Boolean
         """
         return invite.invitado_por.user == self.user
+
+
+class Invitacion(models.Model):
+    # this key can be null if you invite an account-less user. In this case
+    # the invitation is sent to the email.
+    invitado = models.ForeignKey(
+        User, on_delete=models.CASCADE, blank=True, null=True)
+    invitado_por = models.ForeignKey("ViviendaUsuario", on_delete=models.CASCADE)
+    email = models.EmailField()
+    estado = models.CharField(max_length=200, default="pendiente")
+    # estado es pendiente, rechazada o aceptada
+
+    def __str__(self):
+        return str(self.invitado_por) + "__invited__" + str(self.invitado)
+
+    def accept(self):
+        """
+        Changes the state of the Invitacion to "aceptada" and creates an
+        instance of ViviendaUsuario using the Vivienda of the "invitado_por"
+        field, and the "invitado" field as the User
+        """
+        self.estado = "aceptada"
+        self.save()
+        ViviendaUsuario.objects.create(
+            user=self.invitado, vivienda=self.invitado_por.vivienda)
+
+    def reject(self):
+        """
+        Changes the state of the Invitacion to "rechazada"
+        """
+        self.estado = "rechazada"
+        self.save()
+
+    def is_cancelled(self):
+        """
+        Returns True if the state of the Invitacion is "cancelada", or
+        False otherwise
+        :return: Boolean
+        """
+        return self.estado == "cancelada"
+
+    def cancel(self):
+        """
+        Changes the state of the Invitacion to "cancelada"
+        """
+        self.estado = "cancelada"
+        self.save()
+
+    def is_invited_user(self, user):
+        """
+        Returns True if the given User is the one that's being invited
+        :param user: User
+        :return: Boolean
+        """
+        return self.invitado == user
+
+    def is_invited_by_user(self, user):
+        """
+        Returns True if the given user is the one who sent the Invitacion
+        :param user: User
+        :return: Boolean
+        """
+        return user.sent_invite(self)

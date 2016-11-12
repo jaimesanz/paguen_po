@@ -3,11 +3,12 @@ from django.test import TestCase
 from django.utils import timezone
 
 from .models import ViviendaUsuario, Invitacion, Gasto, \
-    YearMonth, ConfirmacionGasto, ListaCompras, \
+    ConfirmacionGasto, ListaCompras, \
     ItemLista, Item, Presupuesto
+from periods.models import YearMonth
 from vacations.models import UserIsOut
 from categories.models import Categoria
-from households.models import Vivienda, ViviendaUsuario
+from households.models import Vivienda, ViviendaUsuario, Invitacion
 from users.models import ProxyUser
 from .test_utils import test_the_basics_not_logged_in, \
     execute_test_the_basics_logged_in, \

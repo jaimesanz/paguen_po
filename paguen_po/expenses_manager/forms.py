@@ -7,7 +7,7 @@ from .models import Invitacion, Gasto, Presupuesto, Item, \
     ItemLista
 from vacations.models import UserIsOut
 from categories.models import Categoria
-from households.models import Vivienda
+from households.models import Vivienda, Invitacion
 
 
 class UserForm(forms.ModelForm):
