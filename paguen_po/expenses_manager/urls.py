@@ -53,22 +53,6 @@ urlpatterns = [
     url(r'^edit_list/(?P<lista_id>.*)/$', views.edit_list,
         name='edit_list'),
 
-    # presupuestos
-    url(r'^presupuestos/$', views.presupuestos, name='presupuestos'),
-    url(r'^presupuestos/(\d+)/(\d+)/(.+)/$',
-        views.edit_presupuesto,
-        name='edit_presupuesto'),
-    url(r'^presupuestos/(\d+)/(\d+)$',
-        views.presupuestos_period,
-        name='presupuestos_period'),
-    url(r'^graphs/presupuestos/$',
-        views.graphs_presupuestos,
-        name='graphs_presupuestos'),
-    url(r'^graphs/presupuestos/(\d+)/(\d+)$',
-        views.graphs_presupuestos_period, name='graphs_presupuestos_period'),
-    url(r'^presupuestos/new/$',
-        views.nuevo_presupuesto,
-        name='nuevo_presupuesto'),
 
     # AJAX urls
     url(r'^get_items_autocomplete/$', ajax_dispatchers.get_items_autocomplete,
