@@ -2,7 +2,7 @@
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-from expenses_manager.models import Gasto
+from expenses.models import Gasto
 from vacations.models import UserIsOut
 from categories.models import Categoria
 from households.models import ViviendaUsuario, Invitacion

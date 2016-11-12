@@ -20,8 +20,8 @@ from .forms import TransferForm, UserIsOutForm, InvitacionForm, ViviendaForm, \
     CategoriaForm, ItemForm, GastoForm, EditGastoForm, ItemListaForm, \
     BaseItemListaFormSet, PresupuestoForm, PresupuestoEditForm, \
     EditCategoriaForm
-from .models import Invitacion, Gasto, \
-	ConfirmacionGasto, ListaCompras, ItemLista
+from .models import Invitacion, ConfirmacionGasto, ListaCompras, ItemLista
+from expenses.models import Gasto, ConfirmacionGasto
 from budgets.models import Presupuesto
 from groceries.models import Item, ListaCompras, ItemLista
 from periods.models import YearMonth

@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 from categories.models import Categoria
-from expenses_manager.models import Gasto
+from expenses.models import Gasto
 
 
 class Item(models.Model):

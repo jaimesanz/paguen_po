@@ -1,7 +1,6 @@
 from django.db import models
 
 # Create your models here.
-from categories.models import Categoria
 from periods.models import get_current_year_month
 
 
@@ -9,7 +8,7 @@ class Presupuesto(models.Model):
 
     class Meta:
         unique_together = (('categoria', 'vivienda', 'year_month'),)
-    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    categoria = models.ForeignKey("categories.Categoria", on_delete=models.CASCADE)
     vivienda = models.ForeignKey("households.Vivienda", on_delete=models.CASCADE)
     year_month = models.ForeignKey("periods.YearMonth", on_delete=models.CASCADE, default=get_current_year_month)
     monto = models.IntegerField(default=0)
