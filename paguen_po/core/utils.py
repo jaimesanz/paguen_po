@@ -8,7 +8,8 @@ def rm_not_active_at_date(user_set, date):
     """
     Given a set of ViviendaUsuario instances and a date, returns a
     subset of the original set with all ViviendaUsuario instances
-    that were active at the given date
+    that were active at the given date.
+
     :param user_set: Set(ViviendaUsuario)
     :param date: Timezone Date instance
     :return: Set(ViviendaUsuario)
@@ -205,6 +206,7 @@ def get_gasto_headers():
 def get_gasto_row_data(gasto):
     """
     Returns the data that will be written to the Gasto worksheet row.
+
     :param gasto: Gasto
     :return: List( String )
     """
@@ -298,13 +300,12 @@ def user_has_vivienda(request):
 
 
 def is_valid_transfer_to_user(user_id_raw, this_user):
-    """
-    Returns a tuple where:
-    - if the user given by user_id_raw is a valid user for
-    this_user to transfer to, the first element of the tuple
-    is the User instance, and the second is an empty String.
-    - if not, the first element is None and the second is an
-    error message.
+    """Returns a tuple where:
+        * if the user given by user_id_raw is a valid user for
+            this_user to transfer to, the first element of the tuple
+            is the User instance, and the second is an empty String.
+        * if not, the first element is None and the second is an
+            error message.
     """
     msg = ""
     try:
@@ -324,7 +325,7 @@ def is_valid_transfer_to_user(user_id_raw, this_user):
 
     if len(msg)>0:
         return (None, msg)
-    return (user, "")
+    return user, ""
 
 
 def is_valid_transfer_monto(monto_raw):

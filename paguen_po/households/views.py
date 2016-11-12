@@ -9,8 +9,7 @@ from core.forms import ViviendaForm, TransferForm, InvitacionForm
 from core.utils import create_new_vivienda, user_has_vivienda, \
     get_instructions_from_balance, is_valid_transfer_to_user, \
     is_valid_transfer_monto
-from households.models import Invitacion
-from .models import ViviendaUsuario
+from .models import ViviendaUsuario, Invitacion
 
 
 @login_required
