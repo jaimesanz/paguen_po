@@ -1,6 +1,6 @@
 [
 {
-    "model": "expenses_manager.yearmonth",
+    "model": "periods.yearmonth",
     "pk": 1,
     "fields": {
         "year": 2015,
@@ -8,7 +8,7 @@
     }
 },
 {
-    "model": "expenses_manager.yearmonth",
+    "model": "periods.yearmonth",
     "pk": 2,
     "fields": {
         "year": 2015,
@@ -16,7 +16,7 @@
     }
 },
 {
-    "model": "expenses_manager.yearmonth",
+    "model": "periods.yearmonth",
     "pk": 3,
     "fields": {
         "year": 2015,
@@ -24,7 +24,7 @@
     }
 },
 {
-    "model": "expenses_manager.yearmonth",
+    "model": "periods.yearmonth",
     "pk": 4,
     "fields": {
         "year": 2015,
@@ -32,7 +32,7 @@
     }
 },
 {
-    "model": "expenses_manager.yearmonth",
+    "model": "periods.yearmonth",
     "pk": 5,
     "fields": {
         "year": 2015,
@@ -40,7 +40,7 @@
     }
 },
 {
-    "model": "expenses_manager.yearmonth",
+    "model": "periods.yearmonth",
     "pk": 6,
     "fields": {
         "year": 2015,
@@ -48,7 +48,7 @@
     }
 },
 {
-    "model": "expenses_manager.yearmonth",
+    "model": "periods.yearmonth",
     "pk": 7,
     "fields": {
         "year": 2015,
@@ -56,7 +56,7 @@
     }
 },
 {
-    "model": "expenses_manager.yearmonth",
+    "model": "periods.yearmonth",
     "pk": 8,
     "fields": {
         "year": 2015,
@@ -64,7 +64,7 @@
     }
 },
 {
-    "model": "expenses_manager.yearmonth",
+    "model": "periods.yearmonth",
     "pk": 9,
     "fields": {
         "year": 2015,
@@ -72,7 +72,7 @@
     }
 },
 {
-    "model": "expenses_manager.yearmonth",
+    "model": "periods.yearmonth",
     "pk": 10,
     "fields": {
         "year": 2016,
@@ -80,7 +80,7 @@
     }
 },
 {
-    "model": "expenses_manager.yearmonth",
+    "model": "periods.yearmonth",
     "pk": 11,
     "fields": {
         "year": 2016,
@@ -88,7 +88,7 @@
     }
 },
 {
-    "model": "expenses_manager.yearmonth",
+    "model": "periods.yearmonth",
     "pk": 12,
     "fields": {
         "year": 2016,
@@ -96,7 +96,7 @@
     }
 },
 {
-    "model": "expenses_manager.yearmonth",
+    "model": "periods.yearmonth",
     "pk": 13,
     "fields": {
         "year": 2016,
@@ -104,7 +104,7 @@
     }
 },
 {
-    "model": "expenses_manager.yearmonth",
+    "model": "periods.yearmonth",
     "pk": 14,
     "fields": {
         "year": 2016,
