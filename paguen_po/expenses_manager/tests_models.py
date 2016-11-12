@@ -3,8 +3,9 @@ from django.test import TestCase
 from django.utils import timezone
 
 from .models import Vivienda, ViviendaUsuario, Presupuesto, Invitacion, \
-    ProxyUser, Gasto, EstadoGasto, Categoria, Item, YearMonth, ListaCompras, \
+	Gasto, EstadoGasto, Categoria, Item, YearMonth, ListaCompras, \
     ItemLista
+from users.models import ProxyUser
 from .test_utils import get_lone_user, get_vivienda_with_1_user, \
     get_vivienda_with_2_users, get_dummy_gasto_pendiente, \
     get_setup_w_vivienda_3_users_and_periods, get_hard_balance_test_database, \

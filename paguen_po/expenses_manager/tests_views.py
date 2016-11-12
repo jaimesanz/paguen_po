@@ -3,8 +3,9 @@ from django.test import TestCase
 from django.utils import timezone
 
 from .models import Vivienda, ViviendaUsuario, Invitacion, Gasto, \
-    YearMonth, Categoria, ProxyUser, ConfirmacionGasto, ListaCompras, \
+    YearMonth, Categoria, ConfirmacionGasto, ListaCompras, \
     ItemLista, Item, Presupuesto, UserIsOut
+from users.models import ProxyUser
 from .test_utils import test_the_basics_not_logged_in, \
     execute_test_the_basics_logged_in, \
     execute_test_the_basics_not_logged_in_restricted, get_test_user_and_login, \

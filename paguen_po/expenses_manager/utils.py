@@ -313,7 +313,7 @@ def is_valid_transfer_to_user(user_id_raw, this_user):
         msg = "Debe especificar un usuario a quien transferirle."
         return (None, msg)
 
-    from .models import ProxyUser
+    from users.models import ProxyUser
     user = ProxyUser.objects.filter(id=user_id).first()
     if user is None:
         msg = "Debe especificar un usuario a quien transferirle."

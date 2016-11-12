@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib.auth import backends
 
-from .models import ProxyUser
+from users.models import ProxyUser
 
 
 class ModelBackend(backends.ModelBackend):

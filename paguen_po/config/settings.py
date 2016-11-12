@@ -53,6 +53,7 @@ INSTALLED_APPS = [
 	'django_extensions',
 	'django.contrib.humanize',
 	'expenses_manager',
+	'users',
 	'jquery',
 	'jquery_ui',
 	'bootstrap3',
