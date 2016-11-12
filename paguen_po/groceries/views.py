@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
+import json
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.forms import inlineformset_factory
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
 from expenses_manager.custom_decorators import request_passes_test
 from expenses_manager.forms import ItemForm, GastoForm, ItemListaForm, \
     BaseItemListaFormSet
 from expenses_manager.utils import user_has_vivienda
+from groceries.models import Item
 from .models import Item, ListaCompras, ItemLista
 
 
@@ -264,3 +268,14 @@ def edit_list(request, lista_id):
     else:
         # user cant see this
         return redirect("error")
+
+
+@login_required
+def get_items_autocomplete(request):
+    if 'term' in request.GET:
+        items = Item.objects.filter(
+            vivienda=request.user.get_vivienda(),
+            nombre__istartswith=request.GET['term'])
+        return HttpResponse(
+            json.dumps(
+                [(item.nombre, item.unidad_medida) for item in items]))

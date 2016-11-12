@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
+import json
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
+from budgets.models import Presupuesto
 from .models import Presupuesto
 from categories.models import Categoria
 from expenses_manager.custom_decorators import request_passes_test
@@ -163,3 +167,21 @@ def edit_presupuesto(request, year, month, categoria):
 
     form = PresupuestoEditForm(initial=presupuesto.__dict__)
     return render(request, "vivienda/edit_presupuesto.html", locals())
+
+
+@login_required
+def get_old_presupuesto(request):
+    ans = []
+    categoria = request.POST.get("categoria", None)
+    year_month = request.POST.get("year_month", None)
+    if categoria is not None and year_month is not None:
+        presupuesto = Presupuesto.objects.filter(
+            categoria=categoria,
+            year_month=year_month,
+            vivienda=request.user.get_vivienda()).first()
+        if presupuesto is not None:
+            ans.append((
+                presupuesto.categoria.nombre,
+                presupuesto.year_month.id,
+                presupuesto.monto))
+    return HttpResponse(json.dumps(ans))

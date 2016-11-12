@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """project_root URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
@@ -13,7 +14,9 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
+from django.conf import settings
 from django.conf.urls import include, url
+from django.conf.urls.static import static
 from django.contrib import admin
 
 from expenses_manager import views
@@ -27,6 +30,9 @@ urlpatterns = [
     url(r'^home/', views.home, name='home'),
     url(r'^about/$', views.about, name='about'),
     url(r'^error/$', views.error, name='error'),
+
+    # registration
+    url(r'', include('users.urls')),
 
     # viviendas and invites
     url(r'', include('households.urls')),
@@ -46,5 +52,7 @@ urlpatterns = [
     # gastos
     url(r'', include('expenses.urls')),
 
-    url(r'', include('expenses_manager.urls'))
-]
+    # default to home
+    url(r'', views.home, name='home'),
+
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

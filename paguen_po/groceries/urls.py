@@ -15,5 +15,8 @@ urlpatterns = [
     url(r'^detalle_lista/(?P<lista_id>.*)/$',
         views.detalle_lista, name='detalle_lista'),
     url(r'^edit_list/(?P<lista_id>.*)/$', views.edit_list,
-        name='edit_list')
+        name='edit_list'),
+
+    url(r'^get_items_autocomplete/$', views.get_items_autocomplete,
+        name='get_items_autocomplete')
 ]

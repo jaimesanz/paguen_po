@@ -19,5 +19,8 @@ urlpatterns = [
         views.graphs_presupuestos_period, name='graphs_presupuestos_period'),
     url(r'^presupuestos/new/$',
         views.nuevo_presupuesto,
-        name='nuevo_presupuesto')
+        name='nuevo_presupuesto'),
+
+    url(r'^get_old_presupuesto/$', views.get_old_presupuesto,
+        name='get_old_presupuesto')
 ]
