@@ -34,5 +34,8 @@ urlpatterns = [
     # vacations
     url(r'', include('vacations.urls')),
 
+    # categorías
+    url(r'', include('categories.urls')),
+
     url(r'', include('expenses_manager.urls'))
 ]

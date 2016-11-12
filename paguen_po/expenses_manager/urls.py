@@ -27,17 +27,6 @@ urlpatterns = [
     url(r'^login_post_process/$', views.login_post_process,
         name='login_post_process'),
 
-    # categorías
-    url(r'^vivienda/categorias/$', views.categorias, name='categorias'),
-    url(r'^vivienda/categorias/new/$',
-        views.nueva_categoria,
-        name='nueva_categoria'),
-    url(r'^vivienda/categorias/delete/$',
-        views.delete_categoria,
-        name='delete_categoria'),
-    url(r'^vivienda/categoria/(\d+)/$', views.edit_categoria,
-        name='edit_categoria'),
-
     # items
     url(r'^vivienda/items/$', views.items, name='items'),
     url(r'^vivienda/items/new/$', views.new_item, name='new_item'),
