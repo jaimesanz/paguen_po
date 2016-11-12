@@ -18,7 +18,8 @@ from .test_utils import test_the_basics_not_logged_in, \
     get_setup_viv_2_users_viv_1_user_cat_1_gastos_3, \
     execute_test_basics_logged_with_viv, has_not_logged_navbar, \
     get_setup_with_gastos_items_and_listas
-from .views import home, about, error, gastos
+from .views import home, about, error
+from expenses.views import gastos
 from budgets.views import presupuestos, graphs_presupuestos
 from households.views import nueva_vivienda, manage_users, invites_list
 

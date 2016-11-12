@@ -43,5 +43,8 @@ urlpatterns = [
     # listas and items
     url(r'', include('groceries.urls')),
 
+    # gastos
+    url(r'', include('expenses.urls')),
+
     url(r'', include('expenses_manager.urls'))
 ]
