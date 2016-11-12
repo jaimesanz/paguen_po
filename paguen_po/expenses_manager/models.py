@@ -9,7 +9,6 @@ from django.core.files.base import ContentFile
 from django.db import models
 from django.utils import timezone
 
-from households.models import Vivienda, ViviendaUsuario
 from .utils import rm_not_active_at_date, rm_users_out_at_date
 
 
@@ -101,7 +100,7 @@ def vivienda_gasto_directory_path(instance, filename):
 class UserIsOut(models.Model):
 
     vivienda_usuario = models.ForeignKey(
-        ViviendaUsuario,
+        "households.ViviendaUsuario",
         on_delete=models.CASCADE)
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
@@ -112,7 +111,7 @@ class Invitacion(models.Model):
     # the invitation is sent to the email.
     invitado = models.ForeignKey(
         User, on_delete=models.CASCADE, blank=True, null=True)
-    invitado_por = models.ForeignKey(ViviendaUsuario, on_delete=models.CASCADE)
+    invitado_por = models.ForeignKey("households.ViviendaUsuario", on_delete=models.CASCADE)
     email = models.EmailField()
     estado = models.CharField(max_length=200, default="pendiente")
     # estado es pendiente, rechazada o aceptada
@@ -128,6 +127,7 @@ class Invitacion(models.Model):
         """
         self.estado = "aceptada"
         self.save()
+        from households.models import ViviendaUsuario
         ViviendaUsuario.objects.create(
             user=self.invitado, vivienda=self.invitado_por.vivienda)
 
@@ -827,7 +827,7 @@ class ConfirmacionGasto(models.Model):
         unique_together = ('vivienda_usuario', 'gasto')
 
     vivienda_usuario = models.ForeignKey(
-        ViviendaUsuario,
+        "households.ViviendaUsuario",
         on_delete=models.CASCADE)
     confirmed = models.BooleanField(default=False)
     gasto = models.ForeignKey(Gasto, on_delete=models.CASCADE)
