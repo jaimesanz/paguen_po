@@ -3,8 +3,9 @@ from django import forms
 from django.contrib.auth.models import User
 from django.conf import settings
 
-from .models import Vivienda, Invitacion, Gasto, Categoria, Presupuesto, Item, \
+from .models import Invitacion, Gasto, Categoria, Presupuesto, Item, \
     ItemLista, UserIsOut
+from households.models import Vivienda
 
 
 class UserForm(forms.ModelForm):

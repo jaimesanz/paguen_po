@@ -2,8 +2,9 @@
 from django.core.urlresolvers import resolve
 from django.utils import timezone
 
-from .models import Vivienda, ViviendaUsuario, Categoria, Gasto, \
+from .models import ViviendaUsuario, Categoria, Gasto, \
     ListaCompras, Item, ItemLista
+from households.models import Vivienda, ViviendaUsuario
 from users.models import ProxyUser
 
 

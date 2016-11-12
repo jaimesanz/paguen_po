@@ -20,8 +20,9 @@ from .forms import TransferForm, UserIsOutForm, InvitacionForm, ViviendaForm, \
     CategoriaForm, ItemForm, GastoForm, EditGastoForm, ItemListaForm, \
     BaseItemListaFormSet, PresupuestoForm, PresupuestoEditForm, \
     EditCategoriaForm
-from .models import UserIsOut, Invitacion, ViviendaUsuario, Categoria, Gasto, \
+from .models import UserIsOut, Invitacion, Categoria, Gasto, \
     Item, YearMonth, ConfirmacionGasto, ListaCompras, Presupuesto, ItemLista
+from households.models import ViviendaUsuario
 
 
 def home(request):

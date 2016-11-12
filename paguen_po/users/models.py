@@ -2,8 +2,9 @@
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-from expenses_manager.models import ViviendaUsuario, Invitacion, UserIsOut, \
+from expenses_manager.models import Invitacion, UserIsOut, \
     Categoria, Gasto
+from households.models import ViviendaUsuario
 
 
 class ProxyUser(User):

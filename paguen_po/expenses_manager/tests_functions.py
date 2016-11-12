@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
 
-from .models import ViviendaUsuario
+from households.models import ViviendaUsuario
 from users.models import ProxyUser
 from .test_utils import get_setup_w_vivienda_3_users_and_periods
 from .utils import rm_not_active_at_date, rm_users_out_at_date, \

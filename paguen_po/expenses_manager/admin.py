@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
 
-from .models import Vivienda, ViviendaUsuario, UserIsOut, \
+from .models import ViviendaUsuario, UserIsOut, \
 	Invitacion, Categoria, Item, YearMonth, Presupuesto, ListaCompras, \
 	ItemLista, EstadoGasto, Gasto
+from households.models import Vivienda, ViviendaUsuario
 from users.models import ProxyUser
 
 admin.site.register(ProxyUser)

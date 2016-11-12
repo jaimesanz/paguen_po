@@ -2,9 +2,10 @@
 from django.test import TestCase
 from django.utils import timezone
 
-from .models import Vivienda, ViviendaUsuario, Invitacion, Gasto, \
+from .models import ViviendaUsuario, Invitacion, Gasto, \
     YearMonth, Categoria, ConfirmacionGasto, ListaCompras, \
     ItemLista, Item, Presupuesto, UserIsOut
+from households.models import Vivienda, ViviendaUsuario
 from users.models import ProxyUser
 from .test_utils import test_the_basics_not_logged_in, \
     execute_test_the_basics_logged_in, \
