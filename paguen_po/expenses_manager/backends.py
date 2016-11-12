@@ -1,11 +1,11 @@
+# -*- coding: utf-8 -*-
 from django.contrib.auth import backends
-from expenses_manager.models import ProxyUser
+
+from .models import ProxyUser
 
 
 class ModelBackend(backends.ModelBackend):
-    '''
-    Extending to provide a proxy for user
-    '''
+    """Extending to provide a proxy for user."""
 
     def get_user(self, user_id):
         try:

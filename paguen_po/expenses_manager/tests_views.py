@@ -1,8 +1,20 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
+from django.utils import timezone
 
-from .test_utils import *
-from .views import *
+from .models import Vivienda, ViviendaUsuario, Invitacion, Gasto, \
+    YearMonth, Categoria, ProxyUser, ConfirmacionGasto, ListaCompras, \
+    ItemLista, Item, Presupuesto, UserIsOut
+from .test_utils import test_the_basics_not_logged_in, \
+    execute_test_the_basics_logged_in, \
+    execute_test_the_basics_not_logged_in_restricted, get_test_user_and_login, \
+    get_test_user_with_vivienda_and_login, has_logged_navbar_with_viv, \
+    has_logged_navbar_without_viv, get_vivienda_with_1_user, get_lone_user, \
+    get_setup_viv_2_users_viv_1_user_cat_1_gastos_3, \
+    execute_test_basics_logged_with_viv, has_not_logged_navbar, \
+    get_setup_with_gastos_items_and_listas
+from .views import home, about, error, nueva_vivienda, manage_users, \
+    invites_list, gastos, presupuestos, graphs_presupuestos
 
 
 class HomePageTest(TestCase):
