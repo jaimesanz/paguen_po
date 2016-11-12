@@ -27,11 +27,6 @@ urlpatterns = [
     url(r'^login_post_process/$', views.login_post_process,
         name='login_post_process'),
 
-    # items
-    url(r'^vivienda/items/$', views.items, name='items'),
-    url(r'^vivienda/items/new/$', views.new_item, name='new_item'),
-    url(r'^vivienda/item/(.+)/$', views.edit_item, name='edit_item'),
-
     # gastos
     url(r'^gastos/$', views.gastos, name='gastos'),
     url(r'^nuevo_gasto/$', views.nuevo_gasto, name='nuevo_gasto'),
@@ -44,15 +39,6 @@ urlpatterns = [
         views.confirm_gasto,
         name='confirm_gasto'),
     url(r'^gastos/delete/$', views.delete_gasto, name='delete_gasto'),
-
-    # listas
-    url(r'^nueva_lista/$', views.nueva_lista, name='nueva_lista'),
-    url(r'^lists/new/$', views.lists, name='lists'),
-    url(r'^detalle_lista/(?P<lista_id>.*)/$',
-        views.detalle_lista, name='detalle_lista'),
-    url(r'^edit_list/(?P<lista_id>.*)/$', views.edit_list,
-        name='edit_list'),
-
 
     # AJAX urls
     url(r'^get_items_autocomplete/$', ajax_dispatchers.get_items_autocomplete,
