@@ -52,7 +52,7 @@ INSTALLED_APPS = [
 	'django.contrib.staticfiles',
 	'django_extensions',
 	'django.contrib.humanize',
-	'expenses_manager',
+	'core',
 	'users',
 	'households',
 	'categories',
@@ -141,7 +141,7 @@ LOGIN_URL = '/accounts/login/'
 ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window;
 LOGIN_REDIRECT_URL = '/login_post_process/'
 
-AUTHENTICATION_BACKENDS = ('expenses_manager.backends.ModelBackend',)
+AUTHENTICATION_BACKENDS = ('core.backends.ModelBackend',)
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/

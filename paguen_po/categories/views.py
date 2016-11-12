@@ -5,9 +5,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 
 from .models import Categoria
 from expenses.models import Gasto
-from expenses_manager.custom_decorators import request_passes_test
-from expenses_manager.forms import CategoriaForm, EditCategoriaForm
-from expenses_manager.utils import user_has_vivienda
+from core.custom_decorators import request_passes_test
+from core.forms import CategoriaForm, EditCategoriaForm
+from core.utils import user_has_vivienda
 
 
 @login_required

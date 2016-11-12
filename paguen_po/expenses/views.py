@@ -13,9 +13,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 
 from expenses.models import Gasto, ConfirmacionGasto
-from expenses_manager.custom_decorators import request_passes_test
-from expenses_manager.forms import GastoForm, EditGastoForm
-from expenses_manager.utils import user_has_vivienda, write_gastos_to_xls_sheet, \
+from core.custom_decorators import request_passes_test
+from core.forms import GastoForm, EditGastoForm
+from core.utils import user_has_vivienda, write_gastos_to_xls_sheet, \
     get_periods
 from periods.models import YearMonth, get_current_year_month_obj
 

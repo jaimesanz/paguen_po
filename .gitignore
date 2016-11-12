@@ -1,5 +1,5 @@
 *.pyc
-paguen_po/expenses_manager/migrations/*
+paguen_po/core/migrations/*
 paguen_po/config/secrets.json
 paguen_po/static/*
 uwsgi/*
@@ -12,7 +12,7 @@ paguen_po/categories/migrations/
 paguen_po/config/__pycache__/
 paguen_po/expenses/__pycache__/
 paguen_po/expenses/migrations/
-paguen_po/expenses_manager/__pycache__/
+paguen_po/core/__pycache__/
 paguen_po/groceries/__pycache__/
 paguen_po/groceries/migrations/
 paguen_po/households/__pycache__/

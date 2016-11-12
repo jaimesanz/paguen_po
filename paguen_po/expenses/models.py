@@ -8,7 +8,7 @@ from django.db import models
 # Create your models here.
 from django.utils import timezone
 
-from expenses_manager.utils import rm_not_active_at_date, rm_users_out_at_date
+from core.utils import rm_not_active_at_date, rm_users_out_at_date
 from periods.models import YearMonth
 
 

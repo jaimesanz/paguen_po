@@ -8,10 +8,10 @@ from django.forms import inlineformset_factory
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
-from expenses_manager.custom_decorators import request_passes_test
-from expenses_manager.forms import ItemForm, GastoForm, ItemListaForm, \
+from core.custom_decorators import request_passes_test
+from core.forms import ItemForm, GastoForm, ItemListaForm, \
     BaseItemListaFormSet
-from expenses_manager.utils import user_has_vivienda
+from core.utils import user_has_vivienda
 from groceries.models import Item
 from .models import Item, ListaCompras, ItemLista
 

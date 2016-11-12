@@ -9,9 +9,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from budgets.models import Presupuesto
 from .models import Presupuesto
 from categories.models import Categoria
-from expenses_manager.custom_decorators import request_passes_test
-from expenses_manager.forms import PresupuestoForm, PresupuestoEditForm
-from expenses_manager.utils import user_has_vivienda
+from core.custom_decorators import request_passes_test
+from core.forms import PresupuestoForm, PresupuestoEditForm
+from core.utils import user_has_vivienda
 from periods.models import get_current_year_month_obj, YearMonth
 
 

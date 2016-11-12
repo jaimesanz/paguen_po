@@ -4,9 +4,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 
-from expenses_manager.custom_decorators import request_passes_test
-from expenses_manager.forms import ViviendaForm, TransferForm, InvitacionForm
-from expenses_manager.utils import create_new_vivienda, user_has_vivienda, \
+from core.custom_decorators import request_passes_test
+from core.forms import ViviendaForm, TransferForm, InvitacionForm
+from core.utils import create_new_vivienda, user_has_vivienda, \
     get_instructions_from_balance, is_valid_transfer_to_user, \
     is_valid_transfer_monto
 from households.models import Invitacion

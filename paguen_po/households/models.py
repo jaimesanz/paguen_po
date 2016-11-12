@@ -11,7 +11,7 @@ from groceries.models import Item, ListaCompras
 from periods.models import YearMonth
 from vacations.models import UserIsOut
 from categories.models import get_default_others_categoria, Categoria
-from expenses_manager.utils import compute_balance
+from core.utils import compute_balance
 
 
 class Vivienda(models.Model):

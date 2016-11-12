@@ -6,9 +6,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 
-from expenses_manager.custom_decorators import request_passes_test
-from expenses_manager.forms import UserIsOutForm
-from expenses_manager.utils import user_has_vivienda
+from core.custom_decorators import request_passes_test
+from core.forms import UserIsOutForm
+from core.utils import user_has_vivienda
 from .models import UserIsOut
 
 
