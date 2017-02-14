@@ -7,14 +7,17 @@ before_install:
   - sudo apt-get install -y python3-pip
   - sudo apt-get install -y python3-dev
   - pip3 install --upgrade pip
+  - pip install --upgrade pip
   - sudo apt-get install -y libjpeg-dev
+
+install:
   - virtualenv -p python3 venv
   - source venv/bin/activate
   - pip3 install -r requirements/dev.txt
-  - cp paguen_po/config/secrets.json.travisCI paguen_po/config/secrets.json
 
 before_script:
   - source venv/bin/activate
+  - cp paguen_po/config/secrets.json.travisCI paguen_po/config/secrets.json
 
 script:
   - ls
