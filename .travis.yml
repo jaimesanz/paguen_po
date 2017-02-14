@@ -1,5 +1,16 @@
-language: python2.7
+language: python3.5.2
 
 services: postgresql 9.5.5
+
+before_install:
+  - sudo apt-get install pip3
+  - sudo apt-get install python3-dev
+  - sudo apt-get install libjpeg-dev
+  - virtualenv -p python3 venv
+  - source venv/bin/activate
+  - pip install -r requirements/dev.txt
+
+before_script:
+  - source venv/bin/activate
 
 script: echo "Hi!"
