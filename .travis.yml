@@ -1,0 +1,3 @@
+language: python2.7
+
+script: echo "Hi!"
