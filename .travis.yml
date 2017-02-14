@@ -4,12 +4,13 @@ services: postgresql 9.5.5
 
 before_install:
   - sudo apt-get update
-  - sudo apt-get install --upgrade -y python3-pip
+  - sudo apt-get install -y python3-pip
   - sudo apt-get install -y python3-dev
+  - pip3 install --upgrade pip3
   - sudo apt-get install -y libjpeg-dev
   - virtualenv -p python3 venv
   - source venv/bin/activate
-  - pip install -r requirements/dev.txt
+  - pip3 install -r requirements/dev.txt
 
 before_script:
   - source venv/bin/activate
