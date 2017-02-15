@@ -21,4 +21,5 @@ before_script:
   - python paguen_po/manage.py makemigrations users vacations periods households groceries expenses categories budgets
 
 script:
+  - python paguen_po/manage migrate
   - python paguen_po/manage.py test core
