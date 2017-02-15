@@ -21,5 +21,7 @@ before_script:
   - python paguen_po/manage.py makemigrations users vacations periods households groceries expenses categories budgets
 
 script:
-  - python paguen_po/manage migrate
-  - python paguen_po/manage.py test core
+  - pep8 paguen_po --max-line-length=119 --exclude="*/migrations/*","*wsgi.py"
+  - cd paguen_po
+  - python manage.py migrate
+  - python manage.py test
