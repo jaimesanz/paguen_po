@@ -20,6 +20,5 @@ before_script:
   - cp paguen_po/config/secrets.json.travisCI paguen_po/config/secrets.json
   - python paguen_po/manage.py makemigrations users vacations periods households groceries expenses categories budgets
 
-all_tests:
-  script:
-    - python paguen_po/manage.py test
+script:
+  - python paguen_po/manage.py test
