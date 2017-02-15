@@ -18,7 +18,8 @@ install:
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
   - cp paguen_po/config/secrets.json.travisCI paguen_po/config/secrets.json
+  - python paguen_po/manage.py makemigrations users vacations periods households groceries expenses categories budgets
 
-script:
-  - ls
-  - python paguen_po/manage.py makemigrations
+all_tests:
+  script:
+    - python paguen_po/manage.py test
