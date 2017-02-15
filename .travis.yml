@@ -1,3 +1,30 @@
-language: python2.7
+language: python
 
-script: echo "Hi!"
+python:
+  - "3.5.2"
+
+services: postgresql
+
+addons:
+  postgresql: "9.5"
+
+install:
+  - sudo apt-get update
+  - sudo apt-get install -y python3-dev
+  - sudo apt-get install -y libjpeg-dev
+  - pip install --upgrade pip
+  - pip install -r requirements/dev.txt
+
+before_script:
+  - psql -c 'create database travis_ci_test;' -U postgres
+  - cp paguen_po/config/secrets.json.travisCI paguen_po/config/secrets.json
+  - python paguen_po/manage.py makemigrations users vacations periods households groceries expenses categories budgets
+
+script:
+  - pep8 paguen_po --max-line-length=119 --exclude="*/migrations/*","*wsgi.py"
+  - cd paguen_po
+  - python manage.py migrate
+  - python manage.py test
+
+notifications:
+  email: false

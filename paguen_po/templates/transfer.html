@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+
+{% block content_title %}{{ request.user.get_vivienda }}{% endblock %}
+
+{% block subtitle %}
+    Transferencias
+{% endblock %}
+
+{% block content %}
+    <form method="post" action="">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% bootstrap_button "Transferir" button_type="submit" button_class="btn-primary" %}
+    </form>
+{% endblock %}
+
+{% block info_title %}
+    Sobre las Transferencias
+{% endblock %}
+
+{% block info_content %}
+    Los usuarios pueden realizar transferencias a sus compañeros. Esto
+    resulta útil ya que, luego de ver el <a href="{% url 'balance' %}"
+                                            target="_blank">balance</a>,
+    los usuarios arreglan las cuentas por afuera del sistema, por lo que se
+    hace necesario poder <i>decirle</i> al sistema que las cuentas fueron
+    saldadas.
+    <br><br>
+    Al hacer una transferencia a otro usuario, se generan 2 Gastos: uno con
+    saldo positivo (a nombre del usuario que transfirió) y otro negativo (a
+    nombre del usuario al que le transfirieron). Estos Gastos deben ser
+    confirmados por todos los usuarios antes de pasar a estar "pagados".
+    <br><br>
+    A diferencia de otros tipos de Gasto, los usuarios <b>no</b> tienen
+    permitido editar transferencias.
+    <br><br>
+    <b>Se reitera que para que el balance funcione correctamente, se deben
+        realizar las transacciones pertinentes luego de arreglar las cuentas
+        por afuera del sistema.</b>
+{% endblock %}

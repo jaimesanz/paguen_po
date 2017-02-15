@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+
+{% block content_title %}{{vivienda_usuario.vivienda}}{% endblock %}
+{% block subtitle %}
+    Invitar Usuario
+{% endblock %}
+{% block content %}
+    <form method="post" action="">
+      {% csrf_token %}
+      {% bootstrap_form invite_form %}
+      {% bootstrap_button "Invitar" button_type="submit" button_class="btn-primary" %}
+    </form>
+{% endblock %}
+
+{% block info_title %}
+    ¿Por qué debo ingresar el mail?
+{% endblock %}
+
+{% block info_content %}
+    El mail es la forma en que se identifica de forma única a los usuarios,
+    pues esta permitido que existan usuarios con el mismo nombre.
+    <br><br>
+    En caso de que el usuario que está invitando no tenga cuenta aún, la
+    invitación quedará registrada de todas formas, y cuando el usuario se
+    haga la cuenta, podrá tener acceso a la invitación sin necesidad de
+    enviarla nuevamente.
+{% endblock %}

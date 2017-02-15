@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+
+{% block content_title %}{{ request.user.get_vivienda }}{% endblock %}
+
+{% block subtitle %}
+    Nuevo Item
+{% endblock %}
+
+{% block help_info_button %}
+{% endblock %}
+
+{% block content %}
+    <hr>
+    <form method="post" action="">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+      {% bootstrap_button "Editar" button_type="submit" button_class="btn-primary" %}
+    </form>
+{% endblock %}
+
+{% block help_info_modal %}
+{% endblock %}
