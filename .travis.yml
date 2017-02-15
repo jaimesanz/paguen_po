@@ -6,7 +6,7 @@ python:
 services: postgresql
 
 addons:
-  postgresql: "9.5.5"
+  postgresql: "9.5"
 
 install:
   - sudo apt-get update
