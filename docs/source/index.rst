@@ -6,9 +6,13 @@
 Welcome to PaguenPo's documentation!
 ====================================
 
+Contents
+--------
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+   installation
 
 
 
