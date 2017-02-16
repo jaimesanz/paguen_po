@@ -4,7 +4,7 @@ Installation
 Configuring PostgreSQL
 ----------------------
 
-This instructions were taken from: https://www.digitalocean.com/community/tutorials/how-to-use-postgresql-with-your-django-application-on-ubuntu-14-04
+This instructions were taken from `Justin Ellingwood's tutorial <https://www.digitalocean.com/community/tutorials/how-to-use-postgresql-with-your-django-application-on-ubuntu-14-04/>`_:
 
 * install components:
 
