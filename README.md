@@ -9,7 +9,7 @@ This project is also the Thesis of https://github.com/jaimesanz
 
 Installation
 -------------
-The instructions to install the aplication can be found in the install_files/ directory. After following those instructions, you have to specify the secret settings for the project. To do this, fill out the empty fields in settings_secret.py.template, and then rename it to settings_secret.py
+The instructions to install the aplication and all relevant documentation can be found in http://jaimesanz.github.io/paguen_po/installation.html. After following those instructions, you have to specify the secret settings for the project. To do this, fill out the empty fields in settings_secret.py.template, and then rename it to settings_secret.py
 
 Expenses
 -------------
