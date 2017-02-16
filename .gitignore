@@ -23,3 +23,4 @@ paguen_po/users/migrations/
 paguen_po/vacations/__pycache__/
 paguen_po/vacations/migrations/
 venv/
+docs/build/*
