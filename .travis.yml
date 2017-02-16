@@ -25,10 +25,10 @@ script:
   - cd paguen_po
   - python manage.py migrate
   - python manage.py test
-  - travis-sphinx build --outdir docs/build/html
+  - travis-sphinx build --outdir=docs/build/html
 
 after_success:
-  - travis-sphinx deploy --outdir docs/build/html
+  - travis-sphinx deploy --outdir=docs/build/html
 
 notifications:
   email: false
