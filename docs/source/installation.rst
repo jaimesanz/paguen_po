@@ -35,16 +35,19 @@ This instructions were taken from: https://www.digitalocean.com/community/tutori
     nano ~/admin_gastos/project_root/settings.py
 
 * change database settings to this:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'myproject',
-            'USER': 'myprojectuser',
-            'PASSWORD': 'password',
-            'HOST': 'localhost',
-            'PORT': '',
+
+    .. code-block:: python
+
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'NAME': 'myproject',
+                'USER': 'myprojectuser',
+                'PASSWORD': 'password',
+                'HOST': 'localhost',
+                'PORT': '',
+            }
         }
-    }
 
 * migrate:
     python manage.py makemigrations
@@ -65,10 +68,15 @@ To export the virtualenv:
 
 To create a new virtualenv using requirements/dev.txt, create virtualenv (this makes sure to
 use the virtualenv for python3):
+
     virtualenv -p python3 <env_name>
+
 , then activate it
+
     source <env_name>/bin/activate
+
 , and finally install the requirements
+
     pip install -r requirements/dev.txt
 
 Fixtures
