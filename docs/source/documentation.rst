@@ -12,8 +12,8 @@ GitHub Pages
 
 These docs are hosted using GitHub Pages, and can be found `here <http://jaimesanz.github.io/paguen_po/>`_.
 
-To configure the docs to be hosted this way, follow these instructions (taken
-from `here <https://gist.github.com/brantfaircloth/791759/>`_):
+To configure the docs to be hosted this way, follow these instructions (credits
+to `brantfaircloth <https://gist.github.com/brantfaircloth/791759/>`_):
 
 # assume the following directory structure where contents of doc/
 # and source/ are already checked into repo., with the exception
