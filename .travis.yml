@@ -22,10 +22,10 @@ before_script:
 
 script:
   - pep8 paguen_po --max-line-length=119 --exclude="*/migrations/*","*wsgi.py"
+  - travis-sphinx build
   - cd paguen_po
   - python manage.py migrate
   - python manage.py test
-  - travis-sphinx build
 
 after_success:
   - travis-sphinx deploy
