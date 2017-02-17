@@ -26,6 +26,7 @@ script:
   - cd paguen_po
   - python manage.py migrate
   - python manage.py test
+  - cd ..
 
 after_success:
   - travis-sphinx deploy
