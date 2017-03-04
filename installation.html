@@ -1,0 +1,353 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation &mdash; PaguenPo 0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="PaguenPo 0.1 documentation" href="index.html"/>
+        <link rel="next" title="Documentation" href="documentation.html"/>
+        <link rel="prev" title="Welcome to PaguenPo’s documentation!" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> PaguenPo
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#configuring-postgresql">Configuring PostgreSQL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#virtual-environment">Virtual Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fixtures">Fixtures</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="documentation.html#about">About</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation.html#github-pages">GitHub Pages</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">PaguenPo</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Installation</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="configuring-postgresql">
+<h2>Configuring PostgreSQL<a class="headerlink" href="#configuring-postgresql" title="Permalink to this headline">¶</a></h2>
+<p>This instructions were taken from <a class="reference external" href="https://www.digitalocean.com/community/tutorials/how-to-use-postgresql-with-your-django-application-on-ubuntu-14-04/">Justin Ellingwood&#8217;s tutorial</a>:</p>
+<ul>
+<li><p class="first">install components:</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span>sudo apt-get update
+sudo apt-get install python-pip python-dev libpq-dev postgresql postgresql-contrib
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">create database and database user:</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span>sudo su - postgres
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">enter postgres shell:</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span>psql
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">create database and just permissions:</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span>CREATE DATABASE admin_gastos<span class="p">;</span>
+CREATE USER myprojectuser WITH PASSWORD <span class="s1">&#39;password&#39;</span><span class="p">;</span>
+ALTER ROLE myprojectuser SET client_encoding TO <span class="s1">&#39;utf8&#39;</span><span class="p">;</span>
+ALTER ROLE myprojectuser SET default_transaction_isolation TO <span class="s1">&#39;read committed&#39;</span><span class="p">;</span>
+ALTER ROLE myprojectuser SET timezone TO <span class="s1">&#39;UTC&#39;</span><span class="p">;</span>
+GRANT ALL PRIVILEGES ON DATABASE admin_gastos TO myprojectuser<span class="p">;</span>
+<span class="se">\q</span>
+<span class="nb">exit</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">enter virtualenv:</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">source</span> admin_gastos/bin/activate
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">install psycopg2:</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span>pip install psycopg2
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">edit project settings:</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span>nano ~/admin_gastos/project_root/settings.py
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">change database settings to this:</p>
+<blockquote>
+<div><div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">DATABASES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;ENGINE&#39;</span><span class="p">:</span> <span class="s1">&#39;django.db.backends.postgresql_psycopg2&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;NAME&#39;</span><span class="p">:</span> <span class="s1">&#39;myproject&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;USER&#39;</span><span class="p">:</span> <span class="s1">&#39;myprojectuser&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PASSWORD&#39;</span><span class="p">:</span> <span class="s1">&#39;password&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;HOST&#39;</span><span class="p">:</span> <span class="s1">&#39;localhost&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PORT&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">migrate:</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span>python manage.py makemigrations
+python manage.py migrate
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">create super user:</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span>python manage.py createsuperuser
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+</div>
+<div class="section" id="virtual-environment">
+<h2>Virtual Environment<a class="headerlink" href="#virtual-environment" title="Permalink to this headline">¶</a></h2>
+<p>Before installing anything, run this commands, or there will be problems installing some libraries:</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span>sudo apt-get install python3-dev
+sudo apt-get install libjpeg-dev
+</pre></div>
+</div>
+</div></blockquote>
+<p>To export the virtualenv:</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span>pip freeze &gt; requirements/dev.txt
+</pre></div>
+</div>
+</div></blockquote>
+<p>To create a new virtualenv using requirements/dev.txt, create virtualenv (this makes sure to
+use the virtualenv for python3):</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span>virtualenv -p python3 &lt;env_name&gt;
+</pre></div>
+</div>
+</div></blockquote>
+<p>, then activate it</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">source</span> &lt;env_name&gt;/bin/activate
+</pre></div>
+</div>
+</div></blockquote>
+<p>, and finally install the requirements</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span>pip install -r requirements/dev.txt
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="fixtures">
+<h2>Fixtures<a class="headerlink" href="#fixtures" title="Permalink to this headline">¶</a></h2>
+<p>Before running the server, you must load all basic fixtures. To do this, you should run this command:</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span>python manage.py loaddata vivs.json
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="documentation.html" class="btn btn-neutral float-right" title="Documentation" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to PaguenPo’s documentation!" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Jaime Sanz.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
