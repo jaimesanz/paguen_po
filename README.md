@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/jaimesanz/paguen_po.svg?branch=master)](https://travis-ci.org/jaimesanz/paguen_po)
+[![Coverage Status](https://coveralls.io/repos/github/jaimesanz/paguen_po/badge.svg?branch=master)](https://coveralls.io/github/jaimesanz/paguen_po?branch=master)
 
 PaguenPo
 =============
