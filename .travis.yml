@@ -26,7 +26,8 @@ script:
   - travis-sphinx build
   - cd paguen_po
   - python manage.py migrate
-  - coverage run --source='.' --omit='*/migrations/*','config/settings/*','*__init__.py*','*apps.py','config/wsgi.py','manage.py' manage.py test -k
+  - cd ..
+  - coverage run --source='paguen_po' --omit='*/migrations/*','config/settings/*','*__init__.py*','*apps.py','config/wsgi.py','manage.py' manage.py test -k
   - coverage report
 
 after_success:
