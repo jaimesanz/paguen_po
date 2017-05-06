@@ -98,3 +98,32 @@ For a proper production server, configure a RST instance running PostgreSQL.
 
 Either way, after configuring the database, edit the `secrets.json` file and add the proper database
 credentials.
+
+Simple Email Service (SES)
+--------------------------
+
+To use SES, two libraries are needed: ``boto`` and ``django-ses`` (both libraries are included in
+the requirement files). ``boto`` is a a large python package that gives control over many AWS
+services, including SES.
+
+We need to provide ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` in the settings file for
+boto to access the services:
+
+.. code-block:: python
+
+   AWS_ACCESS_KEY_ID = 'YOUR-ACCESS-KEY-ID'
+   AWS_SECRET_ACCESS_KEY = 'YOUR-SECRET-ACCESS-KEY'
+
+
+.. important::
+
+   Since the only service we want to use with boto is SES, it would be foolish to use the master
+   id/key pair. We should create an IAM user only with enough permissions to use SES, and
+   generate an access id/key pair for that user. **This is the key used in the settings file.**
+
+   To create the IAM user, follow official instructions: http://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html
+
+.. seealso::
+
+   * https://hmarr.com/2011/jan/26/using-amazons-simple-email-service-ses-with-django/
+   * https://github.com/boto/boto3
