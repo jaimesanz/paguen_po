@@ -185,8 +185,7 @@ NOSE_ARGS = ['--nocapture', '--nologcapture', ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-# email configuration
-# values for Gmail
+# email configuration values for Gmail
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
