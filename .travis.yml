@@ -14,6 +14,7 @@ install:
   - sudo apt-get install -y libjpeg-dev
   - pip install --upgrade pip
   - pip install -r requirements/dev.txt
+  - pip install coveralls
 
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
@@ -22,13 +23,15 @@ before_script:
 
 script:
   - pep8 paguen_po --max-line-length=119 --exclude="*/migrations/*","*wsgi.py"
+  - travis-sphinx build
   - cd paguen_po
   - python manage.py migrate
-  - python manage.py test
-  - travis-sphinx build
+  - coverage run --source='.' --omit='*/migrations/*','config/settings/*','*__init__.py*','*apps.py','config/wsgi.py','manage.py' manage.py test -k
+  - coverage report
 
 after_success:
   - travis-sphinx deploy
+  - coveralls
 
 notifications:
   email: false
