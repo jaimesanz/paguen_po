@@ -9,9 +9,7 @@ EC2 instance
 Create an EC2 instance (Ubuntu 16.04), and create the proper SSH keys. Download the `.pem` file and store
 it in a safe location.
 
-Connect to the instance vía ssh:
-
-.. code-block:: bash
+Connect to the instance vía ssh::
 
     ssh -i "<private key (.pem) file>" <instance's public DNS>
 
@@ -31,15 +29,11 @@ should look something like this:
             manage.py
 
 
-Install the proper version of apache and mod_wsgi. For **python 2**:
-
-.. code-block:: bash
+Install the proper version of apache and mod_wsgi. For **python 2**::
 
     sudo apt-get install python-pip apache2 libapache2-mod-wsgi
 
-For **python 3**:
-
-.. code-block:: bash
+For **python 3**::
 
     sudo apt-get install python3-pip apache2 libapache2-mod-wsgi-py3
 
@@ -85,9 +79,7 @@ proper python version.
     left panel. Then find the security group that the instance is in, and edit the *Inbound* tab, and add a
     rule to allow HTTP access.
 
-Finally, restart the apache2 service:
-
-.. code-block:: bash
+Finally, restart the apache2 service::
 
     sudo service apache2 restart
 
