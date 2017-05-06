@@ -1,0 +1,4 @@
+-r base.txt
+
+boto==2.46.1
+django-ses==0.8.2
