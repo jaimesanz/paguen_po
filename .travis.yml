@@ -32,6 +32,7 @@ script:
 after_success:
   - travis-sphinx deploy
   - coveralls
+  - requires.io update-branch -t $REQUIRES_IO_TOKEN -r paguenpo -n master requirements/*.txt
 
 notifications:
   email: false
