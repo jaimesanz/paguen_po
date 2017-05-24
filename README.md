@@ -2,7 +2,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/jaimesanz/paguen_po/badge.svg?branch=master)](https://coveralls.io/github/jaimesanz/paguen_po?branch=master)
 [![Requirements Status](https://requires.io/enterprise/jaimesanz/paguenpo/requirements.svg?branch=master)](https://requires.io/enterprise/jaimesanz/paguenpo/requirements/?branch=master)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/jaimesanz/paguen_po/blob/master/LICENSE.md)
-![Python Version](https://img.shields.io/badge/python-3.5.2-brightgreen.svg)
+[![Python Version](https://img.shields.io/badge/python-3.5.2-brightgreen.svg)](https://www.python.org/)
 
 
 PaguenPo
