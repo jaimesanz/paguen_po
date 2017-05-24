@@ -126,3 +126,26 @@ boto to access the services:
 
    * https://hmarr.com/2011/jan/26/using-amazons-simple-email-service-ses-with-django/
    * https://github.com/boto/boto3
+
+DNS and Route 53
+----------------
+To configure the dns (for instance, for NIC Chile), use the Route 53 service. Go to hosted
+zones (Route 53 -> Hosted Zones) and create a new hosted zone with the desired domain name.
+Then, you need to allocate an elastic IP for the EC2 instance running apache. To do this, go to:
+
+EC2 -> Network & Security -> Elastic Ips
+
+Afterwards, go back to hosted zones and create the following records in the hosted zone you created
+earlier:
+
+- create an A record pointing DOMAIN_NAME to ELASTIC_IP.
+- create an A record pointing www.DOMAIN_NAME to ELASTIC_IP.
+
+This zone is now pointing to the elastic IP! Finally, the primary and secondary DNSs are in the
+NS record of the hosted zone. Use these DNSs to fill out whatever form the DNS provider
+(NIC Chile) needs.
+
+.. seealso::
+
+    http://serverfault.com/questions/551767/how-do-i-set-up-dns-with-nic-io-to-point-to-an-aws-ec2-server
+
