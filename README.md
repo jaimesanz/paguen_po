@@ -1,6 +1,8 @@
 [![Build Status](https://travis-ci.org/jaimesanz/paguen_po.svg?branch=master)](https://travis-ci.org/jaimesanz/paguen_po)
 [![Coverage Status](https://coveralls.io/repos/github/jaimesanz/paguen_po/badge.svg?branch=master)](https://coveralls.io/github/jaimesanz/paguen_po?branch=master)
 [![Requirements Status](https://requires.io/enterprise/jaimesanz/paguenpo/requirements.svg?branch=master)](https://requires.io/enterprise/jaimesanz/paguenpo/requirements/?branch=master)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
+
 
 
 PaguenPo
