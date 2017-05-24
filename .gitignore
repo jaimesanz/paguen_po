@@ -25,3 +25,4 @@ paguen_po/vacations/migrations/
 venv/
 paguen_po/static_root/
 docs/build/*
+paguen_po/certbot.log
