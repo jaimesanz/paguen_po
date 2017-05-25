@@ -1,4 +1,4 @@
 -r base.txt
 
-boto==2.46.1
+boto==2.47.0
 django-ses==0.8.2
