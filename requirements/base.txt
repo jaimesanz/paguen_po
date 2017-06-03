@@ -1,6 +1,6 @@
 alabaster==0.7.10
 Babel==2.4.0
-Django==1.11.1
+Django==1.11.2
 django-bootstrap3==8.2.3
 django-crispy-forms==1.6.1
 django-extensions==1.7.9
