@@ -10,8 +10,7 @@ addons:
 
 install:
   - sudo apt-get update
-  - sudo apt-get install -y python3-dev
-  - sudo apt-get install -y libjpeg-dev
+  - sudo apt-get install -y python3-dev libjpeg-dev
   - pip install --upgrade pip
   - pip install -r requirements/dev.txt
   - pip install coveralls
@@ -20,6 +19,7 @@ before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
   - cp paguen_po/config/secrets.json.travisCI paguen_po/config/secrets.json
   - python paguen_po/manage.py makemigrations users vacations periods households groceries expenses categories budgets
+  - yarn
 
 script:
   - pep8 paguen_po --max-line-length=119 --exclude="*/migrations/*","*wsgi.py"
