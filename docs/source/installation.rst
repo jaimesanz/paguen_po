@@ -3,7 +3,6 @@ Installation
 
 Configuring PostgreSQL
 ----------------------
-
 This instructions were taken from `Justin Ellingwood's tutorial <https://www.digitalocean.com/community/tutorials/how-to-use-postgresql-with-your-django-application-on-ubuntu-14-04/>`_:
 
 * install components:
@@ -13,21 +12,16 @@ This instructions were taken from `Justin Ellingwood's tutorial <https://www.dig
         sudo apt-get update
         sudo apt-get install python-pip python-dev libpq-dev postgresql postgresql-contrib
 
-* create database and database user:
-
-    .. code-block:: bash
-
-        sudo su - postgres
-
 * enter postgres shell:
 
     .. code-block:: bash
 
+        sudo su - postgres
         psql
 
 * create database and just permissions:
 
-    .. code-block:: bash
+    .. code-block:: psql
 
         CREATE DATABASE admin_gastos;
         CREATE USER myprojectuser WITH PASSWORD 'password';
@@ -86,13 +80,11 @@ This instructions were taken from `Justin Ellingwood's tutorial <https://www.dig
 
 Virtual Environment
 -------------------
-
 Before installing anything, run this commands, or there will be problems installing some libraries:
 
     .. code-block:: bash
 
-        sudo apt-get install python3-dev
-        sudo apt-get install libjpeg-dev
+        sudo apt-get install python3-dev libjpeg-dev
 
 To export the virtualenv:
 
@@ -107,13 +99,13 @@ use the virtualenv for python3):
 
         virtualenv -p python3 <env_name>
 
-, then activate it
+then activate it
 
     .. code-block:: bash
 
         source <env_name>/bin/activate
 
-, and finally install the requirements
+and finally install the requirements
 
     .. code-block:: bash
 
@@ -123,6 +115,46 @@ Fixtures
 --------
 Before running the server, you must load all basic fixtures. To do this, you should run this command:
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        python manage.py loaddata vivs.json
+    python manage.py loaddata vivs.json
+
+Static Files & Yarn
+-------------------
+Finally, before running the server you need the front-end dependencies. Most external static files are
+handled using `yarn <https://yarnpkg.com/en/>`_. All the dependencies are listed in a file called
+``package.json``, which can be found at the project's root.
+
+To use yarn, first you need to install `NodeJS <https://nodejs.org/en/>`_:
+
+.. code-block:: bash
+
+    # in Ubuntu/Debian
+    curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+
+Now you can install yarn by running:
+
+.. code-block:: bash
+
+    # in Ubuntu/Debian
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+    sudo apt-get update && sudo apt-get install yarn
+
+Finally, you can install all dependencies by running:
+
+.. code-block:: bash
+
+    yarn
+
+.. important::
+
+    For this to work, you have to be in the project's root folder, because that's where the
+    ``package.json`` file (which contains the list of dependencies) is.
+
+.. seealso::
+
+    * `Installing NodeJS 8 on Debian/Ubuntu
+      <https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions>`_
+    * `Installing Yarn <https://yarnpkg.com/en/docs/install>`_

@@ -1,6 +1,7 @@
 *.pyc
 paguen_po/core/migrations/*
 paguen_po/config/secrets.json
+paguen_po/static/third_party/
 uwsgi/*
 media/*
 .idea/

@@ -4,8 +4,6 @@ Django==1.11.3
 django-bootstrap3==9.0.0
 django-crispy-forms==1.6.1
 django-extensions==1.8.1
-django-jquery==3.1.0
-django-jquery-ui==1.11.4.1
 django-registration==2.2
 imagesize==0.7.1
 Jinja2==2.9.6
