@@ -62,8 +62,6 @@ INSTALLED_APPS = [
     'groceries',
     'budgets',
     'expenses',
-    'jquery',
-    'jquery_ui',
     'bootstrap3',
     'crispy_forms',
 ]
