@@ -1,10 +1,15 @@
 <template>
     <div>
-        <p v-for="house in households">
-            <router-link :to="{name: 'household', params: {id: house.id}}">
-                {{house.name}}
-            </router-link>
-        </p>
+        <div v-if="households.length > 0">
+            <p v-for="house in households">
+                <router-link :to="{name: 'household', params: {id: house.id}}">
+                    {{house.name}}
+                </router-link>
+            </p>
+        </div>
+        <div v-else>
+            No hay viviendas para este usuario!
+        </div>
     </div>
 </template>
 
