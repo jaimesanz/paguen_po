@@ -50,9 +50,7 @@
             </md-whiteframe>
         </div>
 
-        <p v-for="house in households">
-            {{house.name}}
-        </p>
+        <router-view></router-view>
 
     </div>
 </template>
@@ -67,15 +65,13 @@
             "use strict";
             this.$nextTick(function () {
                 this.setUser();
-                this.setHouseholds();
             });
         },
         data () {
             return {
                 user: {
                     name: "John Doex"
-                },
-                households: []
+                }
             };
         },
         methods: {
@@ -83,15 +79,6 @@
                 axios.get(Urls["core:get_user_data"]())
                     .then(response => {
                         this.user = response.data['user'];
-                    })
-                    .catch(error => {
-                        console.error(error);
-                    });
-            },
-            setHouseholds () {
-                axios.get(Urls["households:list"]())
-                    .then(response => {
-                        this.households= response.data;
                     })
                     .catch(error => {
                         console.error(error);
