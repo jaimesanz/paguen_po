@@ -22,5 +22,6 @@ class Expense(StatusModel):
     amount = models.PositiveIntegerField("monto")
     category = models.ForeignKey("expenses.Category", null=True)
     user = models.ForeignKey("auth.User", null=True)
+    household = models.ForeignKey("households.Household", null=True)
     year = models.PositiveIntegerField("año")
     month = models.PositiveIntegerField("mes")
