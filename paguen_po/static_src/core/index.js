@@ -5,6 +5,7 @@ import VueRouter from 'vue-router';
 import VueMaterial from 'vue-material';
 import 'vue-material/dist/vue-material.css';
 import Base from './components/Base.vue';
+import 'font-awesome-sass-loader';
 
 Vue.use(VueRouter);
 Vue.use(VueMaterial);
