@@ -8,6 +8,12 @@ class Category(models.Model):
     """A category for a given Expense."""
     name = models.CharField("nombre", unique=True, max_length=128)
 
+    class Meta:
+        verbose_name_plural = "Categories"
+
+    def __str__(self):
+        return "{}".format(self.name)
+
 
 class Expense(StatusModel):
     """An expense a user made for a given Household."""

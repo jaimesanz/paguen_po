@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from rest_framework import generics
+from rest_framework import permissions
 
 from .serializers import HouseholdSerializer
 
@@ -7,6 +8,7 @@ from .serializers import HouseholdSerializer
 class HouseholdList(generics.ListCreateAPIView):
     """Lists all households for a given user."""
     serializer_class = HouseholdSerializer
+    permission_classes = (permissions.IsAuthenticated, )
 
     def get_queryset(self):
         """
