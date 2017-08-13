@@ -24,6 +24,7 @@ urlpatterns = [
     # django admin page
     url(r'^admin/', admin.site.urls),
 
+    url(r'^expenses/', include('expenses.urls', namespace='expenses')),
     url(r'^', include('core.urls', namespace='core'))
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
