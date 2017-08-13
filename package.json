@@ -9,7 +9,7 @@
     "test": "echo 'hello world'",
     "build": "webpack",
     "build:prod": "webpack -p",
-    "start": "webpack --watch"
+    "build:watch": "webpack --watch"
   },
   "dependencies": {
     "axios": "^0.16.2",
@@ -18,8 +18,11 @@
     "babel-preset-env": "^1.6.0",
     "css-loader": "^0.28.4",
     "file-loader": "^0.11.2",
+    "font-awesome": "^4.7.0",
+    "font-awesome-sass-loader": "^2.0.1",
     "less": "^2.7.2",
     "less-loader": "^4.0.5",
+    "node-sass": "^4.5.3",
     "style-loader": "^0.18.2",
     "url-loader": "^0.5.9",
     "vue": "^2.4.2",
