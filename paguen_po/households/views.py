@@ -1,3 +1,10 @@
-from django.shortcuts import render
+# -*- coding: utf-8 -*-
+from rest_framework import generics
 
-# Create your views here.
+from .models import Household
+from .serializers import HouseholdSerializer
+
+
+class HouseholdList(generics.ListCreateAPIView):
+    queryset = Household.objects.all()
+    serializer_class = HouseholdSerializer

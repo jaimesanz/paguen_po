@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
     url(r'^expenses/', include('expenses.urls', namespace='expenses')),
+    url(r'^households/', include('households.urls', namespace='households')),
     url(r'^', include('core.urls', namespace='core'))
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -43,12 +43,16 @@
                         <span style="flex: 1"></span>
 
                         <md-button class="md-icon-button">
-                            <md-icon md-iconset="fa fa-lg fa-user"></md-icon>
+                            <md-icon md-iconset="fa fa-lg fa-sign-out" @click.native="signOut()"></md-icon>
                         </md-button>
                     </div>
                 </md-toolbar>
             </md-whiteframe>
         </div>
+
+        <p v-for="house in households">
+            {{house.name}}
+        </p>
 
     </div>
 </template>
@@ -63,6 +67,7 @@
             "use strict";
             this.$nextTick(function () {
                 this.setUser();
+                this.setHouseholds();
             });
         },
         data () {
@@ -70,13 +75,7 @@
                 user: {
                     name: "John Doex"
                 },
-                households: [
-                    {
-                        name: "viv 1"
-                    }, {
-                        name: "viv 2"
-                    }
-                ]
+                households: []
             };
         },
         methods: {
@@ -88,6 +87,18 @@
                     .catch(error => {
                         console.error(error);
                     });
+            },
+            setHouseholds () {
+                axios.get(Urls["households:list"]())
+                    .then(response => {
+                        this.households= response.data;
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
+            },
+            signOut () {
+                window.location = Urls["logout"]();
             }
         }
     }
