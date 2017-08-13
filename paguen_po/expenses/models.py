@@ -14,6 +14,7 @@ class Expense(StatusModel):
     STATUS = Choices('pendiente', 'pagado')
 
     amount = models.PositiveIntegerField("monto")
-    category = models.ForeignKey("expenses.Category", null=True, blank=True)
+    category = models.ForeignKey("expenses.Category", null=True)
+    user = models.ForeignKey("auth.User", null=True)
     year = models.PositiveIntegerField("año")
     month = models.PositiveIntegerField("mes")

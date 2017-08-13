@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'rest_framework',
     'core',
-    'expenses'
+    'expenses',
+    'households'
 ]
 
 MIDDLEWARE_CLASSES = [
