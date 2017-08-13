@@ -7,7 +7,9 @@
     <link rel='shortcut icon' href="{% static 'img/favicon.ico'%}" type='image/x-icon'>
 </head>
 <body>
-    <p>Hola!</p>
-    <script {% static 'dist/core/index.js' %}></script>
+    <div id="app">
+        <router-view></router-view>
+    </div>
+    <script src="{% static 'dist/core/index.js' %}"></script>
 </body>
 </html>

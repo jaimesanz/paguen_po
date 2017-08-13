@@ -12,8 +12,6 @@
     "start": "webpack --watch"
   },
   "dependencies": {
-    "bootstrap": "^3.3.7",
-    "jquery": "^3.2.1",
     "axios": "^0.16.2",
     "babel-core": "^6.25.0",
     "babel-loader": "^7.1.1",
@@ -27,6 +25,7 @@
     "vue": "^2.4.2",
     "vue-loader": "^13.0.2",
     "vue-material": "^0.7.4",
+    "vue-router": "^2.7.0",
     "vue-template-compiler": "^2.4.2",
     "webpack": "^3.3.0"
   }
