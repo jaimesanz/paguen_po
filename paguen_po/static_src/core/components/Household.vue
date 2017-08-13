@@ -1,27 +1,10 @@
 <template>
     <div>
-
-        <md-table>
-            <md-table-header>
-                <md-table-row>
-                    <md-table-head>Monto</md-table-head>
-                    <md-table-head>Categoría</md-table-head>
-                    <md-table-head>Usuario</md-table-head>
-                    <md-table-head>Año</md-table-head>
-                    <md-table-head>Mes</md-table-head>
-                </md-table-row>
-            </md-table-header>
-
-            <md-table-body>
-                <md-table-row v-for="(expense, index) in expenses" :key="index">
-                    <md-table-cell>{{expense.amount}}</md-table-cell>
-                    <md-table-cell>{{expense.category}}</md-table-cell>
-                    <md-table-cell>{{expense.user}}</md-table-cell>
-                    <md-table-cell>{{expense.year}}</md-table-cell>
-                    <md-table-cell>{{expense.month}}</md-table-cell>
-                </md-table-row>
-            </md-table-body>
-        </md-table>
+        <p>Vivienda {{household_id}}</p>
+        <router-link :to="{ name: 'expenses' }">Gastos</router-link>
+        <router-link :to="{ name: 'budgets' }">Presupuestos</router-link>
+        <router-link :to="{ name: 'shopping_lists' }">Listas de Compras</router-link>
+        <router-view></router-view>
     </div>
 </template>
 
@@ -31,28 +14,9 @@
 
     export default {
         name: "household",
-        props: ['id'],
-        mounted: function() {
-            "use strict";
-            this.$nextTick(function () {
-                this.setExpenses();
-            });
-        },
+        props: ['household_id'],
         data () {
-            return {
-                expenses: []
-            };
-        },
-        methods: {
-            setExpenses () {
-                axios.get(Urls["expenses:list"](), {params: {
-                    'household': this.id
-                }}).then(response => {
-                    this.expenses = response.data;
-                }).catch(error => {
-                    console.error(error);
-                });
-            }
+            return {};
         }
     }
 </script>

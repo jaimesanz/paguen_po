@@ -7,6 +7,9 @@ import 'vue-material/dist/vue-material.css';
 import Base from './components/Base.vue';
 import Households from './components/Households.vue';
 import Household from './components/Household.vue';
+import Expenses from './components/Expenses.vue';
+import Budgets from './components/Budgets.vue';
+import ShoppingLists from './components/ShoppingLists.vue';
 import 'font-awesome-sass-loader';
 
 Vue.use(VueRouter);
@@ -22,10 +25,25 @@ const routes = [
                 name: 'households',
                 component: Households
             }, {
-                path: 'vivienda/:id',
+                path: 'vivienda/:household_id',
                 name: "household",
                 component: Household,
-                props: true
+                props: true,
+                children: [
+                    {
+                        path: 'expenses',
+                        name: 'expenses',
+                        component: Expenses
+                    }, {
+                        path: 'budgets',
+                        name: 'budgets',
+                        component: Budgets
+                    }, {
+                        path: 'shopping_lists',
+                        name: 'shopping_lists',
+                        component: ShoppingLists
+                    }
+                ]
             }
         ]
     }
