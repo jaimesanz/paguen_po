@@ -1,1 +1,0 @@
-Activar cuenta de {{ site.name }}

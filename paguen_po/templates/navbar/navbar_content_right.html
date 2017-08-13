@@ -1,7 +1,0 @@
-{% load bootstrap3 %}
-{% if user.is_authenticated %}
-<li><a href="{% url 'user_info' %}">{% bootstrap_icon "user" %}</a></li>
-<li class='last'><a href="{% url 'auth_logout' %}">{% bootstrap_icon "off" %}</a></li>
-{% else %}
-<li><a href="{% url 'auth_login' %}">Entrar</a></li>
-{% endif %}
