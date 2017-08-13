@@ -11,7 +11,7 @@
 
                         <md-list-item>
                             <div class="md-list-text-container">
-                                <span>John Doe</span>
+                                <span>{{user.name}}</span>
                                 <span>Vivienda 1</span>
                             </div>
                         </md-list-item>
@@ -23,7 +23,7 @@
                     <md-list-item>
                         <router-link to="/" @click.native="$refs.sidebar.toggle()">
                             <md-icon md-iconset="fa fa-lg fa-home"></md-icon>
-                            <span>Home</span>
+                            <span>Viviendas</span>
                         </router-link>
                     </md-list-item>
 
@@ -38,7 +38,7 @@
                             <md-icon md-iconset="fa fa-lg fa-bars"></md-icon>
                         </md-button>
 
-                        <h2 class="md-title">Home</h2>
+                        <h2 class="md-title">Viviendas</h2>
 
                         <span style="flex: 1"></span>
 
@@ -54,12 +54,41 @@
 </template>
 
 <script>
+    import axios from 'axios';
+    import 'static_src/reverse';
+
     export default {
         name: "paguenpo",
+        mounted: function() {
+            "use strict";
+            this.$nextTick(function () {
+                this.setUser();
+            });
+        },
         data () {
             return {
-                asdf: "holaaa"
+                user: {
+                    name: "John Doex"
+                },
+                households: [
+                    {
+                        name: "viv 1"
+                    }, {
+                        name: "viv 2"
+                    }
+                ]
             };
+        },
+        methods: {
+            setUser () {
+                axios.get(Urls["core:get_user_data"]())
+                    .then(response => {
+                        this.user = response.data['user'];
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
+            }
         }
     }
 </script>

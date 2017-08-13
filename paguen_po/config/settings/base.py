@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'django.contrib.humanize',
     'rest_framework',
+    'django_js_reverse',
     'core',
     'expenses',
     'households'
@@ -166,6 +167,9 @@ STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'static_root'))
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
+
+JS_REVERSE_OUTPUT_PATH = os.path.join(BASE_DIR, 'static_src')
+JS_REVERSE_JS_GLOBAL_OBJECT_NAME = 'window'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
