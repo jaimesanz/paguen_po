@@ -5,5 +5,6 @@ media/*
 .idea/
 venv/
 paguen_po/static_root/
+paguen_po/static/dist
 docs/build/*
 node_modules
