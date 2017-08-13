@@ -1,7 +1,7 @@
 <template>
     <div>
 
-        <div class="app-viewport" id="file-list">
+        <div class="app-viewport">
             <md-sidenav class="md-left md-fixed" ref="sidebar">
                 <md-toolbar class="md-account-header">
                     <md-list class="md-transparent">
@@ -11,8 +11,8 @@
 
                         <md-list-item>
                             <div class="md-list-text-container">
-                                <span>Holaaa</span>
-                                <span>sdfkasbkdfjdf</span>
+                                <span>John Doe</span>
+                                <span>Vivienda 1</span>
                             </div>
                         </md-list-item>
                     </md-list>
@@ -21,7 +21,10 @@
                 <md-list>
 
                     <md-list-item>
-                        <md-icon md-iconset="fa fa-home"></md-icon> <span>Hola!</span>
+                        <router-link to="/" @click.native="$refs.sidebar.toggle()">
+                            <md-icon md-iconset="fa fa-lg fa-home"></md-icon>
+                            <span>Home</span>
+                        </router-link>
                     </md-list-item>
 
                 </md-list>
@@ -32,17 +35,17 @@
                 <md-toolbar class="md-dense">
                     <div class="md-toolbar-container">
                         <md-button class="md-icon-button" @click="$refs.sidebar.toggle()">
-                            <md-icon md-iconset="fa fa-bars"></md-icon>
+                            <md-icon md-iconset="fa fa-lg fa-bars"></md-icon>
                         </md-button>
 
                         <span style="flex: 1"></span>
 
                         <md-button class="md-icon-button">
-                            <md-icon md-iconset="fa fa-shopping-cart"></md-icon>
+                            <md-icon md-iconset="fa fa-lg fa-user"></md-icon>
                         </md-button>
                     </div>
                     <div class="md-toolbar-container">
-                        <h2 class="md-title">titleeee</h2>
+                        <h2 class="md-title">Home</h2>
                     </div>
                 </md-toolbar>
             </md-whiteframe>

@@ -19,7 +19,7 @@ const routes = [
 
 Vue.material.registerTheme({
     default: {
-        primary: 'green',
+        primary: 'teal',
         accent: 'pink'
     }
 });
