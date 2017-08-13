@@ -38,14 +38,13 @@
                             <md-icon md-iconset="fa fa-lg fa-bars"></md-icon>
                         </md-button>
 
+                        <h2 class="md-title">Home</h2>
+
                         <span style="flex: 1"></span>
 
                         <md-button class="md-icon-button">
                             <md-icon md-iconset="fa fa-lg fa-user"></md-icon>
                         </md-button>
-                    </div>
-                    <div class="md-toolbar-container">
-                        <h2 class="md-title">Home</h2>
                     </div>
                 </md-toolbar>
             </md-whiteframe>
