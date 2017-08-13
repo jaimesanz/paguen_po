@@ -1,13 +1,27 @@
 <template>
     <div>
-        <div v-if="expenses.length > 0">
-            <p v-for="expense in expenses">
-                hoalaa
-            </p>
-        </div>
-        <div v-else>
-            :(
-        </div>
+
+        <md-table>
+            <md-table-header>
+                <md-table-row>
+                    <md-table-head>Monto</md-table-head>
+                    <md-table-head>Categoría</md-table-head>
+                    <md-table-head>Usuario</md-table-head>
+                    <md-table-head>Año</md-table-head>
+                    <md-table-head>Mes</md-table-head>
+                </md-table-row>
+            </md-table-header>
+
+            <md-table-body>
+                <md-table-row v-for="(expense, index) in expenses" :key="index">
+                    <md-table-cell>{{expense.amount}}</md-table-cell>
+                    <md-table-cell>{{expense.category}}</md-table-cell>
+                    <md-table-cell>{{expense.user}}</md-table-cell>
+                    <md-table-cell>{{expense.year}}</md-table-cell>
+                    <md-table-cell>{{expense.month}}</md-table-cell>
+                </md-table-row>
+            </md-table-body>
+        </md-table>
     </div>
 </template>
 
