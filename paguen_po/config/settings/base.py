@@ -52,18 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
-    'django.contrib.humanize',
-    'core',
-    'users',
-    'households',
-    'categories',
-    'vacations',
-    'periods',
-    'groceries',
-    'budgets',
-    'expenses',
-    'bootstrap3',
-    'crispy_forms',
+    'django.contrib.humanize'
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -139,8 +128,6 @@ LOGIN_URL = '/accounts/login/'
 
 ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window;
 LOGIN_REDIRECT_URL = '/login_post_process/'
-
-AUTHENTICATION_BACKENDS = ('users.backends.ModelBackend',)
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/

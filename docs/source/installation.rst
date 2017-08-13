@@ -23,12 +23,12 @@ This instructions were taken from `Justin Ellingwood's tutorial <https://www.dig
 
     .. code-block:: psql
 
-        CREATE DATABASE admin_gastos;
-        CREATE USER myprojectuser WITH PASSWORD 'password';
-        ALTER ROLE myprojectuser SET client_encoding TO 'utf8';
-        ALTER ROLE myprojectuser SET default_transaction_isolation TO 'read committed';
-        ALTER ROLE myprojectuser SET timezone TO 'UTC';
-        GRANT ALL PRIVILEGES ON DATABASE admin_gastos TO myprojectuser;
+        CREATE DATABASE ``DB_NAME``;
+        CREATE USER ``MYPROJECTUSER`` WITH PASSWORD '``PASSWORD``';
+        ALTER ROLE ``MYPROJECTUSER`` SET client_encoding TO 'utf8';
+        ALTER ROLE ``MYPROJECTUSER`` SET default_transaction_isolation TO 'read committed';
+        ALTER ROLE ``MYPROJECTUSER`` SET timezone TO 'UTC';
+        GRANT ALL PRIVILEGES ON DATABASE ``DB_NAME`` TO ``MYPROJECTUSER``;
         \q
         exit
 

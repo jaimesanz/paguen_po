@@ -15,44 +15,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf import settings
-from django.conf.urls import include, url
+from django.conf.urls import url
 from django.conf.urls.static import static
 from django.contrib import admin
-
-from core import views
 
 urlpatterns = [
 
     # django admin page
     url(r'^admin/', admin.site.urls),
-
-    # display info
-    url(r'^home/', views.home, name='home'),
-    url(r'^about/$', views.about, name='about'),
-    url(r'^error/$', views.error, name='error'),
-
-    # registration
-    url(r'', include('users.urls')),
-
-    # viviendas and invites
-    url(r'', include('households.urls')),
-
-    # vacations
-    url(r'', include('vacations.urls')),
-
-    # categorías
-    url(r'', include('categories.urls')),
-
-    # presupuestos
-    url(r'', include('budgets.urls')),
-
-    # listas and items
-    url(r'', include('groceries.urls')),
-
-    # gastos
-    url(r'', include('expenses.urls')),
-
-    # default to home
-    url(r'', views.home, name='home'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
