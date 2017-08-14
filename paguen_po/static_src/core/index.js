@@ -33,7 +33,8 @@ const routes = [
                     {
                         path: 'expenses',
                         name: 'expenses',
-                        component: Expenses
+                        component: Expenses,
+                        props: true
                     }, {
                         path: 'budgets',
                         name: 'budgets',

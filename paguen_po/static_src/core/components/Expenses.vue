@@ -1,6 +1,8 @@
 <template>
     <div>
 
+        <p>Asdf {{household_id}}</p>
+
         <md-table>
             <md-table-header>
                 <md-table-row>
@@ -31,6 +33,7 @@
 
     export default {
         name: "expenses",
+        props: ['household_id'],
         mounted: function() {
             "use strict";
             this.$nextTick(function () {
@@ -45,7 +48,7 @@
         methods: {
             setExpenses () {
                 axios.get(Urls["expenses:list"](), {params: {
-                    'household': this.$route.params.household_id
+                    'household': this.household_id
                 }}).then(response => {
                     this.expenses = response.data;
                 }).catch(error => {
