@@ -40,7 +40,7 @@ SECRET_KEY = get_secret('secret_key')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
@@ -53,7 +53,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'django.contrib.humanize',
-    'core'
+    'rest_framework',
+    'django_js_reverse',
+    'core',
+    'expenses',
+    'households'
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -163,6 +167,9 @@ STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'static_root'))
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
+
+JS_REVERSE_OUTPUT_PATH = os.path.join(BASE_DIR, 'static_src')
+JS_REVERSE_JS_GLOBAL_OBJECT_NAME = 'window'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
