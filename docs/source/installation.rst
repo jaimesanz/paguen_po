@@ -1,82 +1,63 @@
 Installation
 ============
 
+Before doing anything, make sure you have python 3.4 and pip installed.
+
 Configuring PostgreSQL
 ----------------------
-This instructions were taken from `Justin Ellingwood's tutorial <https://www.digitalocean.com/community/tutorials/how-to-use-postgresql-with-your-django-application-on-ubuntu-14-04/>`_:
+This instructions were taken from `Justin Ellingwood's tutorial
+<https://www.digitalocean.com/community/tutorials/how-to-use-postgresql-with-your-django-application-on-ubuntu-14-04/>`_:
 
-* install components:
+Install dependencies:
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        sudo apt-get update
-        sudo apt-get install python-pip python-dev libpq-dev postgresql postgresql-contrib
+    sudo apt-get update
+    sudo apt-get install libpq-dev postgresql postgresql-contrib
 
-* enter postgres shell:
+Enter postgres shell:
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        sudo su - postgres
-        psql
+    sudo su - postgres
+    psql
 
-* create database and just permissions:
+Create database and just permissions:
 
-    .. code-block:: psql
+.. code-block:: psql
 
-        CREATE DATABASE ``DB_NAME``;
-        CREATE USER ``MYPROJECTUSER`` WITH PASSWORD '``PASSWORD``';
-        ALTER ROLE ``MYPROJECTUSER`` SET client_encoding TO 'utf8';
-        ALTER ROLE ``MYPROJECTUSER`` SET default_transaction_isolation TO 'read committed';
-        ALTER ROLE ``MYPROJECTUSER`` SET timezone TO 'UTC';
-        GRANT ALL PRIVILEGES ON DATABASE ``DB_NAME`` TO ``MYPROJECTUSER``;
-        \q
-        exit
+    CREATE DATABASE ``DB_NAME``;
+    CREATE USER ``MYPROJECTUSER`` WITH PASSWORD '``PASSWORD``';
+    ALTER ROLE ``MYPROJECTUSER`` SET client_encoding TO 'utf8';
+    ALTER ROLE ``MYPROJECTUSER`` SET default_transaction_isolation TO 'read committed';
+    ALTER ROLE ``MYPROJECTUSER`` SET timezone TO 'UTC';
+    GRANT ALL PRIVILEGES ON DATABASE ``DB_NAME`` TO ``MYPROJECTUSER``;
+    \q
+    exit
 
-* enter virtualenv:
+Now we need to tell Django to use this database. To do this, we need to fill the project's
+secrets file:
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        source admin_gastos/bin/activate
+    cp paguen_po/config/secrets.json.example paguen_po/config/secrets.json
+    nano paguen_po/config/secrets.json
 
-* install psycopg2:
+Change database settings to this:
 
-    .. code-block:: bash
+.. code-block:: python
 
-        pip install psycopg2
-
-* edit project settings:
-
-    .. code-block:: bash
-
-        nano ~/admin_gastos/project_root/settings.py
-
-* change database settings to this:
-
-    .. code-block:: python
-
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'myproject',
-                'USER': 'myprojectuser',
-                'PASSWORD': 'password',
-                'HOST': 'localhost',
-                'PORT': '',
-            }
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'DB_NAME',
+            'USER': 'MYPROJECTUSER',
+            'PASSWORD': 'PASSWORD',
+            'HOST': 'localhost',
+            'PORT': '',
         }
+    }
 
-* migrate:
-
-    .. code-block:: bash
-
-        python manage.py makemigrations
-        python manage.py migrate
-
-* create super user:
-
-    .. code-block:: bash
-
-        python manage.py createsuperuser
 
 Virtual Environment
 -------------------
@@ -86,24 +67,18 @@ Before installing anything, run this commands, or there will be problems install
 
         sudo apt-get install python3-dev libjpeg-dev
 
-To export the virtualenv:
+To create a new virtualenv using requirements/dev.txt, create virtualenv (the ``-p python3`` makes
+sure to use the virtualenv for python3):
 
     .. code-block:: bash
 
-        pip freeze > requirements/dev.txt
-
-To create a new virtualenv using requirements/dev.txt, create virtualenv (this makes sure to
-use the virtualenv for python3):
-
-    .. code-block:: bash
-
-        virtualenv -p python3 <env_name>
+        virtualenv -p python3 ``<VENV_NAME>``
 
 then activate it
 
     .. code-block:: bash
 
-        source <env_name>/bin/activate
+        source ``<VENV_NAME>``/bin/activate
 
 and finally install the requirements
 
@@ -111,13 +86,19 @@ and finally install the requirements
 
         pip install -r requirements/dev.txt
 
-Fixtures
---------
-Before running the server, you must load all basic fixtures. To do this, you should run this command:
+Populating the Database
+-----------------------
+Finally, you need to create the tables in the database. To do this, run:
 
 .. code-block:: bash
 
-    python manage.py loaddata vivs.json
+    python paguen_po/manage.py migrate
+
+And finally, create a superuser:
+
+.. code-block:: bash
+
+    python paguen_po/manage.py createsuperuser
 
 Static Files & Yarn
 -------------------
