@@ -1,11 +1,12 @@
 <template>
 
-    <v-app toolbar>
+    <v-app toolbar footer>
         <v-navigation-drawer
                 temporary
                 v-model="drawer"
                 light
                 overflow
+                enable-resize-watcher
                 absolute>
 
             <v-list two-lines>
@@ -20,7 +21,10 @@
                         </v-list-tile-sub-title>
                     </v-list-tile-content>
                 </v-list-tile>
+
             </v-list>
+            
+            <v-divider></v-divider>
 
             <v-list>
                 <v-list-tile @click="drawer = false" :append="true" to="/">
@@ -63,11 +67,9 @@
 
     export default {
         name: "paguenpo",
-        mounted: function() {
+        mounted: function () {
             "use strict";
-            this.$nextTick(function () {
-                this.setUser();
-            });
+            this.$nextTick(() => this.setUser());
         },
         data () {
             return {
