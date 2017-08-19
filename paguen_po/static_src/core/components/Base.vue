@@ -25,20 +25,20 @@
             <v-list>
                 <v-list-tile @click="drawer = false" :append="true" to="/">
                     <v-list-tile-action>
-                        <v-icon>fa-home</v-icon>
+                        <v-icon medium>fa-home</v-icon>
                     </v-list-tile-action>
                     <v-list-tile-title>Viviendas</v-list-tile-title>
                 </v-list-tile>
             </v-list>
         </v-navigation-drawer>
-        <v-toolbar fixed class="deep-orange" dark>
+        <v-toolbar fixed class="teal" dark>
             <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
             <v-toolbar-title>Viviendas</v-toolbar-title>
 
             <v-spacer></v-spacer>
 
             <v-btn icon @click="signOut()">
-                <v-icon>fa-sign-out</v-icon>
+                <v-icon>exit_to_app</v-icon>
             </v-btn>
 
         </v-toolbar>
@@ -87,3 +87,12 @@
         }
     }
 </script>
+
+<style>
+    ::selection {
+        background: #ffb7b7; /* WebKit/Blink Browsers */
+    }
+    ::-moz-selection {
+        background: #ffb7b7; /* Gecko Browsers */
+    }
+</style>
