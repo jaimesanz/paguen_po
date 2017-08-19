@@ -1,6 +1,11 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
+{% block head %}
+    {{ block.super }}
+    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+{% endblock head %}
+
 {% block body %}
     {{ block.super }}
     <div id="app">

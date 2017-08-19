@@ -1,58 +1,54 @@
 <template>
-    <div>
 
-        <div class="app-viewport">
-            <md-sidenav class="md-left md-fixed" ref="sidebar">
-                <md-toolbar class="md-account-header">
-                    <md-list class="md-transparent">
-                        <md-list-item class="md-avatar-list">
-                            <img src="" alt="PaguenPo">
-                        </md-list-item>
+    <v-app toolbar>
+        <v-navigation-drawer
+                temporary
+                v-model="drawer"
+                light
+                overflow
+                absolute>
 
-                        <md-list-item>
-                            <div class="md-list-text-container">
-                                <span>{{user.name}}</span>
-                                <span>Vivienda 1</span>
-                            </div>
-                        </md-list-item>
-                    </md-list>
-                </md-toolbar>
+            <v-list two-lines>
+                <v-list-tile avatar tag="div">
+                    <v-list-tile-avatar>
+                        <img src="https://randomuser.me/api/portraits/men/85.jpg" />
+                    </v-list-tile-avatar>
+                    <v-list-tile-content>
+                        <v-list-tile-title>{{user.name}}</v-list-tile-title>
+                        <v-list-tile-sub-title>
+                            Vivienda 1
+                        </v-list-tile-sub-title>
+                    </v-list-tile-content>
+                </v-list-tile>
+            </v-list>
 
-                <md-list>
+            <v-list>
+                <v-list-tile @click="drawer = false" :append="true" to="/">
+                    <v-list-tile-action>
+                        <v-icon>fa-home</v-icon>
+                    </v-list-tile-action>
+                    <v-list-tile-title>Viviendas</v-list-tile-title>
+                </v-list-tile>
+            </v-list>
+        </v-navigation-drawer>
+        <v-toolbar fixed class="deep-orange" dark>
+            <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+            <v-toolbar-title>Viviendas</v-toolbar-title>
 
-                    <md-list-item>
-                        <router-link to="/" @click.native="$refs.sidebar.toggle()">
-                            <md-icon md-iconset="fa fa-lg fa-home"></md-icon>
-                            <span>Viviendas</span>
-                        </router-link>
-                    </md-list-item>
+            <v-spacer></v-spacer>
 
-                </md-list>
+            <v-btn icon @click="signOut()">
+                <v-icon>fa-sign-out</v-icon>
+            </v-btn>
 
-            </md-sidenav>
+        </v-toolbar>
+        <main>
+            <v-container fluid>
+                <router-view></router-view>
+            </v-container>
+        </main>
+    </v-app>
 
-            <md-whiteframe md-elevation="3" class="main-toolbar">
-                <md-toolbar class="md-dense">
-                    <div class="md-toolbar-container">
-                        <md-button class="md-icon-button" @click="$refs.sidebar.toggle()">
-                            <md-icon md-iconset="fa fa-lg fa-bars"></md-icon>
-                        </md-button>
-
-                        <h2 class="md-title">Viviendas</h2>
-
-                        <span style="flex: 1"></span>
-
-                        <md-button class="md-icon-button">
-                            <md-icon md-iconset="fa fa-lg fa-sign-out" @click.native="signOut()"></md-icon>
-                        </md-button>
-                    </div>
-                </md-toolbar>
-            </md-whiteframe>
-        </div>
-
-        <router-view></router-view>
-
-    </div>
 </template>
 
 <script>
@@ -69,6 +65,7 @@
         },
         data () {
             return {
+                drawer: false,
                 user: {
                     name: "John Doex"
                 }
