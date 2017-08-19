@@ -11,7 +11,7 @@
             <v-list two-lines>
                 <v-list-tile avatar tag="div">
                     <v-list-tile-avatar>
-                        <img src="https://randomuser.me/api/portraits/men/85.jpg" />
+                        <img src="https://api.adorable.io/avatars/face/eyes6/nose8/mouth6/2d7cc3" />
                     </v-list-tile-avatar>
                     <v-list-tile-content>
                         <v-list-tile-title>{{user.name}}</v-list-tile-title>
@@ -47,6 +47,12 @@
                 <router-view></router-view>
             </v-container>
         </main>
+        <v-footer>
+            <v-spacer></v-spacer>
+            <v-btn icon href="https://github.com/jaimesanz/paguen_po" target="_blank">
+                <v-icon>fa-github</v-icon>
+            </v-btn>
+        </v-footer>
     </v-app>
 
 </template>
@@ -90,9 +96,9 @@
 
 <style>
     ::selection {
-        background: #ffb7b7; /* WebKit/Blink Browsers */
+        background: #e364ff; /* WebKit/Blink Browsers */
     }
     ::-moz-selection {
-        background: #ffb7b7; /* Gecko Browsers */
+        background: #e364ff; /* Gecko Browsers */
     }
 </style>
