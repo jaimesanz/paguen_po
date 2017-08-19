@@ -1,29 +1,22 @@
 <template>
     <div>
 
-        <p>Asdf {{household_id}}</p>
+        <p>Gastos Vivienda {{household_id}}</p>
 
-        <md-table>
-            <md-table-header>
-                <md-table-row>
-                    <md-table-head>Monto</md-table-head>
-                    <md-table-head>Categoría</md-table-head>
-                    <md-table-head>Usuario</md-table-head>
-                    <md-table-head>Año</md-table-head>
-                    <md-table-head>Mes</md-table-head>
-                </md-table-row>
-            </md-table-header>
+        <v-data-table
+                v-bind:headers="headers"
+                :items="expenses"
+                hide-actions
+                class="elevation-1">
+            <template slot="items" scope="props">
+                <td class="text-xs-right">{{props.item.amount}}</td>
+                <td class="text-xs-right">{{props.item.category}}</td>
+                <td class="text-xs-right">{{props.item.user}}</td>
+                <td class="text-xs-right">{{props.item.year}}</td>
+                <td class="text-xs-right">{{props.item.month}}</td>
+            </template>
+        </v-data-table>
 
-            <md-table-body>
-                <md-table-row v-for="(expense, index) in expenses" :key="index">
-                    <md-table-cell>{{expense.amount}}</md-table-cell>
-                    <md-table-cell>{{expense.category}}</md-table-cell>
-                    <md-table-cell>{{expense.user}}</md-table-cell>
-                    <md-table-cell>{{expense.year}}</md-table-cell>
-                    <md-table-cell>{{expense.month}}</md-table-cell>
-                </md-table-row>
-            </md-table-body>
-        </md-table>
     </div>
 </template>
 
@@ -42,6 +35,13 @@
         },
         data () {
             return {
+                headers: [
+                    { text: 'Monto', value: 'amount' },
+                    { text: 'Categoría', value: 'category' },
+                    { text: 'Usuario', value: 'user' },
+                    { text: 'Año', value: 'year' },
+                    { text: 'Mes', value: 'month' },
+                ],
                 expenses: []
             };
         },

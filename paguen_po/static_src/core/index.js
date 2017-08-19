@@ -2,8 +2,8 @@
 /*global $, console, alert */
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import VueMaterial from 'vue-material';
-import 'vue-material/dist/vue-material.css';
+import Vuetify from 'vuetify';
+import 'vuetify/dist/vuetify.min.css';
 import Base from './components/Base.vue';
 import Households from './components/Households.vue';
 import Household from './components/Household.vue';
@@ -13,7 +13,7 @@ import ShoppingLists from './components/ShoppingLists.vue';
 import 'font-awesome-sass-loader';
 
 Vue.use(VueRouter);
-Vue.use(VueMaterial);
+Vue.use(Vuetify);
 
 const routes = [
     {
@@ -50,17 +50,10 @@ const routes = [
     }
 ];
 
-Vue.material.registerTheme({
-    default: {
-        primary: 'teal',
-        accent: 'pink'
-    }
-});
-
 const router = new VueRouter({
-    routes  // short for `routes: routes`
+    routes
 });
 
 new Vue({
-    router: router
+    router
 }).$mount('#app');
