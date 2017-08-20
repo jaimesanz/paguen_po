@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-from rest_framework import generics
-from rest_framework import permissions
+from rest_framework import generics, permissions
+
+from households.models import Roommate
 
 from .models import Category, Expense
 from .serializers import CategorySerializer, ExpenseSerializer
@@ -23,6 +24,7 @@ class ExpensesList(generics.ListAPIView):
         household.
         """
         household = self.request.query_params.get('household', None)
-        if household is not None:
-            return Expense.objects.filter(household_id=household)
+        if household is not None and Roommate.objects.filter(
+                user=self.request.user, household_id=household).exists():
+            return Expense.objects.filter(roommate__household_id=household)
         return Expense.objects.none()

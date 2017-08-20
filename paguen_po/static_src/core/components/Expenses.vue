@@ -1,7 +1,7 @@
 <template>
     <div>
 
-        <p>Gastos Vivienda {{household_id}}</p>
+        <h5>Gastos</h5>
 
         <v-data-table
                 v-bind:headers="headers"
@@ -11,7 +11,7 @@
             <template slot="items" scope="props">
                 <td class="text-xs-right">{{props.item.amount}}</td>
                 <td class="text-xs-right">{{props.item.category}}</td>
-                <td class="text-xs-right">{{props.item.user}}</td>
+                <td class="text-xs-right">{{props.item.roommate.user}}</td>
                 <td class="text-xs-right">{{props.item.year}}</td>
                 <td class="text-xs-right">{{props.item.month}}</td>
             </template>
@@ -47,7 +47,7 @@
         },
         methods: {
             setExpenses () {
-                axios.get(Urls["expenses:list"](), {params: {
+                axios.get(Urls["api:expenses"](), {params: {
                     'household': this.household_id
                 }}).then(response => {
                     this.expenses = response.data;

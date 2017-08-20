@@ -1,5 +1,5 @@
 <template>
-    <p>Presupuestos</p>
+    <h5>Presupuestos</h5>
 </template>
 
 <script>

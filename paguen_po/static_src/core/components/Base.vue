@@ -27,7 +27,7 @@
             <v-divider></v-divider>
 
             <v-list>
-                <v-list-tile @click="drawer = false" :append="true" to="/">
+                <v-list-tile @click="drawer = false" :append="true" :to="{name: 'households'}">
                     <v-list-tile-action>
                         <v-icon medium>fa-home</v-icon>
                     </v-list-tile-action>
@@ -37,7 +37,18 @@
         </v-navigation-drawer>
         <v-toolbar fixed class="teal" dark>
             <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
-            <v-toolbar-title>Viviendas</v-toolbar-title>
+            <v-toolbar-title>
+                <v-breadcrumbs divider="/" v-if="$route.matched.length">
+                    <v-breadcrumbs-item v-for="(crumb, key) in $route.matched.filter(r => r.name !== 'root')" :to="{name: crumb.name, paramas: $route.params}" :key="key">
+                        <span v-if="crumb.name === 'household'">
+                            {{ $route.params.household_id }}
+                        </span>
+                        <span v-else>
+                            {{ crumb.meta.breadcrumb}}
+                        </span>
+                    </v-breadcrumbs-item>
+                </v-breadcrumbs>
+            </v-toolbar-title>
 
             <v-spacer></v-spacer>
 
@@ -70,6 +81,9 @@
         mounted: function () {
             "use strict";
             this.$nextTick(() => this.setUser());
+            if (this.$route.name === 'root') {
+                this.$router.push({name: 'households'})
+            }
         },
         data () {
             return {
@@ -97,6 +111,10 @@
 </script>
 
 <style>
+    .breadcrumbs a {
+        color: white;
+    }
+
     ::selection {
         background: #e364ff; /* WebKit/Blink Browsers */
     }

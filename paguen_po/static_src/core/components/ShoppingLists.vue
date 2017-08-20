@@ -1,5 +1,5 @@
 <template>
-    <p>Listas de Compras</p>
+    <h5>Listas de Compras</h5>
 </template>
 
 <script>
