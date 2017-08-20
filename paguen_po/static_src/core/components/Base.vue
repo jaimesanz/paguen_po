@@ -108,6 +108,10 @@
 </script>
 
 <style>
+    .breadcrumbs a {
+        color: white;
+    }
+
     ::selection {
         background: #e364ff; /* WebKit/Blink Browsers */
     }
