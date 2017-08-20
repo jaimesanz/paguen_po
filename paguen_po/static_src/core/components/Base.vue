@@ -81,6 +81,9 @@
         mounted: function () {
             "use strict";
             this.$nextTick(() => this.setUser());
+            if (this.$route.name === 'root') {
+                this.$router.push({name: 'households'})
+            }
         },
         data () {
             return {
