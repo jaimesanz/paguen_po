@@ -12,8 +12,6 @@ import Budgets from './components/Budgets.vue';
 import ShoppingLists from './components/ShoppingLists.vue';
 import 'font-awesome-sass-loader';
 
-
-
 Vue.use(VueRouter);
 Vue.use(Vuetify);
 
