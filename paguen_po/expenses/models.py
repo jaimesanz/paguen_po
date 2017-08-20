@@ -17,11 +17,13 @@ class Category(models.Model):
 
 class Expense(StatusModel):
     """An expense a user made for a given Household."""
-    STATUS = Choices('pendiente', 'pagado')
+    STATUS = Choices(
+        ('PENDING', 'pendiente'),
+        ('PAID', 'pagado')
+    )
 
     amount = models.PositiveIntegerField("monto")
     category = models.ForeignKey("expenses.Category", null=True)
-    user = models.ForeignKey("auth.User", null=True)
-    household = models.ForeignKey("households.Household", null=True)
+    roommate = models.ForeignKey("households.Roommate", on_delete=models.CASCADE)
     year = models.PositiveIntegerField("año")
     month = models.PositiveIntegerField("mes")
