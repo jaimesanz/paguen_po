@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from rest_framework import generics
-from rest_framework import permissions
+from rest_framework import generics, permissions
 
 from households.models import Roommate
 
