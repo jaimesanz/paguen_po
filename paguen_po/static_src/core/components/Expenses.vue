@@ -1,7 +1,7 @@
 <template>
     <div>
 
-        <p>Gastos Vivienda {{household_id}}</p>
+        <h5>Gastos</h5>
 
         <v-data-table
                 v-bind:headers="headers"

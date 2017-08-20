@@ -27,7 +27,7 @@
             <v-divider></v-divider>
 
             <v-list>
-                <v-list-tile @click="drawer = false" :append="true" to="/">
+                <v-list-tile @click="drawer = false" :append="true" :to="{name: 'households'}">
                     <v-list-tile-action>
                         <v-icon medium>fa-home</v-icon>
                     </v-list-tile-action>
@@ -39,7 +39,7 @@
             <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
             <v-toolbar-title>
                 <v-breadcrumbs divider="/" v-if="$route.matched.length">
-                    <v-breadcrumbs-item v-for="(crumb, key) in $route.matched" :to="{name: crumb.name, paramas: $route.params}" :key="key">
+                    <v-breadcrumbs-item v-for="(crumb, key) in $route.matched.filter(r => r.name !== 'root')" :to="{name: crumb.name, paramas: $route.params}" :key="key">
                         <span v-if="crumb.name === 'household'">
                             {{ $route.params.household_id }}
                         </span>

@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div v-if="$route.name === 'households'">
         <div v-if="households.length > 0">
             <p v-for="house in households">
                 <router-link :to="{name: 'household', params: {household_id: house.id}}">
@@ -10,6 +10,9 @@
         <div v-else>
             No hay viviendas para este usuario!
         </div>
+    </div>
+    <div v-else>
+        <router-view></router-view>
     </div>
 </template>
 

@@ -20,42 +20,45 @@ const routes = [
         path: '/',
         component: Base,
         name: 'root',
-        meta: {
-            breadcrumb: 'Viviendas'
-        },
         children: [
             {
-                path: '',
+                path: 'viviendas',
                 name: 'households',
-                component: Households
-            }, {
-                path: 'vivienda/:household_id',
-                name: "household",
-                component: Household,
-                props: true,
+                component: Households,
+                meta: {
+                    breadcrumb: 'Viviendas'
+                },
                 children: [
                     {
-                        path: 'expenses',
-                        name: 'expenses',
-                        component: Expenses,
-                        meta: {
-                            breadcrumb: 'Gastos'
-                        },
-                        props: true
-                    }, {
-                        path: 'budgets',
-                        name: 'budgets',
-                        component: Budgets,
-                        meta: {
-                            breadcrumb: 'Presupuestos'
-                        }
-                    }, {
-                        path: 'shopping_lists',
-                        name: 'shopping_lists',
-                        component: ShoppingLists,
-                        meta: {
-                            breadcrumb: 'Listas'
-                        }
+                        path: ':household_id',
+                        name: "household",
+                        component: Household,
+                        props: true,
+                        children: [
+                            {
+                                path: 'expenses',
+                                name: 'expenses',
+                                component: Expenses,
+                                meta: {
+                                    breadcrumb: 'Gastos'
+                                },
+                                props: true
+                            }, {
+                                path: 'budgets',
+                                name: 'budgets',
+                                component: Budgets,
+                                meta: {
+                                    breadcrumb: 'Presupuestos'
+                                }
+                            }, {
+                                path: 'shopping_lists',
+                                name: 'shopping_lists',
+                                component: ShoppingLists,
+                                meta: {
+                                    breadcrumb: 'Listas'
+                                }
+                            }
+                        ]
                     }
                 ]
             }
