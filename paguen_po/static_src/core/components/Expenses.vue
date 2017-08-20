@@ -11,7 +11,7 @@
             <template slot="items" scope="props">
                 <td class="text-xs-right">{{props.item.amount}}</td>
                 <td class="text-xs-right">{{props.item.category}}</td>
-                <td class="text-xs-right">{{props.item.user}}</td>
+                <td class="text-xs-right">{{props.item.roommate.user}}</td>
                 <td class="text-xs-right">{{props.item.year}}</td>
                 <td class="text-xs-right">{{props.item.month}}</td>
             </template>
