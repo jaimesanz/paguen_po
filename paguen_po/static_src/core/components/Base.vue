@@ -37,7 +37,9 @@
         </v-navigation-drawer>
         <v-toolbar fixed class="teal" dark>
             <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
-            <v-toolbar-title>Viviendas</v-toolbar-title>
+            <v-toolbar-title>
+                <breadcrumbs/>
+            </v-toolbar-title>
 
             <v-spacer></v-spacer>
 

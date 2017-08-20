@@ -15,6 +15,9 @@
     export default {
         name: "household",
         props: ['household_id'],
+        mounted: function () {
+            this.$route.meta['breadcrumb'] = this.household_id;
+        },
         data () {
             return {};
         }
