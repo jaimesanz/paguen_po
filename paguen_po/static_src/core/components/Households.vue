@@ -32,7 +32,7 @@
         },
         methods: {
             setHouseholds () {
-                axios.get(Urls["households:list"]())
+                axios.get(Urls["api:households"]())
                     .then(response => {
                         this.households= response.data;
                     })

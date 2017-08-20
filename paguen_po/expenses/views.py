@@ -24,5 +24,5 @@ class ExpensesList(generics.ListAPIView):
         """
         household = self.request.query_params.get('household', None)
         if household is not None:
-            return Expense.objects.filter(household_id=household)
+            return Expense.objects.filter(roommate__household_id=household)
         return Expense.objects.none()

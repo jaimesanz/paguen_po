@@ -47,7 +47,7 @@
         },
         methods: {
             setExpenses () {
-                axios.get(Urls["expenses:list"](), {params: {
+                axios.get(Urls["api:expenses"](), {params: {
                     'household': this.household_id
                 }}).then(response => {
                     this.expenses = response.data;
