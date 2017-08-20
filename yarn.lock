@@ -3732,10 +3732,6 @@ vm-browserify@0.0.4:
   dependencies:
     indexof "0.0.1"
 
-vue-breadcrumbs@^1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/vue-breadcrumbs/-/vue-breadcrumbs-1.1.2.tgz#b83e03693d07628614c3d5683d74a5dd20d36f6c"
-
 vue-hot-reload-api@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/vue-hot-reload-api/-/vue-hot-reload-api-2.1.0.tgz#9ca58a6e0df9078554ce1708688b6578754d86de"

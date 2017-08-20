@@ -38,7 +38,16 @@
         <v-toolbar fixed class="teal" dark>
             <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
             <v-toolbar-title>
-                <breadcrumbs/>
+                <v-breadcrumbs divider="/" v-if="$route.matched.length">
+                    <v-breadcrumbs-item v-for="(crumb, key) in $route.matched" :to="{name: crumb.name, paramas: $route.params}" :key="key">
+                        <span v-if="crumb.name === 'household'">
+                            {{ $route.params.household_id }}
+                        </span>
+                        <span v-else>
+                            {{ crumb.meta.breadcrumb}}
+                        </span>
+                    </v-breadcrumbs-item>
+                </v-breadcrumbs>
             </v-toolbar-title>
 
             <v-spacer></v-spacer>

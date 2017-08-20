@@ -3,7 +3,6 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import Vuetify from 'vuetify';
-import VueBreadcrumbs from 'vue-breadcrumbs';
 import 'vuetify/dist/vuetify.min.css';
 import Base from './components/Base.vue';
 import Households from './components/Households.vue';
@@ -17,14 +16,6 @@ import 'font-awesome-sass-loader';
 
 Vue.use(VueRouter);
 Vue.use(Vuetify);
-Vue.use(VueBreadcrumbs, {
-  template: '' +
-  '<v-breadcrumbs divider="/" v-if="$breadcrumbs.length"> ' +
-      '<v-breadcrumbs-item v-for="(crumb, key) in $breadcrumbs" :to="linkProp(crumb)" :key="key">' +
-          '{{ crumb | crumbText }}' +
-      '</v-breadcrumbs-item> ' +
-  '</v-breadcrumbs>'
-});
 
 const routes = [
     {
