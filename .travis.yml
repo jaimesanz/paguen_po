@@ -3,9 +3,7 @@ language: python
 python:
   - "3.5.2"
 
-services: 
-  - postgresql
-  - nodejs
+services:  postgresql
 
 addons:
   postgresql: "9.5"
@@ -20,6 +18,8 @@ install:
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
   - cp paguen_po/config/secrets.json.travisCI paguen_po/config/secrets.json
+  - nvm install 6.9.1
+  - nvm use 6.9.1
 
 script:
   - yarn
