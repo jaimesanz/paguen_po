@@ -20,19 +20,20 @@ from django.conf.urls.static import static
 from django.contrib import admin
 
 from rest_framework.documentation import include_docs_urls
+from rest_framework.authtoken import views
 
 api_urls = [
 
     url(r'^', include('core.urls', namespace='core')),
     url(r'^expenses/', include('expenses.urls', namespace='expenses')),
     url(r'^households/', include('households.urls', namespace='households')),
+    url(r'^token-auth/', views.obtain_auth_token),
 
 ]
 
 urlpatterns = [
 
     url(r'^api/', include(api_urls, namespace='api')),
-
     # django admin page
     url(r'^admin/', admin.site.urls),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
