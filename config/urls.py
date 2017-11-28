@@ -24,9 +24,9 @@ from rest_framework.authtoken import views
 
 api_urls = [
 
-    url(r'^', include('core.urls', namespace='core')),
-    url(r'^expenses/', include('expenses.urls', namespace='expenses')),
-    url(r'^households/', include('households.urls', namespace='households')),
+    url(r'^', include('paguen_po.core.urls', namespace='core')),
+    url(r'^expenses/', include('paguen_po.expenses.urls', namespace='expenses')),
+    url(r'^households/', include('paguen_po.households.urls', namespace='households')),
     url(r'^token-auth/', views.obtain_auth_token),
 
 ]

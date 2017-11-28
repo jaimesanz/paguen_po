@@ -16,10 +16,12 @@ import json
 from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = os.path.join(ROOT_DIR, 'paguen_po')
+CONFIG_DIR = os.path.join(ROOT_DIR, 'config')
 
 # JSON-based secrets module
-with open(os.path.join(BASE_DIR, 'config', 'secrets.json')) as f:
+with open(os.path.join(CONFIG_DIR, 'secrets.json')) as f:
     secrets = json.loads(f.read())
 
 
@@ -44,7 +46,7 @@ ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
-INSTALLED_APPS = [
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -55,11 +57,16 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'rest_framework',
     'rest_framework.authtoken',
-    'corsheaders',
-    'core',
-    'expenses',
-    'households'
+    'corsheaders'
 ]
+
+LOCAL_APPS = [
+    'paguen_po.core',
+    'paguen_po.expenses',
+    'paguen_po.households'
+]
+
+INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',

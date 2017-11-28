@@ -1,5 +1,5 @@
 *.pyc
-paguen_po/config/secrets.json
+config/secrets.json
 uwsgi/*
 media/*
 .idea/
