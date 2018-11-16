@@ -28,7 +28,7 @@ services:
       image: nginx:latest
       container_name: nginx
       ports:
-        - "8000:8000"
+        - "80:8000"
       volumes:
         - staticRoot:/home/static_root
         - mediaRoot:/home/media
