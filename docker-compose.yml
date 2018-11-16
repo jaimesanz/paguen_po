@@ -2,13 +2,43 @@ version: '3'
 
 services:
   db:
-    image: postgres
+    image: postgres:latest
+    container_name: ps
+    expose:
+      - "5432"
+    logging:
+      options:
+        max-size: 50m
   web:
-    build: .
-    command: bash -c "cp paguen_po/config/secrets.json.docker paguen_po/config/secrets.json && make build && make run"
-    volumes:
-      - .:/code
-    ports:
-      - "8000:8000"
+    container_name: paguenpo
     depends_on:
       - db
+    build: .
+    command: bash -c "cp paguen_po/config/secrets.json.docker paguen_po/config/secrets.json && make build && cd paguen_po && uwsgi --http-socket :8000 --module config.wsgi --env DJANGO_SETTINGS_MODULE=config.settings.production"
+    volumes:
+      - staticRoot:/code/paguen_po/static_root/
+      - mediaRoot:/code/paguen_po/media/
+    logging:
+      options:
+        max-size: 50m
+    expose:
+      - "8000"
+
+  nginx:
+      image: nginx:latest
+      container_name: nginx
+      ports:
+        - "8000:8000"
+      volumes:
+        - staticRoot:/home/static_root
+        - mediaRoot:/home/media
+        - ./paguen_po/config/docker:/etc/nginx/conf.d
+      depends_on:
+        - web
+      logging:
+        options:
+          max-size: 50m
+
+volumes:
+  staticRoot:
+  mediaRoot:
